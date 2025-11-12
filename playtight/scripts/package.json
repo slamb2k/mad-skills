@@ -1,0 +1,11 @@
+{
+  "name": "browser-automation-scripts",
+  "version": "1.0.0",
+  "description": "Browser automation scripts using Playwright",
+  "scripts": {
+    "install-browsers": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  }
+}

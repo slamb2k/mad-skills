@@ -1,0 +1,24 @@
+# Node dependencies
+node_modules/
+package-lock.json
+
+# Build artifacts
+*.log
+*.tmp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary extraction directories
+*.skill/
+.claude/skills/skill-creator/scripts/package_skill.py
+
+# Package output directory
+dist/
