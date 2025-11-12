@@ -24,6 +24,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Playtight: 225x more context-efficient than Playwright MCP Server
 - Enables 100+ queries per session vs 2-3 with traditional MCP approach
 
+## [1.1.0] - 2025-11-13
+
+### Added
+- Pixel Pusher skill (UI/UX Design System)
+  - Comprehensive multi-stage design process
+  - Design system extraction from references
+  - HTML mockup generation with design systems
+  - Iterative refinement workflow
+  - Professional design deliverables
+  - Reference templates for personas, user flows, style guides
+  - Accessibility guidelines and best practices
+
 ## [Unreleased]
 
 ### Planned
