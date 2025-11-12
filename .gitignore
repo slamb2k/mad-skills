@@ -20,5 +20,5 @@ Thumbs.db
 *.skill/
 .claude/skills/skill-creator/scripts/package_skill.py
 
-# Package output directory
-dist/
+# Branch protection config (used only for setup)
+.github/branch-protection.json
