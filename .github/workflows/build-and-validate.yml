@@ -1,0 +1,103 @@
+name: Build and Validate
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Validate Playtight skill structure
+      run: |
+        echo "Validating Playtight skill structure..."
+
+        # Check required files exist
+        required_files=(
+          "playtight/SKILL.md"
+          "playtight/scripts/package.json"
+          "playtight/scripts/check-element.js"
+          "playtight/scripts/get-text.js"
+          "playtight/scripts/take-screenshot.js"
+          "playtight/scripts/navigate-and-extract.js"
+          "playtight/assets/browser-investigator-subagent.md"
+          "playtight/references/patterns.md"
+        )
+
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "ERROR: Required file missing: $file"
+            exit 1
+          fi
+          echo "✓ Found: $file"
+        done
+
+    - name: Validate package.json files
+      run: |
+        echo "Validating package.json files..."
+
+        # Validate Playtight scripts package.json
+        if ! jq empty playtight/scripts/package.json 2>/dev/null; then
+          echo "ERROR: playtight/scripts/package.json is not valid JSON"
+          exit 1
+        fi
+        echo "✓ playtight/scripts/package.json is valid JSON"
+
+    - name: Install Playtight dependencies
+      run: |
+        cd playtight/scripts
+        npm install
+
+    - name: Validate scripts execute
+      run: |
+        echo "Validating scripts can execute..."
+
+        # Test that scripts at least parse correctly
+        node -c playtight/scripts/check-element.js
+        node -c playtight/scripts/get-text.js
+        node -c playtight/scripts/take-screenshot.js
+        node -c playtight/scripts/navigate-and-extract.js
+
+        echo "✓ All scripts parse correctly"
+
+    - name: Build skill packages
+      run: |
+        chmod +x scripts/build-skills.sh
+        ./scripts/build-skills.sh
+
+    - name: Verify packaged skills
+      run: |
+        echo "Verifying packaged skills..."
+
+        # Check that dist directory exists and contains expected files
+        if [ ! -d "dist" ]; then
+          echo "ERROR: dist directory not found"
+          exit 1
+        fi
+
+        if [ ! -f "dist/playtight.zip" ]; then
+          echo "ERROR: dist/playtight.zip not found"
+          exit 1
+        fi
+
+        # Verify zip file is valid
+        unzip -t dist/playtight.zip > /dev/null
+        echo "✓ dist/playtight.zip is a valid zip file"
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: skill-packages
+        path: dist/*.zip
+        retention-days: 30

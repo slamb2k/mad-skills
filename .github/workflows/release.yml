@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'VERSION'
+      - 'playtight/**'
+      # Add other skill paths here as they are developed
+      # - 'tempo/**'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Read version
+      id: version
+      run: |
+        VERSION=$(cat VERSION | tr -d '\n')
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "Version: ${VERSION}"
+
+    - name: Check if release exists
+      id: check_release
+      run: |
+        if gh release view "v${{ steps.version.outputs.version }}" > /dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+          echo "Release v${{ steps.version.outputs.version }} already exists"
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+          echo "Release v${{ steps.version.outputs.version }} does not exist"
+        fi
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Install dependencies
+      if: steps.check_release.outputs.exists == 'false'
+      run: |
+        cd playtight/scripts
+        npm install
+
+    - name: Build skill packages
+      if: steps.check_release.outputs.exists == 'false'
+      run: |
+        chmod +x scripts/build-skills.sh
+        ./scripts/build-skills.sh
+
+    - name: Generate release notes
+      if: steps.check_release.outputs.exists == 'false'
+      id: release_notes
+      run: |
+        cat > release-notes.md << 'EOF'
+        # MAD Skills v${{ steps.version.outputs.version }}
+
+        Context-efficient Claude Code skills that replace verbose MCP servers.
+
+        ## Available Skills
+
+        ### Playtight (Browser Automation)
+        - **Replaces:** Playwright MCP Server
+        - **Efficiency:** 225x more context-efficient
+        - **Features:**
+          - Element verification
+          - Text extraction with auto-truncation
+          - Screenshot capture
+          - Structured data extraction
+          - Browser investigator subagent
+
+        ## Installation
+
+        1. Download `playtight.zip` from the assets below
+        2. Extract to `~/.claude/skills/user/`
+        3. Install dependencies:
+           ```bash
+           cd ~/.claude/skills/user/playtight/scripts/
+           npm install
+           npm run install-browsers
+           ```
+
+        ## Documentation
+
+        - [Repository](https://github.com/slamb2k/mad-skills)
+        - [Playtight Documentation](https://github.com/slamb2k/mad-skills/blob/main/playtight/SKILL.md)
+        - [Usage Patterns](https://github.com/slamb2k/mad-skills/blob/main/playtight/references/patterns.md)
+
+        ## What's Changed
+
+        See [CHANGELOG.md](https://github.com/slamb2k/mad-skills/blob/main/CHANGELOG.md) for detailed changes.
+        EOF
+
+    - name: Create GitHub Release
+      if: steps.check_release.outputs.exists == 'false'
+      run: |
+        gh release create "v${{ steps.version.outputs.version }}" \
+          --title "MAD Skills v${{ steps.version.outputs.version }}" \
+          --notes-file release-notes.md \
+          dist/*.zip
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Update latest tag
+      if: steps.check_release.outputs.exists == 'false'
+      run: |
+        git tag -f latest
+        git push origin latest --force
