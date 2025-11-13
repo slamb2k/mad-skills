@@ -49,6 +49,70 @@ node playtight/scripts/get-text.js https://example.com "#content"
 
 ---
 
+### Pixel Pusher - UI/UX Design System
+
+**Version:** 1.1.0
+**Status:** ✅ Available
+**Type:** Workflow/Design Skill
+
+**Category:** UI/UX Design
+**No Download Required** - Copy skill directory directly
+
+#### Overview
+
+A comprehensive UI/UX design skill that transforms vague requirements into polished web interfaces through systematic design thinking and iterative refinement.
+
+#### Features
+- ✅ Multi-stage design process (discovery, design system, mockup, refinement, delivery)
+- ✅ Design system extraction from screenshots/URLs
+- ✅ HTML mockup generation with consistent design tokens
+- ✅ Multiple mockup variations for comparison
+- ✅ Comprehensive reference templates (personas, user flows, style guides)
+- ✅ WCAG 2.1 Level AA accessibility compliance
+- ✅ Responsive design (mobile-first approach)
+
+#### Installation
+```bash
+# Copy directly to skills directory (no packaging needed)
+cp -r pixel-pusher ~/.claude/skills/user/
+
+# No dependencies to install - pure workflow skill
+```
+
+#### Quick Start
+```
+# In Claude Code, simply describe what you want:
+"Design a landing page for my SaaS product"
+"Create a modern dashboard interface"
+"Build a design system from this screenshot" [attach image]
+
+# The skill guides you through:
+1. Requirements gathering
+2. Design system creation
+3. Multiple mockup variations
+4. Iterative refinement
+5. Final deliverables
+```
+
+#### Use Cases
+- Landing page design
+- Web application interfaces
+- Dashboard designs
+- Design system creation
+- UI mockup generation
+- Design inspiration analysis
+
+#### Documentation
+- [Complete Skill Reference](pixel-pusher/SKILL.md)
+- [Design System Layers](pixel-pusher/references/design-system-layers.md)
+- [Accessibility Guidelines](pixel-pusher/references/accessibility-guidelines.md)
+- [Design Best Practices](pixel-pusher/references/design-best-practices.md)
+- [Persona Template](pixel-pusher/references/persona-template.md)
+- [User Flow Template](pixel-pusher/references/user-flow-template.md)
+- [Style Guide Template](pixel-pusher/references/style-guide-template.md)
+
+---
+
 ## Planned Skills
 
 ### Grafana Tempo Telemetry

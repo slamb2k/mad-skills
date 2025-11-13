@@ -16,6 +16,7 @@ This repository serves multiple purposes:
 
 **Available Skills:**
 - **Playtight** (Browser Automation) - ✅ Complete, packaged at `dist/playtight.zip`
+- **Pixel Pusher** (UI/UX Design System) - ✅ Complete, workflow skill (no packaging needed)
 
 **In Development:**
 - **Grafana Tempo Telemetry Skill** - 🚧 Planned
@@ -26,9 +27,20 @@ This repository serves multiple purposes:
 mad-skills/
 ├── README.md                          # Repository overview, usage, design principles
 ├── CLAUDE.md                          # This file - guidance for Claude Code
+├── CHANGELOG.md                       # Release history
+├── LICENSE                            # MIT License
+├── VERSION                            # Semantic version
+├── marketplace.json                   # Plugin marketplace metadata
+├── SKILLS-CATALOG.md                  # Complete skills catalog
 ├── .gitignore                         # Git ignore patterns
 ├── dist/
 │   └── playtight.zip                 # Packaged Playtight skill (ready for distribution)
+├── scripts/
+│   └── build-skills.sh               # Build script for packaging
+├── .github/
+│   └── workflows/
+│       ├── build-and-validate.yml    # CI validation workflow
+│       └── release.yml               # Automated release workflow
 ├── playtight/                        # Playtight skill source
 │   ├── SKILL.md                      # Complete skill reference
 │   ├── scripts/                      # Executable Playwright scripts
@@ -41,6 +53,17 @@ mad-skills/
 │   │   └── browser-investigator-subagent.md  # Subagent definition
 │   └── references/
 │       └── patterns.md               # Common usage patterns
+├── pixel-pusher/                     # Pixel Pusher skill source
+│   ├── SKILL.md                      # Complete skill reference
+│   ├── assets/
+│   │   └── design-system-template.json  # Design system template
+│   └── references/
+│       ├── accessibility-guidelines.md  # WCAG compliance
+│       ├── design-best-practices.md     # Professional design principles
+│       ├── design-system-layers.md      # Component breakdown
+│       ├── persona-template.md          # User persona structure
+│       ├── style-guide-template.md      # Visual reference
+│       └── user-flow-template.md        # User journey mapping
 └── docs/
     └── examples/
         ├── skills-summary.md         # Overview of context-efficiency pattern
@@ -161,6 +184,66 @@ node navigate-and-extract.js <url> '<config-json>'
 - Verification: `{type, status, checks_completed, issues, screenshot_path}`
 - Status check: `{type, url, status, summary}`
 
+## Pixel Pusher Skill Details
+
+### Overview
+
+**Type:** Workflow/Design Skill
+**No scripts or packaging** - Pure workflow guidance skill
+
+Pixel Pusher is a comprehensive UI/UX design skill that guides Claude through systematic design thinking. Unlike script-based skills, this is a **workflow skill** that provides structured guidance for creating professional web interfaces.
+
+### Key Characteristics
+
+- **No executable scripts** - Pure SKILL.md guidance
+- **No packaging needed** - Users copy the skill directory directly
+- **Reference-heavy** - Multiple template files for different design aspects
+- **Multi-stage process** - Structured workflow from discovery to delivery
+
+### Usage Pattern
+
+When users request design work, Claude will:
+1. Invoke pixel-pusher skill automatically
+2. Follow the multi-stage design process
+3. Use reference templates for structured outputs
+4. Guide users through iterative refinement
+
+### Reference Templates (in `pixel-pusher/references/`)
+
+- `design-system-template.json` - Structured design system format
+- `accessibility-guidelines.md` - WCAG 2.1 Level AA compliance
+- `design-best-practices.md` - Professional design principles
+- `design-system-layers.md` - Component breakdown and patterns
+- `persona-template.md` - User persona structure
+- `user-flow-template.md` - User journey mapping
+- `style-guide-template.md` - Visual reference documentation
+
+### Installation
+
+Since this is a workflow skill with no scripts:
+
+```bash
+# Copy directly to skills directory
+cp -r pixel-pusher ~/.claude/skills/user/
+
+# No dependencies to install
+# No build process needed
+```
+
+### Example Usage
+
+```
+User: "Design a landing page for my SaaS product"
+
+Claude invokes pixel-pusher skill and:
+1. Asks discovery questions (purpose, audience, inspiration)
+2. Requests reference designs/screenshots
+3. Extracts design system from references
+4. Generates 2-3 mockup variations as HTML files
+5. Iterates based on feedback
+6. Delivers final design + documentation
+```
+
 ## Critical Design Principles
 
 When modifying or extending skills in this repository:
@@ -237,12 +320,25 @@ Once installed, Claude Code automatically invokes Playtight when performing brow
 
 ## Key Documentation References
 
+### Repository Documentation
 - `README.md` - Repository overview, design principles, and comparison with MCP
+- `CHANGELOG.md` - Release history and version notes
+- `SKILLS-CATALOG.md` - Complete catalog of available skills
+- `marketplace.json` - Plugin marketplace metadata
+- `LICENSE` - MIT License
+
+### Playtight Skill (Browser Automation)
 - `dist/playtight.zip` - Packaged skill ready for distribution
 - `playtight/SKILL.md` - Complete Playtight skill reference
 - `playtight/references/patterns.md` - Common usage patterns
 - `playtight/assets/browser-investigator-subagent.md` - Subagent definition
-- `docs/examples/skills-summary.md` - Overview of context-efficiency pattern
+
+### Pixel Pusher Skill (UI/UX Design)
+- `pixel-pusher/SKILL.md` - Complete Pixel Pusher skill reference
+- `pixel-pusher/assets/design-system-template.json` - Design system template
+- `pixel-pusher/references/accessibility-guidelines.md` - WCAG compliance
+- `pixel-pusher/references/design-best-practices.md` - Professional design principles
+- `pixel-pusher/references/design-system-layers.md` - Component breakdown
 
 ## Working with This Repository
 
