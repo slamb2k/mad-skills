@@ -42,6 +42,7 @@
       ],
       "installation": {
         "file": "playtight.zip",
+        "source": "plugins/mad-skills/skills/playtight",
         "path": "~/.claude/skills/user/playtight/",
         "dependencies": {
           "npm": "playwright@^1.40.0"
@@ -53,9 +54,9 @@
         ]
       },
       "documentation": {
-        "skill": "playtight/SKILL.md",
-        "patterns": "playtight/references/patterns.md",
-        "subagent": "playtight/assets/browser-investigator-subagent.md"
+        "skill": "plugins/mad-skills/skills/playtight/SKILL.md",
+        "patterns": "plugins/mad-skills/skills/playtight/references/patterns.md",
+        "subagent": "plugins/mad-skills/skills/playtight/assets/browser-investigator-subagent.md"
       }
     },
     {
@@ -86,6 +87,7 @@
       ],
       "installation": {
         "type": "copy",
+        "source": "plugins/mad-skills/skills/pixel-pusher",
         "path": "~/.claude/skills/user/pixel-pusher/",
         "dependencies": null,
         "note": "Pure workflow skill - no scripts or dependencies"
@@ -98,10 +100,10 @@
         "UI mockup generation"
       ],
       "documentation": {
-        "skill": "pixel-pusher/SKILL.md",
-        "designSystemLayers": "pixel-pusher/references/design-system-layers.md",
-        "accessibility": "pixel-pusher/references/accessibility-guidelines.md",
-        "bestPractices": "pixel-pusher/references/design-best-practices.md"
+        "skill": "plugins/mad-skills/skills/pixel-pusher/SKILL.md",
+        "designSystemLayers": "plugins/mad-skills/skills/pixel-pusher/references/design-system-layers.md",
+        "accessibility": "plugins/mad-skills/skills/pixel-pusher/references/accessibility-guidelines.md",
+        "bestPractices": "plugins/mad-skills/skills/pixel-pusher/references/design-best-practices.md"
       }
     }
   ],

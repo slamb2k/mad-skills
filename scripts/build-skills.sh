@@ -54,15 +54,14 @@ package_skill() {
     echo "  ✓ Created dist/${skill_name}.zip (${size})"
 }
 
-# Package Playtight skill (has scripts - needs packaging)
-package_skill "playtight" "playtight"
+# Package Playtight skill (script-based skill with npm dependencies)
+package_skill "playtight" "plugins/mad-skills/skills/playtight"
 
-# Note: pixel-pusher is a workflow skill with no scripts
-# Users copy it directly from the repository (no packaging needed)
-# package_skill "pixel-pusher" "pixel-pusher"
+# Package Pixel Pusher skill (workflow skill - no scripts/dependencies)
+package_skill "pixel-pusher" "plugins/mad-skills/skills/pixel-pusher"
 
-# TODO: Add more script-based skills here as they are developed
-# package_skill "tempo" "tempo"
+# TODO: Add more skills here as they are developed
+# package_skill "tempo" "plugins/mad-skills/skills/tempo"
 
 echo ""
 echo "================================"
