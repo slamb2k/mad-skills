@@ -41,7 +41,8 @@ mad-skills/
 │   └── workflows/
 │       ├── build-and-validate.yml    # CI validation workflow
 │       └── release.yml               # Automated release workflow
-├── playtight/                        # Playtight skill source
+├── plugins/mad-skills/skills/
+│   ├── playtight/                    # Playtight skill source
 │   ├── SKILL.md                      # Complete skill reference
 │   ├── scripts/                      # Executable Playwright scripts
 │   │   ├── check-element.js          # Element verification
@@ -53,7 +54,7 @@ mad-skills/
 │   │   └── browser-investigator-subagent.md  # Subagent definition
 │   └── references/
 │       └── patterns.md               # Common usage patterns
-├── pixel-pusher/                     # Pixel Pusher skill source
+│   └── pixel-pusher/                 # Pixel Pusher skill source
 │   ├── SKILL.md                      # Complete skill reference
 │   ├── assets/
 │   │   └── design-system-template.json  # Design system template
@@ -74,7 +75,7 @@ mad-skills/
 
 ### Playtight Script Setup
 ```bash
-cd playtight/scripts/
+cd plugins/mad-skills/skills/playtight/scripts/
 npm install
 npm run install-browsers  # Installs Chromium
 ```
@@ -82,12 +83,12 @@ npm run install-browsers  # Installs Chromium
 ### Testing Playtight Scripts
 ```bash
 # From repository root
-node playtight/scripts/check-element.js https://example.com h1
-node playtight/scripts/get-text.js https://example.com "#content"
-node playtight/scripts/take-screenshot.js https://example.com test.png
+node plugins/mad-skills/skills/playtight/scripts/check-element.js https://example.com h1
+node plugins/mad-skills/skills/playtight/scripts/get-text.js https://example.com "#content"
+node plugins/mad-skills/skills/playtight/scripts/take-screenshot.js https://example.com test.png
 
 # Or cd to scripts directory first
-cd playtight/scripts/
+cd plugins/mad-skills/skills/playtight/scripts/
 node check-element.js https://example.com h1
 node get-text.js https://example.com "#main-content"
 node take-screenshot.js https://example.com test.png
@@ -120,7 +121,7 @@ All skills in this repository follow the same architecture:
 
 ## Playtight Skill Details
 
-### Core Scripts (located in `playtight/scripts/`)
+### Core Scripts (located in `plugins/mad-skills/skills/playtight/scripts/`)
 
 **check-element.js** - Check if element exists and get properties
 ```bash
@@ -161,7 +162,7 @@ node navigate-and-extract.js <url> '<config-json>'
 
 ### Browser Investigator Subagent
 
-**Location:** `playtight/assets/browser-investigator-subagent.md`
+**Location:** `plugins/mad-skills/skills/playtight/assets/browser-investigator-subagent.md`
 
 **Purpose:** Execute complex multi-step browser investigations while isolating verbose responses from parent agent.
 
@@ -293,7 +294,7 @@ The packaged skill is available at `dist/playtight.zip`. To rebuild or create ne
 
 ### Distribution Paths
 - **Packaged Playtight skill:** `dist/playtight.zip`
-- **Source directory:** `playtight/`
+- **Source directory:** `plugins/mad-skills/skills/playtight/`
 - **Installation target:** `~/.claude/skills/user/playtight/`
 
 ## End User Installation
@@ -329,16 +330,16 @@ Once installed, Claude Code automatically invokes Playtight when performing brow
 
 ### Playtight Skill (Browser Automation)
 - `dist/playtight.zip` - Packaged skill ready for distribution
-- `playtight/SKILL.md` - Complete Playtight skill reference
-- `playtight/references/patterns.md` - Common usage patterns
-- `playtight/assets/browser-investigator-subagent.md` - Subagent definition
+- `plugins/mad-skills/skills/playtight/SKILL.md` - Complete Playtight skill reference
+- `plugins/mad-skills/skills/playtight/references/patterns.md` - Common usage patterns
+- `plugins/mad-skills/skills/playtight/assets/browser-investigator-subagent.md` - Subagent definition
 
 ### Pixel Pusher Skill (UI/UX Design)
-- `pixel-pusher/SKILL.md` - Complete Pixel Pusher skill reference
-- `pixel-pusher/assets/design-system-template.json` - Design system template
-- `pixel-pusher/references/accessibility-guidelines.md` - WCAG compliance
-- `pixel-pusher/references/design-best-practices.md` - Professional design principles
-- `pixel-pusher/references/design-system-layers.md` - Component breakdown
+- `plugins/mad-skills/skills/pixel-pusher/SKILL.md` - Complete Pixel Pusher skill reference
+- `plugins/mad-skills/skills/pixel-pusher/assets/design-system-template.json` - Design system template
+- `plugins/mad-skills/skills/pixel-pusher/references/accessibility-guidelines.md` - WCAG compliance
+- `plugins/mad-skills/skills/pixel-pusher/references/design-best-practices.md` - Professional design principles
+- `plugins/mad-skills/skills/pixel-pusher/references/design-system-layers.md` - Component breakdown
 
 ## Working with This Repository
 
@@ -361,7 +362,7 @@ When adding new skills to this repository (e.g., Tempo telemetry):
 
 To test modifications to Playtight scripts:
 
-1. Make changes to the script file in `playtight/scripts/`
+1. Make changes to the script file in `plugins/mad-skills/skills/playtight/scripts/`
 2. Run directly with node (no build step required)
 3. Verify output is compact JSON
 4. Ensure text truncation limits are respected

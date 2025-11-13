@@ -35,17 +35,17 @@ npm run install-browsers
 #### Quick Start
 ```bash
 # Direct script usage
-node playtight/scripts/check-element.js https://example.com h1
-node playtight/scripts/get-text.js https://example.com "#content"
+node plugins/mad-skills/skills/playtight/scripts/check-element.js https://example.com h1
+node plugins/mad-skills/skills/playtight/scripts/get-text.js https://example.com "#content"
 
 # Subagent usage (in Claude Code)
 "Use browser-investigator subagent to find all form fields on example.com/login"
 ```
 
 #### Documentation
-- [Complete Skill Reference](playtight/SKILL.md)
-- [Usage Patterns](playtight/references/patterns.md)
-- [Subagent Guide](playtight/assets/browser-investigator-subagent.md)
+- [Complete Skill Reference](plugins/mad-skills/skills/playtight/SKILL.md)
+- [Usage Patterns](plugins/mad-skills/skills/playtight/references/patterns.md)
+- [Subagent Guide](plugins/mad-skills/skills/playtight/assets/browser-investigator-subagent.md)
 
 ---
 
@@ -103,13 +103,13 @@ cp -r pixel-pusher ~/.claude/skills/user/
 - Design inspiration analysis
 
 #### Documentation
-- [Complete Skill Reference](pixel-pusher/SKILL.md)
-- [Design System Layers](pixel-pusher/references/design-system-layers.md)
-- [Accessibility Guidelines](pixel-pusher/references/accessibility-guidelines.md)
-- [Design Best Practices](pixel-pusher/references/design-best-practices.md)
-- [Persona Template](pixel-pusher/references/persona-template.md)
-- [User Flow Template](pixel-pusher/references/user-flow-template.md)
-- [Style Guide Template](pixel-pusher/references/style-guide-template.md)
+- [Complete Skill Reference](plugins/mad-skills/skills/pixel-pusher/SKILL.md)
+- [Design System Layers](plugins/mad-skills/skills/pixel-pusher/references/design-system-layers.md)
+- [Accessibility Guidelines](plugins/mad-skills/skills/pixel-pusher/references/accessibility-guidelines.md)
+- [Design Best Practices](plugins/mad-skills/skills/pixel-pusher/references/design-best-practices.md)
+- [Persona Template](plugins/mad-skills/skills/pixel-pusher/references/persona-template.md)
+- [User Flow Template](plugins/mad-skills/skills/pixel-pusher/references/user-flow-template.md)
+- [Style Guide Template](plugins/mad-skills/skills/pixel-pusher/references/style-guide-template.md)
 
 ---
 

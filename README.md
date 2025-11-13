@@ -34,8 +34,8 @@ A context-efficient browser automation skill that replaces the Playwright MCP se
 - Browser investigator subagent for complex tasks
 
 **Documentation:**
-- [Skill Reference](playtight/SKILL.md)
-- [Usage Patterns](playtight/references/patterns.md)
+- [Skill Reference](plugins/mad-skills/skills/playtight/SKILL.md)
+- [Usage Patterns](plugins/mad-skills/skills/playtight/references/patterns.md)
 
 **Distribution:**
 - Packaged skill: `dist/playtight.zip` (ready to upload to Claude Code)
@@ -61,10 +61,10 @@ A comprehensive UI/UX design skill that transforms vague requirements into polis
 - Responsive design (mobile-first approach)
 
 **Documentation:**
-- [Skill Reference](pixel-pusher/SKILL.md)
-- [Design System Layers](pixel-pusher/references/design-system-layers.md)
-- [Accessibility Guidelines](pixel-pusher/references/accessibility-guidelines.md)
-- [Design Best Practices](pixel-pusher/references/design-best-practices.md)
+- [Skill Reference](plugins/mad-skills/skills/pixel-pusher/SKILL.md)
+- [Design System Layers](plugins/mad-skills/skills/pixel-pusher/references/design-system-layers.md)
+- [Accessibility Guidelines](plugins/mad-skills/skills/pixel-pusher/references/accessibility-guidelines.md)
+- [Design Best Practices](plugins/mad-skills/skills/pixel-pusher/references/design-best-practices.md)
 
 **Use Cases:**
 - Landing page design
@@ -175,7 +175,8 @@ mad-skills/
 │   └── workflows/
 │       ├── build-and-validate.yml    # CI validation workflow
 │       └── release.yml               # Automated release workflow
-├── playtight/                        # Browser automation skill
+├── plugins/mad-skills/skills/
+│   ├── playtight/                    # Browser automation skill
 │   ├── SKILL.md                      # Complete skill reference
 │   ├── scripts/                      # Executable Playwright scripts
 │   │   ├── check-element.js
@@ -187,7 +188,7 @@ mad-skills/
 │   │   └── browser-investigator-subagent.md
 │   └── references/
 │       └── patterns.md
-└── pixel-pusher/                     # UI/UX design skill
+│   └── pixel-pusher/                 # UI/UX design skill
     ├── SKILL.md                      # Complete skill reference
     ├── assets/
     │   └── design-system-template.json
@@ -237,7 +238,7 @@ cp -r pixel-pusher ~/.claude/skills/user/
 
 **Running Scripts Directly:**
 ```bash
-cd playtight/scripts/
+cd plugins/mad-skills/skills/playtight/scripts/
 node check-element.js https://example.com h1
 node get-text.js https://example.com "#content"
 node take-screenshot.js https://example.com screenshot.png
@@ -273,11 +274,11 @@ When building or modifying skills in this repository:
 ## Documentation
 
 ### Skills Documentation
-- [Playtight Skill Reference](playtight/SKILL.md) - Complete Playtight documentation
-- [Playtight Usage Patterns](playtight/references/patterns.md) - Common usage patterns
-- [Pixel Pusher Skill Reference](pixel-pusher/SKILL.md) - Complete Pixel Pusher documentation
-- [Design System Layers](pixel-pusher/references/design-system-layers.md) - Component breakdown
-- [Accessibility Guidelines](pixel-pusher/references/accessibility-guidelines.md) - WCAG compliance
+- [Playtight Skill Reference](plugins/mad-skills/skills/playtight/SKILL.md) - Complete Playtight documentation
+- [Playtight Usage Patterns](plugins/mad-skills/skills/playtight/references/patterns.md) - Common usage patterns
+- [Pixel Pusher Skill Reference](plugins/mad-skills/skills/pixel-pusher/SKILL.md) - Complete Pixel Pusher documentation
+- [Design System Layers](plugins/mad-skills/skills/pixel-pusher/references/design-system-layers.md) - Component breakdown
+- [Accessibility Guidelines](plugins/mad-skills/skills/pixel-pusher/references/accessibility-guidelines.md) - WCAG compliance
 
 ### Repository Documentation
 - [SKILLS-CATALOG.md](SKILLS-CATALOG.md) - Complete catalog of available skills
