@@ -25,14 +25,38 @@ jobs:
 
         # Check required files exist
         required_files=(
-          "playtight/SKILL.md"
-          "playtight/scripts/package.json"
-          "playtight/scripts/check-element.js"
-          "playtight/scripts/get-text.js"
-          "playtight/scripts/take-screenshot.js"
-          "playtight/scripts/navigate-and-extract.js"
-          "playtight/assets/browser-investigator-subagent.md"
-          "playtight/references/patterns.md"
+          "plugins/mad-skills/skills/playtight/SKILL.md"
+          "plugins/mad-skills/skills/playtight/scripts/package.json"
+          "plugins/mad-skills/skills/playtight/scripts/check-element.js"
+          "plugins/mad-skills/skills/playtight/scripts/get-text.js"
+          "plugins/mad-skills/skills/playtight/scripts/take-screenshot.js"
+          "plugins/mad-skills/skills/playtight/scripts/navigate-and-extract.js"
+          "plugins/mad-skills/skills/playtight/assets/browser-investigator-subagent.md"
+          "plugins/mad-skills/skills/playtight/references/patterns.md"
+        )
+
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "ERROR: Required file missing: $file"
+            exit 1
+          fi
+          echo "✓ Found: $file"
+        done
+
+    - name: Validate Pixel Pusher skill structure
+      run: |
+        echo "Validating Pixel Pusher skill structure..."
+
+        # Check required files exist
+        required_files=(
+          "plugins/mad-skills/skills/pixel-pusher/SKILL.md"
+          "plugins/mad-skills/skills/pixel-pusher/assets/design-system-template.json"
+          "plugins/mad-skills/skills/pixel-pusher/references/accessibility-guidelines.md"
+          "plugins/mad-skills/skills/pixel-pusher/references/design-best-practices.md"
+          "plugins/mad-skills/skills/pixel-pusher/references/design-system-layers.md"
+          "plugins/mad-skills/skills/pixel-pusher/references/persona-template.md"
+          "plugins/mad-skills/skills/pixel-pusher/references/style-guide-template.md"
+          "plugins/mad-skills/skills/pixel-pusher/references/user-flow-template.md"
         )
 
         for file in "${required_files[@]}"; do
@@ -48,15 +72,22 @@ jobs:
         echo "Validating package.json files..."
 
         # Validate Playtight scripts package.json
-        if ! jq empty playtight/scripts/package.json 2>/dev/null; then
-          echo "ERROR: playtight/scripts/package.json is not valid JSON"
+        if ! jq empty plugins/mad-skills/skills/playtight/scripts/package.json 2>/dev/null; then
+          echo "ERROR: plugins/mad-skills/skills/playtight/scripts/package.json is not valid JSON"
           exit 1
         fi
-        echo "✓ playtight/scripts/package.json is valid JSON"
+        echo "✓ plugins/mad-skills/skills/playtight/scripts/package.json is valid JSON"
+
+        # Validate Pixel Pusher design system template
+        if ! jq empty plugins/mad-skills/skills/pixel-pusher/assets/design-system-template.json 2>/dev/null; then
+          echo "ERROR: plugins/mad-skills/skills/pixel-pusher/assets/design-system-template.json is not valid JSON"
+          exit 1
+        fi
+        echo "✓ plugins/mad-skills/skills/pixel-pusher/assets/design-system-template.json is valid JSON"
 
     - name: Install Playtight dependencies
       run: |
-        cd playtight/scripts
+        cd plugins/mad-skills/skills/playtight/scripts
         npm install
 
     - name: Validate scripts execute
@@ -64,10 +95,10 @@ jobs:
         echo "Validating scripts can execute..."
 
         # Test that scripts at least parse correctly
-        node -c playtight/scripts/check-element.js
-        node -c playtight/scripts/get-text.js
-        node -c playtight/scripts/take-screenshot.js
-        node -c playtight/scripts/navigate-and-extract.js
+        node -c plugins/mad-skills/skills/playtight/scripts/check-element.js
+        node -c plugins/mad-skills/skills/playtight/scripts/get-text.js
+        node -c plugins/mad-skills/skills/playtight/scripts/take-screenshot.js
+        node -c plugins/mad-skills/skills/playtight/scripts/navigate-and-extract.js
 
         echo "✓ All scripts parse correctly"
 
@@ -91,9 +122,17 @@ jobs:
           exit 1
         fi
 
-        # Verify zip file is valid
+        if [ ! -f "dist/pixel-pusher.zip" ]; then
+          echo "ERROR: dist/pixel-pusher.zip not found"
+          exit 1
+        fi
+
+        # Verify zip files are valid
         unzip -t dist/playtight.zip > /dev/null
         echo "✓ dist/playtight.zip is a valid zip file"
+
+        unzip -t dist/pixel-pusher.zip > /dev/null
+        echo "✓ dist/pixel-pusher.zip is a valid zip file"
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
