@@ -54,10 +54,14 @@ package_skill() {
     echo "  ✓ Created dist/${skill_name}.zip (${size})"
 }
 
-# Package Playtight skill
+# Package Playtight skill (has scripts - needs packaging)
 package_skill "playtight" "playtight"
 
-# TODO: Add more skills here as they are developed
+# Note: pixel-pusher is a workflow skill with no scripts
+# Users copy it directly from the repository (no packaging needed)
+# package_skill "pixel-pusher" "pixel-pusher"
+
+# TODO: Add more script-based skills here as they are developed
 # package_skill "tempo" "tempo"
 
 echo ""

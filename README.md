@@ -16,7 +16,7 @@ This approach enables 100+ queries per session instead of exhausting context aft
 
 ### Playtight (Browser Automation)
 
-**Replaces:** Playwright MCP Server  
+**Replaces:** Playwright MCP Server
 **Status:** ✅ Available
 
 A context-efficient browser automation skill that replaces the Playwright MCP server. Instead of returning 50KB+ HTML accessibility trees per interaction, Playtight provides:
@@ -39,6 +39,39 @@ A context-efficient browser automation skill that replaces the Playwright MCP se
 
 **Distribution:**
 - Packaged skill: `dist/playtight.zip` (ready to upload to Claude Code)
+
+### Pixel Pusher (UI/UX Design System)
+
+**Type:** Workflow/Design Skill
+**Status:** ✅ Available
+
+A comprehensive UI/UX design skill that transforms vague requirements into polished web interfaces through systematic design thinking and iterative refinement. Unlike traditional ad-hoc design approaches, Pixel Pusher provides:
+
+- Structured multi-stage design process
+- Design system extraction from references
+- Multiple mockup variations for comparison
+- Professional deliverables with accessibility compliance
+
+**Key Features:**
+- Multi-stage workflow (discovery, design system, mockup, refinement, delivery)
+- Design system extraction from screenshots/URLs
+- HTML mockup generation with consistent design tokens
+- Comprehensive reference templates (personas, user flows, style guides)
+- WCAG 2.1 Level AA accessibility compliance
+- Responsive design (mobile-first approach)
+
+**Documentation:**
+- [Skill Reference](pixel-pusher/SKILL.md)
+- [Design System Layers](pixel-pusher/references/design-system-layers.md)
+- [Accessibility Guidelines](pixel-pusher/references/accessibility-guidelines.md)
+- [Design Best Practices](pixel-pusher/references/design-best-practices.md)
+
+**Use Cases:**
+- Landing page design
+- Web application interfaces
+- Dashboard designs
+- Design system creation
+- UI mockup generation
 
 ## Coming Soon
 
@@ -128,9 +161,20 @@ Result: 225x more efficient than MCP
 mad-skills/
 ├── README.md                          # This file
 ├── CLAUDE.md                          # Guidance for Claude Code
+├── CHANGELOG.md                       # Release history
+├── LICENSE                            # MIT License
+├── VERSION                            # Semantic version
+├── marketplace.json                   # Plugin marketplace metadata
+├── SKILLS-CATALOG.md                  # Complete skills catalog
 ├── .gitignore
 ├── dist/
 │   └── playtight.zip                 # Packaged Playtight skill
+├── scripts/
+│   └── build-skills.sh               # Build script for packaging
+├── .github/
+│   └── workflows/
+│       ├── build-and-validate.yml    # CI validation workflow
+│       └── release.yml               # Automated release workflow
 ├── playtight/                        # Browser automation skill
 │   ├── SKILL.md                      # Complete skill reference
 │   ├── scripts/                      # Executable Playwright scripts
@@ -143,38 +187,76 @@ mad-skills/
 │   │   └── browser-investigator-subagent.md
 │   └── references/
 │       └── patterns.md
+└── pixel-pusher/                     # UI/UX design skill
+    ├── SKILL.md                      # Complete skill reference
+    ├── assets/
+    │   └── design-system-template.json
+    └── references/
+        ├── accessibility-guidelines.md
+        ├── design-best-practices.md
+        ├── design-system-layers.md
+        ├── persona-template.md
+        ├── style-guide-template.md
+        └── user-flow-template.md
 ```
 
 ## Quick Start
 
+### Installing Skills
+
+**From GitHub Releases** (Recommended):
+```bash
+# Download from latest release
+wget https://github.com/slamb2k/mad-skills/releases/latest/download/playtight.zip
+
+# Extract to Claude skills directory
+unzip playtight.zip -d ~/.claude/skills/user/
+
+# Install dependencies (for Playtight)
+cd ~/.claude/skills/user/playtight/scripts/
+npm install
+npm run install-browsers
+```
+
+**From Repository**:
+```bash
+# Clone the repository
+git clone https://github.com/slamb2k/mad-skills.git
+cd mad-skills
+
+# Copy skill to Claude directory
+cp -r playtight ~/.claude/skills/user/
+cp -r pixel-pusher ~/.claude/skills/user/
+```
+
 ### Using Playtight
 
-1. **Install the skill:**
-   ```bash
-   # Download playtight.zip from dist/
-   # Upload to Claude Code or extract to your skills directory
-   unzip dist/playtight.zip -d ~/.claude/skills/user/
-   ```
+**In Claude Code:**
+- Direct script: `"Check if the login button exists on example.com"`
+- Subagent: `"Use browser-investigator subagent to find all form fields on example.com/login"`
 
-2. **Install dependencies:**
-   ```bash
-   cd ~/.claude/skills/user/playtight/scripts/
-   npm install
-   npm run install-browsers
-   ```
-
-3. **Use in Claude Code:**
-   - Direct script: `"Check if the login button exists on example.com"`
-   - Subagent: `"Use browser-investigator subagent to find all form fields on example.com/login"`
-
-### Running Scripts Directly
-
+**Running Scripts Directly:**
 ```bash
 cd playtight/scripts/
 node check-element.js https://example.com h1
 node get-text.js https://example.com "#content"
 node take-screenshot.js https://example.com screenshot.png
 ```
+
+### Using Pixel Pusher
+
+**In Claude Code:**
+Simply describe what you want to design:
+- `"Design a landing page for my SaaS product"`
+- `"Create a modern dashboard interface"`
+- `"Build a design system from this screenshot"` (attach image)
+
+The skill will guide you through:
+1. Requirements gathering
+2. Design system creation
+3. Multiple mockup variations
+4. Iterative refinement
+5. Final deliverables
 
 ## Design Principles
 
@@ -190,7 +272,17 @@ When building or modifying skills in this repository:
 
 ## Documentation
 
+### Skills Documentation
 - [Playtight Skill Reference](playtight/SKILL.md) - Complete Playtight documentation
+- [Playtight Usage Patterns](playtight/references/patterns.md) - Common usage patterns
+- [Pixel Pusher Skill Reference](pixel-pusher/SKILL.md) - Complete Pixel Pusher documentation
+- [Design System Layers](pixel-pusher/references/design-system-layers.md) - Component breakdown
+- [Accessibility Guidelines](pixel-pusher/references/accessibility-guidelines.md) - WCAG compliance
+
+### Repository Documentation
+- [SKILLS-CATALOG.md](SKILLS-CATALOG.md) - Complete catalog of available skills
+- [CHANGELOG.md](CHANGELOG.md) - Release history and version notes
+- [CLAUDE.md](CLAUDE.md) - Guidance for Claude Code when working in this repo
 
 ## Contributing
 
@@ -204,7 +296,7 @@ This repository demonstrates a pattern for building context-efficient Claude Cod
 
 ## License
 
-[Add your license here]
+MIT License - See [LICENSE](LICENSE) file for details
 
 ## Related
 
