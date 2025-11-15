@@ -1,13 +1,16 @@
 # MAD Skills Catalog
 
-Complete catalog of available context-efficient Claude Code skills.
+Complete catalog of Claude Code skills organized into two plugins: debug-skills (MCP alternatives) and design-skills (workflow tools).
 
-## Available Skills
+## Debug Skills
+
+Context-optimized alternatives to verbose MCP debugging tools.
 
 ### Playtight - Browser Automation
 
 **Version:** 1.0.0
 **Status:** ✅ Available
+**Plugin:** debug-skills
 
 **Replaces:** Playwright MCP Server
 **Context Efficiency:** 225x more efficient
@@ -48,13 +51,16 @@ node playtight/scripts/get-text.js https://example.com "#content"
 
 ---
 
+## Design Skills
+
+Professional UI/UX design workflows and design system tools.
+
 ### Pixel Pusher - UI/UX Design System
 
 **Version:** 1.1.0
 **Status:** ✅ Available
+**Plugin:** design-skills
 **Type:** Workflow/Design Skill
-
-**Category:** UI/UX Design
 
 #### Overview
 
@@ -103,11 +109,12 @@ A comprehensive UI/UX design skill that transforms vague requirements into polis
 
 ---
 
-## Planned Skills
+## Planned Skills (Debug Skills)
 
 ### Grafana Tempo Telemetry
 
 **Status:** 🚧 In Development
+**Plugin:** debug-skills
 **Estimated Release:** TBD
 
 **Replaces:** Grafana Tempo MCP Server

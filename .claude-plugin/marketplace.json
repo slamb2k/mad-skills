@@ -5,15 +5,23 @@
     "email": "slamb2k@users.noreply.github.com"
   },
   "version": "1.1.0",
-  "description": "Context-efficient Claude Code skills that replace verbose MCP servers",
+  "description": "Context-efficient Claude Code skills including debugging tools and design workflows",
   "plugins": [
     {
-      "name": "mad-skills",
-      "description": "Browser automation and UI/UX design skills optimized for minimal context usage",
+      "name": "debug-skills",
+      "description": "Context-optimized alternatives to common MCP-based debugging tools",
       "source": "./",
       "strict": false,
       "skills": [
-        "./playtight",
+        "./playtight"
+      ]
+    },
+    {
+      "name": "design-skills",
+      "description": "Professional UI/UX design workflows and design system tools",
+      "source": "./",
+      "strict": false,
+      "skills": [
         "./pixel-pusher"
       ]
     }

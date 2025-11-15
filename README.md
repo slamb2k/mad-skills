@@ -1,23 +1,32 @@
 # MAD Skills
 
-**M**CP **A**lternative **D**evelopment Skills - Context-efficient Claude Code skills that replace verbose MCP servers with smart querying and context isolation.
+Context-efficient Claude Code skills for debugging and design workflows.
 
 ## Overview
 
-This repository contains Claude Code skills designed to replace MCP (Model Context Protocol) servers that consume excessive amounts of the context window. Instead of flooding context with verbose tool definitions and broad analysis, these skills use:
+This repository contains two categories of Claude Code skills:
 
-- **Filtered scripts** that return compact JSON summaries
+### Debug Skills
+Context-optimized alternatives to verbose MCP (Model Context Protocol) servers. Instead of flooding context with 50KB+ responses, these debugging tools use:
+
+- **Filtered scripts** that return compact JSON summaries (< 500 bytes)
 - **Subagent patterns** for context isolation during complex investigations
 - **Smart querying** to retrieve only relevant data
 
-This approach enables 100+ queries per session instead of exhausting context after just 2-3 operations.
+This approach enables 100+ queries per session instead of exhausting context after just 2-3 operations with traditional MCP servers.
+
+### Design Skills
+Professional UI/UX design workflows that guide systematic design thinking, from requirements gathering through final deliverables.
 
 ## Current Skills
 
-### Playtight (Browser Automation)
+### Debug Skills
+
+#### Playtight (Browser Automation)
 
 **Replaces:** Playwright MCP Server
 **Status:** ✅ Available
+**Plugin:** debug-skills
 
 A context-efficient browser automation skill that replaces the Playwright MCP server. Instead of returning 50KB+ HTML accessibility trees per interaction, Playtight provides:
 
@@ -37,17 +46,15 @@ A context-efficient browser automation skill that replaces the Playwright MCP se
 - [Skill Reference](playtight/SKILL.md)
 - [Usage Patterns](playtight/references/patterns.md)
 
-### Pixel Pusher (UI/UX Design System)
+### Design Skills
+
+#### Pixel Pusher (UI/UX Design System)
 
 **Type:** Workflow/Design Skill
 **Status:** ✅ Available
+**Plugin:** design-skills
 
-A comprehensive UI/UX design skill that transforms vague requirements into polished web interfaces through systematic design thinking and iterative refinement. Unlike traditional ad-hoc design approaches, Pixel Pusher provides:
-
-- Structured multi-stage design process
-- Design system extraction from references
-- Multiple mockup variations for comparison
-- Professional deliverables with accessibility compliance
+A comprehensive UI/UX design skill that transforms vague requirements into polished web interfaces through systematic design thinking and iterative refinement.
 
 **Key Features:**
 - Multi-stage workflow (discovery, design system, mockup, refinement, delivery)
@@ -70,12 +77,13 @@ A comprehensive UI/UX design skill that transforms vague requirements into polis
 - Design system creation
 - UI mockup generation
 
-## Coming Soon
+## Coming Soon (Debug Skills)
 
 ### Grafana Tempo Telemetry Skill
 
-**Replaces:** Grafana Tempo MCP Server  
+**Replaces:** Grafana Tempo MCP Server
 **Status:** 🚧 In Development
+**Plugin:** debug-skills
 
 A context-efficient telemetry investigation skill that replaces the Tempo MCP server. Instead of returning 5MB+ trace payloads with thousands of spans, this skill will provide:
 
@@ -91,25 +99,25 @@ A context-efficient telemetry investigation skill that replaces the Tempo MCP se
 - Error pattern analysis (`analyze-errors.js`)
 - Telemetry investigator subagent for complex investigations
 
-## The Problem
+## Debug Skills Architecture
 
-Traditional MCP servers have significant context window issues:
+### The Problem with Traditional MCP Servers
 
-### Playwright MCP Issues
+MCP debugging tools have significant context window issues:
+
+**Playwright MCP Issues:**
 - Returns 50KB+ HTML accessibility trees per interaction
 - Floods context with verbose DOM structures and JavaScript
 - Multiple queries exhaust context window after just 2-3 operations
 - No built-in filtering means massive irrelevant data consumption
 
-### Tempo MCP Issues
+**Tempo MCP Issues:**
 - Returns 5MB+ trace payloads per query
 - Floods context with thousands of spans
 - No built-in filtering = irrelevant data
 - Multiple queries = context window exhaustion
 
-## The Solution
-
-### Three-Layer Architecture
+### The Solution: Three-Layer Architecture
 
 1. **Filtered Scripts** (bash/nodejs)
    - Direct API/CLI access with controlled output
@@ -248,7 +256,9 @@ The skill will guide you through:
 
 ## Design Principles
 
-When building or modifying skills in this repository:
+### Debug Skills Principles
+
+When building or modifying debug skills (script-based tools):
 
 1. **Never Return Raw Data** - Always return structured JSON with specific fields
 2. **Truncate Everything** - Text: 100-2000 chars, errors: 100 chars
@@ -257,6 +267,15 @@ When building or modifying skills in this repository:
 5. **Use Subagent for Verbosity** - Complex exploration happens in isolated context
 6. **Headless by Default** - All scripts use headless mode for performance
 7. **Timeout Protection** - Reasonable timeouts to avoid hangs
+
+### Design Skills Principles
+
+When building or modifying design skills (workflow-based tools):
+
+1. **Systematic Process** - Guide users through structured workflows
+2. **Progressive Disclosure** - Use reference templates loaded only when needed
+3. **Professional Standards** - Follow industry best practices (WCAG, responsive design, etc.)
+4. **Iterative Refinement** - Support multiple variations and feedback loops
 
 ## Documentation
 
@@ -274,13 +293,21 @@ When building or modifying skills in this repository:
 
 ## Contributing
 
-This repository demonstrates a pattern for building context-efficient Claude Code skills. When adding new skills:
+This repository demonstrates patterns for building Claude Code skills in two categories:
 
+**For Debug Skills (MCP alternatives):**
 1. Follow the three-layer architecture (filtered scripts, direct execution, subagent isolation)
 2. Ensure all scripts return compact JSON summaries
 3. Include subagent definitions for complex tasks
 4. Document usage patterns and examples
-5. Provide installation and setup instructions
+
+**For Design Skills (workflow-based):**
+1. Create structured SKILL.md with clear multi-stage processes
+2. Provide reference templates for common patterns
+3. Include examples and use cases
+4. Document best practices
+
+When adding new skills, place them in the appropriate plugin (debug-skills or design-skills) in `.claude-plugin/marketplace.json`.
 
 ## License
 

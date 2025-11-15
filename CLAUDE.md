@@ -4,21 +4,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-**MAD Skills** (MCP Alternative Development Skills) is a repository containing context-efficient Claude Code skills that replace verbose MCP servers with smart querying and context isolation.
+**MAD Skills** is a repository containing Claude Code skills organized into two plugins:
+
+1. **debug-skills** - Context-optimized alternatives to verbose MCP debugging tools
+2. **design-skills** - Professional UI/UX design workflows
 
 This repository serves multiple purposes:
-- Claude Code plugin containing context-efficient skills
-- Documentation and examples of the context-efficiency pattern
-- Template for creating similar skills (Tempo telemetry, Kubernetes, etc.)
+- Claude Code plugin marketplace containing two distinct skill categories
+- Documentation and examples of context-efficient debugging patterns
+- Template for creating similar skills
 
 ## Current Status
 
-**Available Skills:**
-- **Playtight** (Browser Automation) - ✅ Complete
-- **Pixel Pusher** (UI/UX Design System) - ✅ Complete
+**Debug Skills (debug-skills plugin):**
+- **Playtight** (Browser Automation) - ✅ Complete - Replaces Playwright MCP Server
+
+**Design Skills (design-skills plugin):**
+- **Pixel Pusher** (UI/UX Design System) - ✅ Complete - Workflow-based design tool
 
 **In Development:**
-- **Grafana Tempo Telemetry Skill** - 🚧 Planned
+- **Grafana Tempo Telemetry Skill** - 🚧 Planned (debug-skills plugin)
 
 ## Project Structure
 
@@ -282,18 +287,30 @@ Result: 225x more efficient than MCP
 
 ### Adding New Skills
 
-When adding new skills to this repository (e.g., Tempo telemetry):
+When adding new skills to this repository:
+
+**For Debug Skills (MCP alternatives like Tempo telemetry):**
 
 1. Create skill directory at repository root (e.g., `tempo/`)
-2. Follow the three-layer architecture pattern
+2. Follow the three-layer architecture pattern (filtered scripts, direct execution, subagent)
 3. Include:
    - `SKILL.md` - Complete skill reference
-   - `scripts/` - Filtered scripts with compact JSON output (if needed)
-   - `assets/` - Subagent definitions (if needed)
+   - `scripts/` - Filtered scripts with compact JSON output
+   - `assets/` - Subagent definitions
    - `references/` - Usage patterns and examples
-4. Add skill to `.claude-plugin/marketplace.json`
+4. Add skill to `debug-skills` plugin in `.claude-plugin/marketplace.json`
 5. Update this CLAUDE.md with new skill details
 6. Update README.md with skill overview
+
+**For Design Skills (workflow-based tools):**
+
+1. Create skill directory at repository root
+2. Include:
+   - `SKILL.md` - Structured workflow guide
+   - `assets/` - Templates and examples
+   - `references/` - Best practices and guidelines
+3. Add skill to `design-skills` plugin in `.claude-plugin/marketplace.json`
+4. Update this CLAUDE.md and README.md with skill details
 
 ### Testing Changes
 
