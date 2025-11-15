@@ -91,10 +91,11 @@ mockup-2-minimal.html  - Clean, spacious, minimal approach
 mockup-3-playful.html  - Dynamic, engaging approach
 ```
 
-Save all mockups to `/mnt/user-data/outputs/` and present them with:
+Save all mockups to `design-outputs/` directory in the current project and present them with:
 - Brief description of each approach
 - Key differentiators
 - Recommended use cases for each style
+- Full file paths so users can open them in their browser
 
 ### Stage 4: Feedback & Refinement
 
@@ -150,8 +151,8 @@ For detailed guidance on each design system layer, read:
 
 **Always create files, never just show code:**
 - Generate actual HTML files users can open in browsers
-- Save all outputs to `/mnt/user-data/outputs/`
-- Provide computer:// links for easy access
+- Save all outputs to `design-outputs/` directory in the current project
+- Provide full file paths so users can open files directly in their browser
 
 **Maintain design system integrity:**
 - Every color used must be in the design system
