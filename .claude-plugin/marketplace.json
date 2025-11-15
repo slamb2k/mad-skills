@@ -10,11 +10,12 @@
     {
       "name": "mad-skills",
       "description": "Browser automation and UI/UX design skills optimized for minimal context usage",
-      "modules": [
-        "playtight",
-        "pixel-pusher"
-      ],
-      "strict": false
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./playtight",
+        "./pixel-pusher"
+      ]
     }
   ]
 }
