@@ -1,120 +1,20 @@
 {
   "name": "mad-skills",
-  "displayName": "MAD Skills",
-  "description": "Context-efficient Claude Code skills that replace verbose MCP servers with smart querying and context isolation",
+  "owner": {
+    "name": "slamb2k",
+    "email": "slamb2k@users.noreply.github.com"
+  },
   "version": "1.1.0",
-  "publisher": "slamb2k",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/slamb2k/mad-skills"
-  },
-  "homepage": "https://github.com/slamb2k/mad-skills",
-  "bugs": {
-    "url": "https://github.com/slamb2k/mad-skills/issues"
-  },
-  "license": "MIT",
-  "skills": [
+  "description": "Context-efficient Claude Code skills that replace verbose MCP servers",
+  "plugins": [
     {
-      "id": "playtight",
-      "name": "Playtight",
-      "displayName": "Playtight - Browser Automation",
-      "description": "Context-efficient browser automation skill that replaces Playwright MCP Server",
-      "version": "1.0.0",
-      "category": "automation",
-      "tags": ["browser", "playwright", "automation", "testing", "web"],
-      "replaces": "Playwright MCP Server",
-      "efficiency": "225x more context-efficient",
-      "features": [
-        "Element verification",
-        "Text extraction with auto-truncation",
-        "Screenshot capture",
-        "Structured data extraction",
-        "Browser investigator subagent for complex tasks"
+      "name": "mad-skills",
+      "description": "Browser automation and UI/UX design skills optimized for minimal context usage",
+      "modules": [
+        "playtight",
+        "pixel-pusher"
       ],
-      "scripts": [
-        "check-element.js",
-        "get-text.js",
-        "take-screenshot.js",
-        "navigate-and-extract.js"
-      ],
-      "subagents": [
-        "browser-investigator"
-      ],
-      "installation": {
-        "file": "playtight.zip",
-        "source": "plugins/mad-skills/skills/playtight",
-        "path": "~/.claude/skills/user/playtight/",
-        "dependencies": {
-          "npm": "playwright@^1.40.0"
-        },
-        "postInstall": [
-          "cd ~/.claude/skills/user/playtight/scripts/",
-          "npm install",
-          "npm run install-browsers"
-        ]
-      },
-      "documentation": {
-        "skill": "plugins/mad-skills/skills/playtight/SKILL.md",
-        "patterns": "plugins/mad-skills/skills/playtight/references/patterns.md",
-        "subagent": "plugins/mad-skills/skills/playtight/assets/browser-investigator-subagent.md"
-      }
-    },
-    {
-      "id": "pixel-pusher",
-      "name": "Pixel Pusher",
-      "displayName": "Pixel Pusher - UI/UX Design System",
-      "description": "Comprehensive UI/UX design skill that transforms requirements into polished web interfaces through systematic design thinking",
-      "version": "1.1.0",
-      "category": "design",
-      "type": "workflow",
-      "tags": ["ui", "ux", "design", "design-system", "mockup", "web-design", "accessibility"],
-      "features": [
-        "Multi-stage design process (discovery, design system, mockup, refinement, delivery)",
-        "Design system extraction from screenshots/URLs",
-        "HTML mockup generation with consistent design tokens",
-        "Multiple mockup variations for comparison",
-        "WCAG 2.1 Level AA accessibility compliance",
-        "Responsive design (mobile-first)"
-      ],
-      "referenceTemplates": [
-        "design-system-template.json",
-        "accessibility-guidelines.md",
-        "design-best-practices.md",
-        "design-system-layers.md",
-        "persona-template.md",
-        "user-flow-template.md",
-        "style-guide-template.md"
-      ],
-      "installation": {
-        "type": "copy",
-        "source": "plugins/mad-skills/skills/pixel-pusher",
-        "path": "~/.claude/skills/user/pixel-pusher/",
-        "dependencies": null,
-        "note": "Pure workflow skill - no scripts or dependencies"
-      },
-      "useCases": [
-        "Landing page design",
-        "Web application interfaces",
-        "Dashboard designs",
-        "Design system creation",
-        "UI mockup generation"
-      ],
-      "documentation": {
-        "skill": "plugins/mad-skills/skills/pixel-pusher/SKILL.md",
-        "designSystemLayers": "plugins/mad-skills/skills/pixel-pusher/references/design-system-layers.md",
-        "accessibility": "plugins/mad-skills/skills/pixel-pusher/references/accessibility-guidelines.md",
-        "bestPractices": "plugins/mad-skills/skills/pixel-pusher/references/design-best-practices.md"
-      }
-    }
-  ],
-  "planned": [
-    {
-      "id": "tempo",
-      "name": "Grafana Tempo Telemetry",
-      "description": "Context-efficient telemetry investigation skill",
-      "status": "planned",
-      "replaces": "Grafana Tempo MCP Server",
-      "estimatedEfficiency": "800x more context-efficient"
+      "strict": false
     }
   ]
 }

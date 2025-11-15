@@ -30,52 +30,49 @@ mad-skills/
 ├── CHANGELOG.md                       # Release history
 ├── LICENSE                            # MIT License
 ├── VERSION                            # Semantic version
-├── marketplace.json                   # Plugin marketplace metadata
 ├── SKILLS-CATALOG.md                  # Complete skills catalog
 ├── .gitignore                         # Git ignore patterns
+├── .claude-plugin/
+│   └── marketplace.json               # Plugin marketplace metadata
 ├── dist/
-│   └── playtight.zip                 # Packaged Playtight skill (ready for distribution)
+│   ├── playtight.zip                  # Packaged Playtight skill
+│   └── pixel-pusher.zip               # Packaged Pixel Pusher skill
 ├── scripts/
-│   └── build-skills.sh               # Build script for packaging
+│   └── build-skills.sh                # Build script for packaging
 ├── .github/
 │   └── workflows/
-│       ├── build-and-validate.yml    # CI validation workflow
-│       └── release.yml               # Automated release workflow
-├── plugins/mad-skills/skills/
-│   ├── playtight/                    # Playtight skill source
-│   ├── SKILL.md                      # Complete skill reference
-│   ├── scripts/                      # Executable Playwright scripts
-│   │   ├── check-element.js          # Element verification
-│   │   ├── get-text.js               # Text extraction with truncation
-│   │   ├── take-screenshot.js        # Screenshot capture
-│   │   ├── navigate-and-extract.js   # Structured data extraction
-│   │   └── package.json              # npm dependencies
+│       ├── build-and-validate.yml     # CI validation workflow
+│       └── release.yml                # Automated release workflow
+├── playtight/                         # Playtight skill source
+│   ├── SKILL.md                       # Complete skill reference
+│   ├── scripts/                       # Executable Playwright scripts
+│   │   ├── check-element.js           # Element verification
+│   │   ├── get-text.js                # Text extraction with truncation
+│   │   ├── take-screenshot.js         # Screenshot capture
+│   │   ├── navigate-and-extract.js    # Structured data extraction
+│   │   └── package.json               # npm dependencies
 │   ├── assets/
 │   │   └── browser-investigator-subagent.md  # Subagent definition
 │   └── references/
-│       └── patterns.md               # Common usage patterns
-│   └── pixel-pusher/                 # Pixel Pusher skill source
-│   ├── SKILL.md                      # Complete skill reference
-│   ├── assets/
-│   │   └── design-system-template.json  # Design system template
-│   └── references/
-│       ├── accessibility-guidelines.md  # WCAG compliance
-│       ├── design-best-practices.md     # Professional design principles
-│       ├── design-system-layers.md      # Component breakdown
-│       ├── persona-template.md          # User persona structure
-│       ├── style-guide-template.md      # Visual reference
-│       └── user-flow-template.md        # User journey mapping
-└── docs/
-    └── examples/
-        ├── skills-summary.md         # Overview of context-efficiency pattern
-        └── tempo-skill-installation.md  # Tempo skill (planned)
+│       └── patterns.md                # Common usage patterns
+└── pixel-pusher/                      # Pixel Pusher skill source
+    ├── SKILL.md                       # Complete skill reference
+    ├── assets/
+    │   └── design-system-template.json  # Design system template
+    └── references/
+        ├── accessibility-guidelines.md  # WCAG compliance
+        ├── design-best-practices.md     # Professional design principles
+        ├── design-system-layers.md      # Component breakdown
+        ├── persona-template.md          # User persona structure
+        ├── style-guide-template.md      # Visual reference
+        └── user-flow-template.md        # User journey mapping
 ```
 
 ## Development Commands
 
 ### Playtight Script Setup
 ```bash
-cd plugins/mad-skills/skills/playtight/scripts/
+cd playtight/scripts/
 npm install
 npm run install-browsers  # Installs Chromium
 ```
@@ -83,12 +80,12 @@ npm run install-browsers  # Installs Chromium
 ### Testing Playtight Scripts
 ```bash
 # From repository root
-node plugins/mad-skills/skills/playtight/scripts/check-element.js https://example.com h1
-node plugins/mad-skills/skills/playtight/scripts/get-text.js https://example.com "#content"
-node plugins/mad-skills/skills/playtight/scripts/take-screenshot.js https://example.com test.png
+node playtight/scripts/check-element.js https://example.com h1
+node playtight/scripts/get-text.js https://example.com "#content"
+node playtight/scripts/take-screenshot.js https://example.com test.png
 
 # Or cd to scripts directory first
-cd plugins/mad-skills/skills/playtight/scripts/
+cd playtight/scripts/
 node check-element.js https://example.com h1
 node get-text.js https://example.com "#main-content"
 node take-screenshot.js https://example.com test.png
@@ -121,7 +118,7 @@ All skills in this repository follow the same architecture:
 
 ## Playtight Skill Details
 
-### Core Scripts (located in `plugins/mad-skills/skills/playtight/scripts/`)
+### Core Scripts (located in `playtight/scripts/`)
 
 **check-element.js** - Check if element exists and get properties
 ```bash
@@ -162,7 +159,7 @@ node navigate-and-extract.js <url> '<config-json>'
 
 ### Browser Investigator Subagent
 
-**Location:** `plugins/mad-skills/skills/playtight/assets/browser-investigator-subagent.md`
+**Location:** `playtight/assets/browser-investigator-subagent.md`
 
 **Purpose:** Execute complex multi-step browser investigations while isolating verbose responses from parent agent.
 
@@ -294,7 +291,7 @@ The packaged skill is available at `dist/playtight.zip`. To rebuild or create ne
 
 ### Distribution Paths
 - **Packaged Playtight skill:** `dist/playtight.zip`
-- **Source directory:** `plugins/mad-skills/skills/playtight/`
+- **Source directory:** `playtight/`
 - **Installation target:** `~/.claude/skills/user/playtight/`
 
 ## End User Installation
@@ -330,16 +327,16 @@ Once installed, Claude Code automatically invokes Playtight when performing brow
 
 ### Playtight Skill (Browser Automation)
 - `dist/playtight.zip` - Packaged skill ready for distribution
-- `plugins/mad-skills/skills/playtight/SKILL.md` - Complete Playtight skill reference
-- `plugins/mad-skills/skills/playtight/references/patterns.md` - Common usage patterns
-- `plugins/mad-skills/skills/playtight/assets/browser-investigator-subagent.md` - Subagent definition
+- `playtight/SKILL.md` - Complete Playtight skill reference
+- `playtight/references/patterns.md` - Common usage patterns
+- `playtight/assets/browser-investigator-subagent.md` - Subagent definition
 
 ### Pixel Pusher Skill (UI/UX Design)
-- `plugins/mad-skills/skills/pixel-pusher/SKILL.md` - Complete Pixel Pusher skill reference
-- `plugins/mad-skills/skills/pixel-pusher/assets/design-system-template.json` - Design system template
-- `plugins/mad-skills/skills/pixel-pusher/references/accessibility-guidelines.md` - WCAG compliance
-- `plugins/mad-skills/skills/pixel-pusher/references/design-best-practices.md` - Professional design principles
-- `plugins/mad-skills/skills/pixel-pusher/references/design-system-layers.md` - Component breakdown
+- `pixel-pusher/SKILL.md` - Complete Pixel Pusher skill reference
+- `pixel-pusher/assets/design-system-template.json` - Design system template
+- `pixel-pusher/references/accessibility-guidelines.md` - WCAG compliance
+- `pixel-pusher/references/design-best-practices.md` - Professional design principles
+- `pixel-pusher/references/design-system-layers.md` - Component breakdown
 
 ## Working with This Repository
 
@@ -362,7 +359,7 @@ When adding new skills to this repository (e.g., Tempo telemetry):
 
 To test modifications to Playtight scripts:
 
-1. Make changes to the script file in `plugins/mad-skills/skills/playtight/scripts/`
+1. Make changes to the script file in `playtight/scripts/`
 2. Run directly with node (no build step required)
 3. Verify output is compact JSON
 4. Ensure text truncation limits are respected

@@ -5,10 +5,10 @@ on:
     branches: [ main ]
     paths:
       - 'VERSION'
-      - 'plugins/mad-skills/skills/playtight/**'
-      - 'plugins/mad-skills/skills/pixel-pusher/**'
+      - 'playtight/**'
+      - 'pixel-pusher/**'
       # Add other skill paths here as they are developed
-      # - 'plugins/mad-skills/skills/tempo/**'
+      # - 'tempo/**'
 
 permissions:
   contents: write
@@ -52,7 +52,7 @@ jobs:
     - name: Install dependencies
       if: steps.check_release.outputs.exists == 'false'
       run: |
-        cd plugins/mad-skills/skills/playtight/scripts
+        cd playtight/scripts
         npm install
 
     - name: Build skill packages
@@ -111,8 +111,8 @@ jobs:
         ## Documentation
 
         - [Repository](https://github.com/slamb2k/mad-skills)
-        - [Playtight Documentation](https://github.com/slamb2k/mad-skills/blob/main/plugins/mad-skills/skills/playtight/SKILL.md)
-        - [Pixel Pusher Documentation](https://github.com/slamb2k/mad-skills/blob/main/plugins/mad-skills/skills/pixel-pusher/SKILL.md)
+        - [Playtight Documentation](https://github.com/slamb2k/mad-skills/blob/main/playtight/SKILL.md)
+        - [Pixel Pusher Documentation](https://github.com/slamb2k/mad-skills/blob/main/pixel-pusher/SKILL.md)
         - [Skills Catalog](https://github.com/slamb2k/mad-skills/blob/main/SKILLS-CATALOG.md)
 
         ## What's Changed

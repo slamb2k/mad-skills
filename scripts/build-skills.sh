@@ -55,13 +55,13 @@ package_skill() {
 }
 
 # Package Playtight skill (script-based skill with npm dependencies)
-package_skill "playtight" "plugins/mad-skills/skills/playtight"
+package_skill "playtight" "playtight"
 
 # Package Pixel Pusher skill (workflow skill - no scripts/dependencies)
-package_skill "pixel-pusher" "plugins/mad-skills/skills/pixel-pusher"
+package_skill "pixel-pusher" "pixel-pusher"
 
 # TODO: Add more skills here as they are developed
-# package_skill "tempo" "plugins/mad-skills/skills/tempo"
+# package_skill "tempo" "tempo"
 
 echo ""
 echo "================================"
