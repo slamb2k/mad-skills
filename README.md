@@ -203,27 +203,25 @@ mad-skills/
 
 ## Installation
 
-This repository is a Claude Code plugin. Install it using one of these methods:
+### Claude Code
 
-### Method 1: Clone Repository (Recommended)
+1. Run the marketplace command: `"/plugin marketplace add slamb2k/mad-skills"`
+2. Select "Browse and install plugins"
+3. Select "mad-skills"
+4. Choose either "debug-skills" or "design-skills" (or both)
+5. Select "Install now"
+
+**For Playtight (debug-skills):** After installation, install dependencies:
 ```bash
-# Clone to your Claude Code plugins directory
-git clone https://github.com/slamb2k/mad-skills.git ~/.claude/plugins/mad-skills
-
-# Install Playtight dependencies
 cd ~/.claude/plugins/mad-skills/playtight/scripts
 npm install
 npm run install-browsers
 ```
 
-### Method 2: Add as Plugin Marketplace
-In Claude Code, add this repository as a marketplace:
-1. Open Claude Code settings
-2. Navigate to Plugins
-3. Add marketplace: `https://github.com/slamb2k/mad-skills`
-4. Install the skills you need
-
-Skills will be automatically available in Claude Code once installed.
+Alternatively, you can install directly:
+```bash
+git clone https://github.com/slamb2k/mad-skills.git ~/.claude/plugins/mad-skills
+```
 
 ### Using Playtight
 

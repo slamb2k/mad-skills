@@ -17,6 +17,21 @@ You have access to these browser automation scripts:
 
 All scripts return compact, structured JSON - never raw HTML or verbose accessibility trees.
 
+## Browser Detection
+
+**BEFORE running any script for the first time**, check if browsers are installed:
+
+```bash
+node -e "const { chromium } = require('playwright'); chromium.executablePath()" 2>&1
+```
+
+**If this fails**:
+1. Install npm dependencies if missing: `cd ~/.claude/plugins/mad-skills/playtight/scripts && npm install`
+2. Install browsers: `npm run install-browsers`
+3. Inform parent agent that setup was needed (include in your summary)
+
+**Skip this check** if you've already successfully run a script in this session.
+
 ## Process
 
 1. **Receive Task**: Parent agent delegates browser automation task

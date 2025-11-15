@@ -132,21 +132,22 @@ A comprehensive UI/UX design skill that transforms vague requirements into polis
 
 ## Installation
 
-This is a Claude Code plugin. See the main [README](README.md) for installation instructions.
+### Claude Code
 
-### Quick Summary
+1. Run the marketplace command: `"/plugin marketplace add slamb2k/mad-skills"`
+2. Select "Browse and install plugins"
+3. Select "mad-skills"
+4. Choose either "debug-skills" or "design-skills" (or both)
+5. Select "Install now"
 
+**For Playtight (debug-skills):** After installation, install dependencies:
 ```bash
-# Clone to Claude Code plugins directory
-git clone https://github.com/slamb2k/mad-skills.git ~/.claude/plugins/mad-skills
-
-# Install Playtight dependencies (if using Playtight)
 cd ~/.claude/plugins/mad-skills/playtight/scripts
 npm install
 npm run install-browsers
 ```
 
-Skills will be automatically available in Claude Code once the plugin is installed.
+For detailed installation instructions, see the main [README](README.md).
 
 ---
 

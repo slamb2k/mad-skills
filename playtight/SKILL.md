@@ -17,6 +17,47 @@ Use Playtight when you need to:
 - Automate repetitive browser tasks
 - Validate web application behavior
 
+## Automatic Browser Detection
+
+**IMPORTANT**: Before using any Playtight script, automatically check if Playwright browsers are installed.
+
+### Detection Process
+
+1. **Check for browser installation** by running:
+```bash
+node -e "const { chromium } = require('playwright'); chromium.executablePath()" 2>&1
+```
+
+2. **If the check fails** (exit code non-zero or error message):
+   - Inform the user that Playwright browsers need to be installed
+   - Offer to run the installation: "I can install the required browsers by running `npm run install-browsers` in the scripts directory. Would you like me to do that?"
+   - If user agrees, run:
+   ```bash
+   cd ~/.claude/plugins/mad-skills/playtight/scripts && npm run install-browsers
+   ```
+
+3. **If npm dependencies are missing** (error about 'playwright' module not found):
+   - First install npm dependencies: `cd ~/.claude/plugins/mad-skills/playtight/scripts && npm install`
+   - Then install browsers: `npm run install-browsers`
+
+### Example Detection Flow
+
+```bash
+# First attempt to use a script
+node scripts/check-element.js https://example.com h1
+
+# If error mentions "browserType.launch: Executable doesn't exist"
+# Or "Cannot find module 'playwright'"
+
+# Then detect and offer installation:
+"I see that Playwright browsers aren't installed yet. I can install them now by running 'npm run install-browsers'. This will download Chromium (~100MB). Would you like me to proceed?"
+
+# On user approval:
+cd ~/.claude/plugins/mad-skills/playtight/scripts && npm install && npm run install-browsers
+```
+
+**When to skip detection**: If you've already successfully run a Playtight script in the current session, browsers are installed and you can skip detection.
+
 ## Two Approaches
 
 ### Approach 1: Direct Script Execution (Simple Tasks)
@@ -364,11 +405,29 @@ When modifying or extending this skill:
 
 ## Troubleshooting
 
-### Script errors
-Check that Playwright is installed: `npm list playwright`
+### Browser not found / "Executable doesn't exist"
+This should be automatically detected (see "Automatic Browser Detection" section above). If you encounter this error:
 
-### Browser not found
-Run: `npm run install-browsers` in scripts directory
+1. Check if npm dependencies are installed:
+```bash
+cd ~/.claude/plugins/mad-skills/playtight/scripts
+npm list playwright
+```
+
+2. If playwright is missing, install dependencies:
+```bash
+npm install
+```
+
+3. Install browsers:
+```bash
+npm run install-browsers
+```
+
+The automatic detection should offer to do this for you when you first use the skill.
+
+### Script errors
+Check that Playwright is installed: `npm list playwright` in the scripts directory
 
 ### Element not found
 - Verify selector is correct
