@@ -1,0 +1,29 @@
+{
+  "name": "mad-skills",
+  "owner": {
+    "name": "slamb2k",
+    "email": "slamb2k@users.noreply.github.com"
+  },
+  "version": "1.1.0",
+  "description": "Claude Code skills including context-efficient debugging tools and design workflows",
+  "plugins": [
+    {
+      "name": "debug-skills",
+      "description": "Context-optimized alternatives to common MCP-based debugging tools",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./playtight"
+      ]
+    },
+    {
+      "name": "design-skills",
+      "description": "Professional UI/UX design workflows and design system tools",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./pixel-pusher"
+      ]
+    }
+  ]
+}

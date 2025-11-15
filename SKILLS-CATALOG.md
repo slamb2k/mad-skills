@@ -1,14 +1,16 @@
 # MAD Skills Catalog
 
-Complete catalog of available context-efficient Claude Code skills.
+Complete catalog of Claude Code skills organized into two plugins: debug-skills (MCP alternatives) and design-skills (workflow tools).
 
-## Available Skills
+## Debug Skills
+
+Context-optimized alternatives to verbose MCP debugging tools.
 
 ### Playtight - Browser Automation
 
 **Version:** 1.0.0
 **Status:** ✅ Available
-**Download:** [playtight.zip](https://github.com/slamb2k/mad-skills/releases/latest/download/playtight.zip)
+**Plugin:** debug-skills
 
 **Replaces:** Playwright MCP Server
 **Context Efficiency:** 225x more efficient
@@ -22,12 +24,12 @@ Complete catalog of available context-efficient Claude Code skills.
 - ✅ Browser investigator subagent for complex tasks
 
 #### Installation
-```bash
-# Download and extract
-unzip playtight.zip -d ~/.claude/skills/user/
 
+Install the MAD Skills plugin in Claude Code (see main README), then install Playtight dependencies:
+
+```bash
 # Install dependencies
-cd ~/.claude/skills/user/playtight/scripts/
+cd ~/.claude/plugins/mad-skills/playtight/scripts/
 npm install
 npm run install-browsers
 ```
@@ -49,18 +51,20 @@ node playtight/scripts/get-text.js https://example.com "#content"
 
 ---
 
+## Design Skills
+
+Professional UI/UX design workflows and design system tools.
+
 ### Pixel Pusher - UI/UX Design System
 
 **Version:** 1.1.0
 **Status:** ✅ Available
+**Plugin:** design-skills
 **Type:** Workflow/Design Skill
-
-**Category:** UI/UX Design
-**No Download Required** - Copy skill directory directly
 
 #### Overview
 
-A comprehensive UI/UX design skill that transforms vague requirements into polished web interfaces through systematic design thinking and iterative refinement.
+A comprehensive UI/UX design skill that transforms vague requirements into polished web interfaces through systematic design thinking and iterative refinement. Pure workflow skill with no dependencies - available immediately after plugin installation.
 
 #### Features
 - ✅ Multi-stage design process (discovery, design system, mockup, refinement, delivery)
@@ -70,14 +74,6 @@ A comprehensive UI/UX design skill that transforms vague requirements into polis
 - ✅ Comprehensive reference templates (personas, user flows, style guides)
 - ✅ WCAG 2.1 Level AA accessibility compliance
 - ✅ Responsive design (mobile-first approach)
-
-#### Installation
-```bash
-# Copy directly to skills directory (no packaging needed)
-cp -r pixel-pusher ~/.claude/skills/user/
-
-# No dependencies to install - pure workflow skill
-```
 
 #### Quick Start
 ```
@@ -113,11 +109,12 @@ cp -r pixel-pusher ~/.claude/skills/user/
 
 ---
 
-## Planned Skills
+## Planned Skills (Debug Skills)
 
 ### Grafana Tempo Telemetry
 
 **Status:** 🚧 In Development
+**Plugin:** debug-skills
 **Estimated Release:** TBD
 
 **Replaces:** Grafana Tempo MCP Server
@@ -133,46 +130,23 @@ cp -r pixel-pusher ~/.claude/skills/user/
 
 ---
 
-## Installation Guide
+## Installation
 
-### Prerequisites
-- Claude Code installed
-- Node.js 18+ (for skills with npm dependencies)
-- Git (for cloning repository)
+This is a Claude Code plugin. See the main [README](README.md) for installation instructions.
 
-### General Installation Pattern
+### Quick Summary
 
-1. **Download the skill package** from [Releases](https://github.com/slamb2k/mad-skills/releases/latest)
+```bash
+# Clone to Claude Code plugins directory
+git clone https://github.com/slamb2k/mad-skills.git ~/.claude/plugins/mad-skills
 
-2. **Extract to Claude skills directory:**
-   ```bash
-   unzip <skill-name>.zip -d ~/.claude/skills/user/
-   ```
+# Install Playtight dependencies (if using Playtight)
+cd ~/.claude/plugins/mad-skills/playtight/scripts
+npm install
+npm run install-browsers
+```
 
-3. **Install dependencies** (if the skill has a `scripts/package.json`):
-   ```bash
-   cd ~/.claude/skills/user/<skill-name>/scripts/
-   npm install
-   ```
-
-4. **Run post-install commands** (check skill documentation for specifics)
-
-5. **Verify installation:**
-   - Skills appear automatically in Claude Code
-   - No manual activation needed
-   - Claude recognizes skill patterns from `SKILL.md`
-
-### Updating Skills
-
-To update to a newer version:
-
-1. **Backup your current installation** (if you made customizations)
-2. **Download the new version** from releases
-3. **Remove old version:**
-   ```bash
-   rm -rf ~/.claude/skills/user/<skill-name>
-   ```
-4. **Follow installation steps** above
+Skills will be automatically available in Claude Code once the plugin is installed.
 
 ---
 

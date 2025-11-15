@@ -16,9 +16,11 @@ Thumbs.db
 *.swp
 *.swo
 
+# Claude Code local files
+.claude/
+
 # Temporary extraction directories
 *.skill/
-.claude/skills/skill-creator/scripts/package_skill.py
 
 # Branch protection config (used only for setup)
 .github/branch-protection.json
