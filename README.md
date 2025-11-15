@@ -37,9 +37,6 @@ A context-efficient browser automation skill that replaces the Playwright MCP se
 - [Skill Reference](playtight/SKILL.md)
 - [Usage Patterns](playtight/references/patterns.md)
 
-**Distribution:**
-- Packaged skill: `dist/playtight.zip` (ready to upload to Claude Code)
-
 ### Pixel Pusher (UI/UX Design System)
 
 **Type:** Workflow/Design Skill
@@ -168,15 +165,9 @@ mad-skills/
 ├── .gitignore
 ├── .claude-plugin/
 │   └── marketplace.json               # Plugin marketplace metadata
-├── dist/
-│   ├── playtight.zip                  # Packaged Playtight skill
-│   └── pixel-pusher.zip               # Packaged Pixel Pusher skill
-├── scripts/
-│   └── build-skills.sh                # Build script for packaging
 ├── .github/
 │   └── workflows/
-│       ├── build-and-validate.yml     # CI validation workflow
-│       └── release.yml                # Automated release workflow
+│       └── validate.yml               # Validation workflow
 ├── playtight/                         # Browser automation skill
 │   ├── SKILL.md                       # Complete skill reference
 │   ├── scripts/                       # Executable Playwright scripts
@@ -202,34 +193,29 @@ mad-skills/
         └── user-flow-template.md
 ```
 
-## Quick Start
+## Installation
 
-### Installing Skills
+This repository is a Claude Code plugin. Install it using one of these methods:
 
-**From GitHub Releases** (Recommended):
+### Method 1: Clone Repository (Recommended)
 ```bash
-# Download from latest release
-wget https://github.com/slamb2k/mad-skills/releases/latest/download/playtight.zip
+# Clone to your Claude Code plugins directory
+git clone https://github.com/slamb2k/mad-skills.git ~/.claude/plugins/mad-skills
 
-# Extract to Claude skills directory
-unzip playtight.zip -d ~/.claude/skills/user/
-
-# Install dependencies (for Playtight)
-cd ~/.claude/skills/user/playtight/scripts/
+# Install Playtight dependencies
+cd ~/.claude/plugins/mad-skills/playtight/scripts
 npm install
 npm run install-browsers
 ```
 
-**From Repository**:
-```bash
-# Clone the repository
-git clone https://github.com/slamb2k/mad-skills.git
-cd mad-skills
+### Method 2: Add as Plugin Marketplace
+In Claude Code, add this repository as a marketplace:
+1. Open Claude Code settings
+2. Navigate to Plugins
+3. Add marketplace: `https://github.com/slamb2k/mad-skills`
+4. Install the skills you need
 
-# Copy skill to Claude directory
-cp -r playtight ~/.claude/skills/user/
-cp -r pixel-pusher ~/.claude/skills/user/
-```
+Skills will be automatically available in Claude Code once installed.
 
 ### Using Playtight
 

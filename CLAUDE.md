@@ -7,16 +7,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **MAD Skills** (MCP Alternative Development Skills) is a repository containing context-efficient Claude Code skills that replace verbose MCP servers with smart querying and context isolation.
 
 This repository serves multiple purposes:
-- Development environment for context-efficient skills
-- Distribution point for packaged skills (in `dist/`)
+- Claude Code plugin containing context-efficient skills
 - Documentation and examples of the context-efficiency pattern
-- Template for building similar skills (Tempo telemetry, Kubernetes, etc.)
+- Template for creating similar skills (Tempo telemetry, Kubernetes, etc.)
 
 ## Current Status
 
 **Available Skills:**
-- **Playtight** (Browser Automation) - ✅ Complete, packaged at `dist/playtight.zip`
-- **Pixel Pusher** (UI/UX Design System) - ✅ Complete, workflow skill (no packaging needed)
+- **Playtight** (Browser Automation) - ✅ Complete
+- **Pixel Pusher** (UI/UX Design System) - ✅ Complete
 
 **In Development:**
 - **Grafana Tempo Telemetry Skill** - 🚧 Planned
@@ -34,15 +33,9 @@ mad-skills/
 ├── .gitignore                         # Git ignore patterns
 ├── .claude-plugin/
 │   └── marketplace.json               # Plugin marketplace metadata
-├── dist/
-│   ├── playtight.zip                  # Packaged Playtight skill
-│   └── pixel-pusher.zip               # Packaged Pixel Pusher skill
-├── scripts/
-│   └── build-skills.sh                # Build script for packaging
 ├── .github/
 │   └── workflows/
-│       ├── build-and-validate.yml     # CI validation workflow
-│       └── release.yml                # Automated release workflow
+│       └── validate.yml               # Validation workflow
 ├── playtight/                         # Playtight skill source
 │   ├── SKILL.md                       # Complete skill reference
 │   ├── scripts/                       # Executable Playwright scripts
@@ -187,14 +180,12 @@ node navigate-and-extract.js <url> '<config-json>'
 ### Overview
 
 **Type:** Workflow/Design Skill
-**No scripts or packaging** - Pure workflow guidance skill
 
-Pixel Pusher is a comprehensive UI/UX design skill that guides Claude through systematic design thinking. Unlike script-based skills, this is a **workflow skill** that provides structured guidance for creating professional web interfaces.
+Pixel Pusher is a comprehensive UI/UX design skill that guides Claude through systematic design thinking. Unlike script-based skills like Playtight, this is a **workflow skill** that provides structured guidance for creating professional web interfaces.
 
 ### Key Characteristics
 
-- **No executable scripts** - Pure SKILL.md guidance
-- **No packaging needed** - Users copy the skill directory directly
+- **No executable scripts** - Pure SKILL.md guidance with reference templates
 - **Reference-heavy** - Multiple template files for different design aspects
 - **Multi-stage process** - Structured workflow from discovery to delivery
 
@@ -215,18 +206,6 @@ When users request design work, Claude will:
 - `persona-template.md` - User persona structure
 - `user-flow-template.md` - User journey mapping
 - `style-guide-template.md` - Visual reference documentation
-
-### Installation
-
-Since this is a workflow skill with no scripts:
-
-```bash
-# Copy directly to skills directory
-cp -r pixel-pusher ~/.claude/skills/user/
-
-# No dependencies to install
-# No build process needed
-```
 
 ### Example Usage
 
@@ -278,55 +257,16 @@ Parent Receives: {type: "element_location", ...} = 80 tokens
 Result: 225x more efficient than MCP
 ```
 
-## Packaging and Distribution
-
-### Creating Distribution Packages
-
-The packaged skill is available at `dist/playtight.zip`. To rebuild or create new skill packages:
-
-1. Ensure skill directory structure is correct
-2. Package with appropriate tool (zip, tar, etc.)
-3. Place in `dist/` directory
-4. Update documentation with correct path
-
-### Distribution Paths
-- **Packaged Playtight skill:** `dist/playtight.zip`
-- **Source directory:** `playtight/`
-- **Installation target:** `~/.claude/skills/user/playtight/`
-
-## End User Installation
-
-For users installing Playtight:
-
-```bash
-# Download playtight.zip from dist/ directory
-# Upload to Claude Code or extract to your skills directory
-
-# Manual installation:
-unzip dist/playtight.zip -d ~/.claude/skills/user/
-
-# Install dependencies:
-cd ~/.claude/skills/user/playtight/scripts/
-npm install
-npm run install-browsers
-```
-
-Once installed, Claude Code automatically invokes Playtight when performing browser automation tasks:
-- "Check if the login button exists on example.com"
-- "Extract the title from this webpage"
-- "Use browser-investigator subagent to find all form fields"
-
 ## Key Documentation References
 
 ### Repository Documentation
 - `README.md` - Repository overview, design principles, and comparison with MCP
 - `CHANGELOG.md` - Release history and version notes
 - `SKILLS-CATALOG.md` - Complete catalog of available skills
-- `marketplace.json` - Plugin marketplace metadata
+- `.claude-plugin/marketplace.json` - Plugin marketplace metadata
 - `LICENSE` - MIT License
 
 ### Playtight Skill (Browser Automation)
-- `dist/playtight.zip` - Packaged skill ready for distribution
 - `playtight/SKILL.md` - Complete Playtight skill reference
 - `playtight/references/patterns.md` - Common usage patterns
 - `playtight/assets/browser-investigator-subagent.md` - Subagent definition
@@ -348,10 +288,10 @@ When adding new skills to this repository (e.g., Tempo telemetry):
 2. Follow the three-layer architecture pattern
 3. Include:
    - `SKILL.md` - Complete skill reference
-   - `scripts/` - Filtered scripts with compact JSON output
-   - `assets/` - Subagent definitions
+   - `scripts/` - Filtered scripts with compact JSON output (if needed)
+   - `assets/` - Subagent definitions (if needed)
    - `references/` - Usage patterns and examples
-4. Package skill to `dist/{skillname}.zip`
+4. Add skill to `.claude-plugin/marketplace.json`
 5. Update this CLAUDE.md with new skill details
 6. Update README.md with skill overview
 
