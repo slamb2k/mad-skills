@@ -34,7 +34,6 @@ mad-skills/
 ├── CHANGELOG.md                       # Release history
 ├── LICENSE                            # MIT License
 ├── VERSION                            # Semantic version
-├── SKILLS-CATALOG.md                  # Complete skills catalog
 ├── .gitignore                         # Git ignore patterns
 ├── .claude-plugin/
 │   └── marketplace.json               # Plugin marketplace metadata
@@ -265,9 +264,8 @@ Result: 225x more efficient than MCP
 ## Key Documentation References
 
 ### Repository Documentation
-- `README.md` - Repository overview, design principles, and comparison with MCP
+- `README.md` - Repository overview, design principles, catalog, and comparison with MCP
 - `CHANGELOG.md` - Release history and version notes
-- `SKILLS-CATALOG.md` - Complete catalog of available skills
 - `.claude-plugin/marketplace.json` - Plugin marketplace metadata
 - `LICENSE` - MIT License
 

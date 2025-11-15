@@ -22,53 +22,77 @@ Professional UI/UX design workflows that guide systematic design thinking, from 
 
 ### Debug Skills
 
-#### Playtight (Browser Automation)
+Context-optimized alternatives to verbose MCP debugging tools.
 
-**Replaces:** Playwright MCP Server
+#### Playtight - Browser Automation
+
+**Version:** 1.0.0
 **Status:** ✅ Available
 **Plugin:** debug-skills
 
-A context-efficient browser automation skill that replaces the Playwright MCP server. Instead of returning 50KB+ HTML accessibility trees per interaction, Playtight provides:
+**Replaces:** Playwright MCP Server
+**Context Efficiency:** 225x more efficient
+**Typical Response Size:** < 500 bytes vs 50KB+ with MCP
 
-- Compact script responses (< 500 bytes typical)
-- Auto-truncated text extraction
-- Subagent isolation for complex page exploration
-- **225x more context-efficient** than the MCP approach
+A context-efficient browser automation skill that replaces the Playwright MCP server. Instead of returning 50KB+ HTML accessibility trees per interaction, Playtight provides compact script responses and automatic browser detection.
 
-**Key Features:**
-- Element verification (`check-element.js`)
-- Text extraction with truncation (`get-text.js`)
-- Screenshot capture (`take-screenshot.js`)
-- Structured data extraction (`navigate-and-extract.js`)
-- Browser investigator subagent for complex tasks
+**Features:**
+- ✅ Element verification (`check-element.js`)
+- ✅ Text extraction with auto-truncation (`get-text.js`)
+- ✅ Screenshot capture (`take-screenshot.js`)
+- ✅ Structured data extraction (`navigate-and-extract.js`)
+- ✅ Browser investigator subagent for complex tasks
+- ✅ Automatic browser installation detection
+
+**Quick Start:**
+```bash
+# In Claude Code, simply ask:
+"Check if the login button exists on example.com"
+"Extract the title from example.com"
+"Use browser-investigator subagent to find all form fields on example.com/login"
+```
 
 **Documentation:**
 - [Skill Reference](playtight/SKILL.md)
 - [Usage Patterns](playtight/references/patterns.md)
+- [Subagent Guide](playtight/assets/browser-investigator-subagent.md)
 
 ### Design Skills
 
-#### Pixel Pusher (UI/UX Design System)
+Professional UI/UX design workflows and design system tools.
 
-**Type:** Workflow/Design Skill
+#### Pixel Pusher - UI/UX Design System
+
+**Version:** 1.1.0
 **Status:** ✅ Available
 **Plugin:** design-skills
+**Type:** Workflow/Design Skill
 
-A comprehensive UI/UX design skill that transforms vague requirements into polished web interfaces through systematic design thinking and iterative refinement.
+A comprehensive UI/UX design skill that transforms vague requirements into polished web interfaces through systematic design thinking and iterative refinement. Pure workflow skill with no dependencies - available immediately after plugin installation.
 
-**Key Features:**
-- Multi-stage workflow (discovery, design system, mockup, refinement, delivery)
-- Design system extraction from screenshots/URLs
-- HTML mockup generation with consistent design tokens
-- Comprehensive reference templates (personas, user flows, style guides)
-- WCAG 2.1 Level AA accessibility compliance
-- Responsive design (mobile-first approach)
+**Features:**
+- ✅ Multi-stage design process (discovery, design system, mockup, refinement, delivery)
+- ✅ Design system extraction from screenshots/URLs
+- ✅ HTML mockup generation with consistent design tokens
+- ✅ Multiple mockup variations for comparison
+- ✅ Comprehensive reference templates (personas, user flows, style guides)
+- ✅ WCAG 2.1 Level AA accessibility compliance
+- ✅ Responsive design (mobile-first approach)
 
-**Documentation:**
-- [Skill Reference](pixel-pusher/SKILL.md)
-- [Design System Layers](pixel-pusher/references/design-system-layers.md)
-- [Accessibility Guidelines](pixel-pusher/references/accessibility-guidelines.md)
-- [Design Best Practices](pixel-pusher/references/design-best-practices.md)
+**Quick Start:**
+```
+# In Claude Code, simply describe what you want:
+"Design a landing page for my SaaS product"
+"Create a modern dashboard interface"
+"Build a design system from this screenshot" [attach image]
+
+# The skill guides you through:
+1. Requirements gathering
+2. Design system creation
+3. Multiple mockup variations
+4. Iterative refinement
+5. Final deliverables
+```
 
 **Use Cases:**
 - Landing page design
@@ -76,28 +100,37 @@ A comprehensive UI/UX design skill that transforms vague requirements into polis
 - Dashboard designs
 - Design system creation
 - UI mockup generation
+- Design inspiration analysis
 
-## Coming Soon (Debug Skills)
+**Documentation:**
+- [Skill Reference](pixel-pusher/SKILL.md)
+- [Design System Layers](pixel-pusher/references/design-system-layers.md)
+- [Accessibility Guidelines](pixel-pusher/references/accessibility-guidelines.md)
+- [Design Best Practices](pixel-pusher/references/design-best-practices.md)
+- [Persona Template](pixel-pusher/references/persona-template.md)
+- [User Flow Template](pixel-pusher/references/user-flow-template.md)
+- [Style Guide Template](pixel-pusher/references/style-guide-template.md)
 
-### Grafana Tempo Telemetry Skill
+## Coming Soon
 
-**Replaces:** Grafana Tempo MCP Server
+### Grafana Tempo Telemetry (Debug Skills)
+
 **Status:** 🚧 In Development
 **Plugin:** debug-skills
+**Estimated Release:** TBD
 
-A context-efficient telemetry investigation skill that replaces the Tempo MCP server. Instead of returning 5MB+ trace payloads with thousands of spans, this skill will provide:
+**Replaces:** Grafana Tempo MCP Server
+**Estimated Efficiency:** 800x more efficient
+**Planned Response Size:** < 500 bytes vs 5MB+ with MCP
 
-- Aggressively filtered trace queries
-- Compact trace summaries (< 500 bytes per trace)
-- Subagent isolation for root cause analysis
-- **800x more context-efficient** than the MCP approach
+A context-efficient telemetry investigation skill that replaces the Tempo MCP server. Instead of returning 5MB+ trace payloads with thousands of spans, this skill will provide aggressively filtered trace queries and subagent isolation for root cause analysis.
 
 **Planned Features:**
-- Trace search with filters (`search-traces.js`)
-- Compact trace summaries (`get-trace.js`)
-- Service discovery (`query-services.js`)
-- Error pattern analysis (`analyze-errors.js`)
-- Telemetry investigator subagent for complex investigations
+- Trace search with filters
+- Compact trace summaries
+- Service discovery
+- Error pattern analysis
+- Telemetry investigator subagent
 
 ## Debug Skills Architecture
 
@@ -169,7 +202,6 @@ mad-skills/
 ├── CHANGELOG.md                       # Release history
 ├── LICENSE                            # MIT License
 ├── VERSION                            # Semantic version
-├── SKILLS-CATALOG.md                  # Complete skills catalog
 ├── .gitignore
 ├── .claude-plugin/
 │   └── marketplace.json               # Plugin marketplace metadata
@@ -205,52 +237,18 @@ mad-skills/
 
 ### Claude Code
 
-1. Run the marketplace command: `"/plugin marketplace add slamb2k/mad-skills"`
-2. Select "Browse and install plugins"
-3. Select "mad-skills"
-4. Choose either "debug-skills" or "design-skills" (or both)
-5. Select "Install now"
-
-**For Playtight (debug-skills):** After installation, install dependencies:
-```bash
-cd ~/.claude/plugins/mad-skills/playtight/scripts
-npm install
-npm run install-browsers
+Register the marketplace:
+```
+/plugin marketplace add slamb2k/mad-skills
 ```
 
-Alternatively, you can install directly:
-```bash
-git clone https://github.com/slamb2k/mad-skills.git ~/.claude/plugins/mad-skills
+Then browse and select plugins (choose `debug-skills`, `design-skills`, or both), or install directly:
+```
+/plugin install debug-skills@slamb2k/mad-skills
+/plugin install design-skills@slamb2k/mad-skills
 ```
 
-### Using Playtight
-
-**In Claude Code:**
-- Direct script: `"Check if the login button exists on example.com"`
-- Subagent: `"Use browser-investigator subagent to find all form fields on example.com/login"`
-
-**Running Scripts Directly:**
-```bash
-cd playtight/scripts/
-node check-element.js https://example.com h1
-node get-text.js https://example.com "#content"
-node take-screenshot.js https://example.com screenshot.png
-```
-
-### Using Pixel Pusher
-
-**In Claude Code:**
-Simply describe what you want to design:
-- `"Design a landing page for my SaaS product"`
-- `"Create a modern dashboard interface"`
-- `"Build a design system from this screenshot"` (attach image)
-
-The skill will guide you through:
-1. Requirements gathering
-2. Design system creation
-3. Multiple mockup variations
-4. Iterative refinement
-5. Final deliverables
+**Note:** Playtight (browser automation) will automatically detect and offer to install required browsers when first used. No manual setup needed!
 
 ## Design Principles
 
@@ -285,7 +283,6 @@ When building or modifying design skills (workflow-based tools):
 - [Accessibility Guidelines](pixel-pusher/references/accessibility-guidelines.md) - WCAG compliance
 
 ### Repository Documentation
-- [SKILLS-CATALOG.md](SKILLS-CATALOG.md) - Complete catalog of available skills
 - [CHANGELOG.md](CHANGELOG.md) - Release history and version notes
 - [CLAUDE.md](CLAUDE.md) - Guidance for Claude Code when working in this repo
 
