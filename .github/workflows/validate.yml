@@ -31,7 +31,7 @@ jobs:
           "playtight/scripts/get-text.js"
           "playtight/scripts/take-screenshot.js"
           "playtight/scripts/navigate-and-extract.js"
-          "playtight/assets/browser-investigator-subagent.md"
+          "playtight/agents/browser-investigator-subagent.md"
           "playtight/references/patterns.md"
         )
 

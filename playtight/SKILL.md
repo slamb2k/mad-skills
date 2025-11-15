@@ -225,7 +225,7 @@ node scripts/navigate-and-extract.js "https://github.com/user/repo/pull/123" '{
 
 For complex tasks that generate verbose intermediate responses, use the browser-investigator subagent.
 
-**Location:** `assets/browser-investigator-subagent.md`
+**Location:** `agents/browser-investigator-subagent.md`
 
 **Purpose:** Execute complex multi-step browser investigations while isolating verbose responses from parent agent.
 
@@ -233,7 +233,7 @@ For complex tasks that generate verbose intermediate responses, use the browser-
 
 1. Copy the subagent definition to your project:
 ```bash
-cp assets/browser-investigator-subagent.md .claude/agents/
+cp agents/browser-investigator-subagent.md .claude/agents/
 ```
 
 2. Ensure scripts are accessible from project root:
@@ -304,7 +304,7 @@ The subagent always returns structured JSON:
 }
 ```
 
-See `assets/browser-investigator-subagent.md` for complete subagent definition.
+See `agents/browser-investigator-subagent.md` for complete subagent definition.
 
 ## Setup Requirements
 

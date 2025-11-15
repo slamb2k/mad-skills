@@ -55,7 +55,7 @@ A context-efficient browser automation skill that replaces the Playwright MCP se
 **Documentation:**
 - [Skill Reference](playtight/SKILL.md)
 - [Usage Patterns](playtight/references/patterns.md)
-- [Subagent Guide](playtight/assets/browser-investigator-subagent.md)
+- [Subagent Guide](playtight/agents/browser-investigator-subagent.md)
 
 ### Design Skills
 
@@ -216,7 +216,7 @@ mad-skills/
 │   │   ├── take-screenshot.js
 │   │   ├── navigate-and-extract.js
 │   │   └── package.json
-│   ├── assets/
+│   ├── agents/
 │   │   └── browser-investigator-subagent.md
 │   └── references/
 │       └── patterns.md

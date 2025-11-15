@@ -48,7 +48,7 @@ mad-skills/
 │   │   ├── take-screenshot.js         # Screenshot capture
 │   │   ├── navigate-and-extract.js    # Structured data extraction
 │   │   └── package.json               # npm dependencies
-│   ├── assets/
+│   ├── agents/
 │   │   └── browser-investigator-subagent.md  # Subagent definition
 │   └── references/
 │       └── patterns.md                # Common usage patterns
@@ -156,7 +156,7 @@ node navigate-and-extract.js <url> '<config-json>'
 
 ### Browser Investigator Subagent
 
-**Location:** `playtight/assets/browser-investigator-subagent.md`
+**Location:** `playtight/agents/browser-investigator-subagent.md`
 
 **Purpose:** Execute complex multi-step browser investigations while isolating verbose responses from parent agent.
 
@@ -272,7 +272,7 @@ Result: 225x more efficient than MCP
 ### Playtight Skill (Browser Automation)
 - `playtight/SKILL.md` - Complete Playtight skill reference
 - `playtight/references/patterns.md` - Common usage patterns
-- `playtight/assets/browser-investigator-subagent.md` - Subagent definition
+- `playtight/agents/browser-investigator-subagent.md` - Subagent definition
 
 ### Pixel Pusher Skill (UI/UX Design)
 - `pixel-pusher/SKILL.md` - Complete Pixel Pusher skill reference
