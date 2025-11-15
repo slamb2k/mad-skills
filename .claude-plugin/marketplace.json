@@ -4,8 +4,8 @@
     "name": "slamb2k",
     "email": "slamb2k@users.noreply.github.com"
   },
-  "version": "1.1.0",
-  "description": "Claude Code skills including context-efficient debugging tools and design workflows",
+  "version": "1.2.0",
+  "description": "Claude Code skills including context-efficient debugging tools, design workflows, and development process optimization",
   "plugins": [
     {
       "name": "debug-skills",
@@ -23,6 +23,15 @@
       "strict": false,
       "skills": [
         "./pixel-pusher"
+      ]
+    },
+    {
+      "name": "dev-flow",
+      "description": "Skills to optimize and enhance the development process",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./cyberarian"
       ]
     }
   ]

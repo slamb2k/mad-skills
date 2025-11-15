@@ -92,6 +92,38 @@ jobs:
         fi
         echo "✓ pixel-pusher/assets/design-system-template.json is valid JSON"
 
+    - name: Validate Cyberarian skill structure
+      run: |
+        echo "Validating Cyberarian skill structure..."
+
+        # Check required files exist
+        required_files=(
+          "cyberarian/SKILL.md"
+          "cyberarian/scripts/init_docs_structure.py"
+          "cyberarian/scripts/index_docs.py"
+          "cyberarian/scripts/archive_docs.py"
+          "cyberarian/scripts/validate_doc_metadata.py"
+          "cyberarian/assets/doc_template.md"
+          "cyberarian/references/metadata-schema.md"
+          "cyberarian/references/archiving-criteria.md"
+        )
+
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "ERROR: Required file missing: $file"
+            exit 1
+          fi
+          echo "✓ Found: $file"
+        done
+
+        # Validate Python scripts can at least be parsed
+        echo "Validating Python scripts..."
+        python3 -m py_compile cyberarian/scripts/init_docs_structure.py
+        python3 -m py_compile cyberarian/scripts/index_docs.py
+        python3 -m py_compile cyberarian/scripts/archive_docs.py
+        python3 -m py_compile cyberarian/scripts/validate_doc_metadata.py
+        echo "✓ All Python scripts parse correctly"
+
     - name: Install Playtight dependencies
       run: |
         cd playtight/scripts

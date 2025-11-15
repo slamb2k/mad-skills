@@ -1,10 +1,10 @@
 # MAD Skills
 
-Context-efficient Claude Code skills for debugging and design workflows.
+Context-efficient Claude Code skills for debugging, design, and development workflows.
 
 ## Overview
 
-This repository contains two categories of Claude Code skills:
+This repository contains three categories of Claude Code skills:
 
 ### Debug Skills
 Context-optimized alternatives to verbose MCP (Model Context Protocol) servers. Instead of flooding context with 50KB+ responses, these debugging tools use:
@@ -17,6 +17,9 @@ This approach enables 100+ queries per session instead of exhausting context aft
 
 ### Design Skills
 Professional UI/UX design workflows that guide systematic design thinking, from requirements gathering through final deliverables.
+
+### Dev Flow
+Skills that optimize and enhance the development process, including documentation management, workflow automation, and development lifecycle tools.
 
 ## Current Skills
 
@@ -110,6 +113,55 @@ A comprehensive UI/UX design skill that transforms vague requirements into polis
 - [Persona Template](pixel-pusher/references/persona-template.md)
 - [User Flow Template](pixel-pusher/references/user-flow-template.md)
 - [Style Guide Template](pixel-pusher/references/style-guide-template.md)
+
+### Dev Flow
+
+Skills to optimize and enhance the development process.
+
+#### Cyberarian - Document Lifecycle Management
+
+**Version:** 1.0.0
+**Status:** ✅ Available
+**Plugin:** dev-flow
+**Type:** Workflow/Development Skill
+
+The digital librarian for Claude Code projects. Cyberarian enforces structured document lifecycle management - organizing, indexing, and archiving project documentation automatically. Pure workflow skill with no dependencies - available immediately after plugin installation.
+
+**Features:**
+- ✅ Structured documentation organization in `docs/` directory
+- ✅ Automatic document indexing with metadata-driven discovery
+- ✅ Smart archiving based on document age and status
+- ✅ YAML frontmatter for document lifecycle tracking
+- ✅ Category-based organization (specs, analysis, plans, templates, ai_docs)
+- ✅ Validation tools for metadata consistency
+- ✅ Python scripts for initialization, indexing, and archiving
+
+**Quick Start:**
+```
+# In Claude Code, simply ask:
+"Set up documentation structure for this project"
+"Create a specification document for the new feature"
+"Archive completed documentation"
+
+# The skill guides you through:
+1. Directory structure initialization
+2. Document creation with proper metadata
+3. Automatic index generation
+4. Lifecycle management (draft → active → complete → archived)
+```
+
+**Use Cases:**
+- Project documentation organization
+- Specification and design document management
+- Analysis and investigation tracking
+- Implementation plan documentation
+- Automatic archiving of completed work
+- Metadata-driven document discovery
+
+**Documentation:**
+- [Skill Reference](cyberarian/SKILL.md)
+- [Metadata Schema](cyberarian/references/metadata-schema.md)
+- [Archiving Criteria](cyberarian/references/archiving-criteria.md)
 
 ## Coming Soon
 
@@ -220,17 +272,29 @@ mad-skills/
 │   │   └── browser-investigator-subagent.md
 │   └── references/
 │       └── patterns.md
-└── pixel-pusher/                      # UI/UX design skill
+├── pixel-pusher/                      # UI/UX design skill
+│   ├── SKILL.md                       # Complete skill reference
+│   ├── assets/
+│   │   └── design-system-template.json
+│   └── references/
+│       ├── accessibility-guidelines.md
+│       ├── design-best-practices.md
+│       ├── design-system-layers.md
+│       ├── persona-template.md
+│       ├── style-guide-template.md
+│       └── user-flow-template.md
+└── cyberarian/                        # Document lifecycle management skill
     ├── SKILL.md                       # Complete skill reference
+    ├── scripts/                       # Python automation scripts
+    │   ├── init_docs_structure.py
+    │   ├── index_docs.py
+    │   ├── archive_docs.py
+    │   └── validate_doc_metadata.py
     ├── assets/
-    │   └── design-system-template.json
+    │   └── doc_template.md
     └── references/
-        ├── accessibility-guidelines.md
-        ├── design-best-practices.md
-        ├── design-system-layers.md
-        ├── persona-template.md
-        ├── style-guide-template.md
-        └── user-flow-template.md
+        ├── metadata-schema.md
+        └── archiving-criteria.md
 ```
 
 ## Installation
@@ -242,10 +306,11 @@ Register the marketplace:
 /plugin marketplace add slamb2k/mad-skills
 ```
 
-Then browse and select plugins (choose `debug-skills`, `design-skills`, or both), or install directly:
+Then browse and select plugins (choose `debug-skills`, `design-skills`, `dev-flow`, or any combination), or install directly:
 ```
 /plugin install debug-skills@slamb2k/mad-skills
 /plugin install design-skills@slamb2k/mad-skills
+/plugin install dev-flow@slamb2k/mad-skills
 ```
 
 **Note:** Playtight (browser automation) will automatically detect and offer to install required browsers when first used. No manual setup needed!

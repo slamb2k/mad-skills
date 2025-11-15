@@ -4,13 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-**MAD Skills** is a repository containing Claude Code skills organized into two plugins:
+**MAD Skills** is a repository containing Claude Code skills organized into three plugins:
 
 1. **debug-skills** - Context-optimized alternatives to verbose MCP debugging tools
 2. **design-skills** - Professional UI/UX design workflows
+3. **dev-flow** - Skills to optimize and enhance the development process
 
 This repository serves multiple purposes:
-- Claude Code plugin marketplace containing two distinct skill categories
+- Claude Code plugin marketplace containing three distinct skill categories
 - Documentation and examples of context-efficient debugging patterns
 - Template for creating similar skills
 
@@ -21,6 +22,9 @@ This repository serves multiple purposes:
 
 **Design Skills (design-skills plugin):**
 - **Pixel Pusher** (UI/UX Design System) - ✅ Complete - Workflow-based design tool
+
+**Dev Flow (dev-flow plugin):**
+- **Cyberarian** (Document Lifecycle Management) - ✅ Complete - Digital librarian for project documentation
 
 **In Development:**
 - **Grafana Tempo Telemetry Skill** - 🚧 Planned (debug-skills plugin)
@@ -52,17 +56,29 @@ mad-skills/
 │   │   └── browser-investigator-subagent.md  # Subagent definition
 │   └── references/
 │       └── patterns.md                # Common usage patterns
-└── pixel-pusher/                      # Pixel Pusher skill source
+├── pixel-pusher/                      # Pixel Pusher skill source
+│   ├── SKILL.md                       # Complete skill reference
+│   ├── assets/
+│   │   └── design-system-template.json  # Design system template
+│   └── references/
+│       ├── accessibility-guidelines.md  # WCAG compliance
+│       ├── design-best-practices.md     # Professional design principles
+│       ├── design-system-layers.md      # Component breakdown
+│       ├── persona-template.md          # User persona structure
+│       ├── style-guide-template.md      # Visual reference
+│       └── user-flow-template.md        # User journey mapping
+└── cyberarian/                        # Cyberarian skill source
     ├── SKILL.md                       # Complete skill reference
+    ├── scripts/                       # Python automation scripts
+    │   ├── init_docs_structure.py     # Initialize docs directory structure
+    │   ├── index_docs.py              # Generate INDEX.md
+    │   ├── archive_docs.py            # Archive old documents
+    │   └── validate_doc_metadata.py   # Validate YAML frontmatter
     ├── assets/
-    │   └── design-system-template.json  # Design system template
+    │   └── doc_template.md            # Document template with frontmatter
     └── references/
-        ├── accessibility-guidelines.md  # WCAG compliance
-        ├── design-best-practices.md     # Professional design principles
-        ├── design-system-layers.md      # Component breakdown
-        ├── persona-template.md          # User persona structure
-        ├── style-guide-template.md      # Visual reference
-        └── user-flow-template.md        # User journey mapping
+        ├── metadata-schema.md         # YAML frontmatter specification
+        └── archiving-criteria.md      # Archiving rules and philosophy
 ```
 
 ## Development Commands
@@ -225,6 +241,75 @@ Claude invokes pixel-pusher skill and:
 6. Delivers final design + documentation
 ```
 
+## Cyberarian Skill Details
+
+### Overview
+
+**Type:** Workflow/Development Skill
+
+Cyberarian (The Digital Librarian) is a document lifecycle management skill that enforces structured organization, automatic indexing, and intelligent archiving of project documentation. Unlike script-based skills, this is a **workflow skill** that provides automation scripts and structured guidance.
+
+### Key Characteristics
+
+- **Python automation scripts** - Tools for initialization, indexing, archiving, and validation
+- **YAML frontmatter** - Metadata-driven document lifecycle tracking
+- **Category-based organization** - Semantic directory structure (specs, analysis, plans, ai_docs, templates)
+- **Automatic maintenance** - Index generation and archiving based on age and status
+
+### Usage Pattern
+
+When users request documentation management:
+1. Initialize structured `docs/` directory if needed
+2. Create documents with proper metadata and categorization
+3. Automatically generate index for discoverability
+4. Archive completed documents based on category-specific rules
+
+### Directory Structure (in projects using cyberarian)
+
+```
+docs/
+├── README.md           # Human-written guide
+├── INDEX.md            # Auto-generated index
+├── ai_docs/           # Reference materials for Claude Code
+├── specs/             # Feature specifications
+├── analysis/          # Investigation outputs
+├── plans/             # Implementation plans
+├── templates/         # Reusable templates
+└── archive/           # Historical documents
+```
+
+### Scripts (in `cyberarian/scripts/`)
+
+- `init_docs_structure.py` - Initialize docs directory structure
+- `index_docs.py` - Generate INDEX.md from document metadata
+- `archive_docs.py` - Archive old documents based on status and age
+- `validate_doc_metadata.py` - Validate YAML frontmatter
+
+### Example Usage
+
+```
+User: "Set up documentation structure for this project"
+
+Claude invokes cyberarian skill and:
+1. Runs init_docs_structure.py to create directory structure
+2. Creates README.md explaining the structure
+3. Generates initial INDEX.md
+4. Explains category usage and metadata requirements
+
+User: "Create a specification for the new authentication feature"
+
+Claude:
+1. Copies doc_template.md to docs/specs/auth-feature-spec.md
+2. Fills in frontmatter (category: specs, status: draft, tags, dates)
+3. Writes specification content
+4. Runs index_docs.py to update INDEX.md
+```
+
+### Reference Files (in `cyberarian/references/`)
+
+- `metadata-schema.md` - Complete YAML frontmatter specification
+- `archiving-criteria.md` - Archiving rules by category
+
 ## Critical Design Principles
 
 When modifying or extending skills in this repository:
@@ -281,6 +366,13 @@ Result: 225x more efficient than MCP
 - `pixel-pusher/references/design-best-practices.md` - Professional design principles
 - `pixel-pusher/references/design-system-layers.md` - Component breakdown
 
+### Cyberarian Skill (Document Lifecycle Management)
+- `cyberarian/SKILL.md` - Complete Cyberarian skill reference
+- `cyberarian/assets/doc_template.md` - Document template with frontmatter
+- `cyberarian/references/metadata-schema.md` - YAML frontmatter specification
+- `cyberarian/references/archiving-criteria.md` - Archiving rules and philosophy
+- `cyberarian/scripts/` - Python automation scripts
+
 ## Working with This Repository
 
 ### Adding New Skills
@@ -309,6 +401,18 @@ When adding new skills to this repository:
    - `references/` - Best practices and guidelines
 3. Add skill to `design-skills` plugin in `.claude-plugin/marketplace.json`
 4. Update this CLAUDE.md and README.md with skill details
+
+**For Dev Flow Skills (development process optimization):**
+
+1. Create skill directory at repository root
+2. Include:
+   - `SKILL.md` - Structured workflow guide
+   - `scripts/` - Automation scripts (Python, Bash, etc.)
+   - `assets/` - Templates and configuration files
+   - `references/` - Guidelines, schemas, and documentation
+3. Add skill to `dev-flow` plugin in `.claude-plugin/marketplace.json`
+4. Update this CLAUDE.md and README.md with skill details
+5. Document any script dependencies and setup requirements
 
 ### Testing Changes
 
