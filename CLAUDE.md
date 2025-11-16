@@ -18,7 +18,7 @@ This repository serves multiple purposes:
 ## Current Status
 
 **Debug Skills (debug-skills plugin):**
-- **Playtight** (Browser Automation) - ✅ Complete - Replaces Playwright MCP Server
+- **Play-Tight** (Browser Automation) - ✅ Complete - Replaces Playwright MCP Server
 
 **Design Skills (design-skills plugin):**
 - **Pixel Pusher** (UI/UX Design System) - ✅ Complete - Workflow-based design tool
@@ -44,7 +44,7 @@ mad-skills/
 ├── .github/
 │   └── workflows/
 │       └── validate.yml               # Validation workflow
-├── playtight/                         # Playtight skill source
+├── play-tight/                         # Play-Tight skill source
 │   ├── SKILL.md                       # Complete skill reference
 │   ├── scripts/                       # Executable Playwright scripts
 │   │   ├── check-element.js           # Element verification
@@ -83,22 +83,22 @@ mad-skills/
 
 ## Development Commands
 
-### Playtight Script Setup
+### Play-Tight Script Setup
 ```bash
-cd playtight/scripts/
+cd play-tight/scripts/
 npm install
 npm run install-browsers  # Installs Chromium
 ```
 
-### Testing Playtight Scripts
+### Testing Play-Tight Scripts
 ```bash
 # From repository root
-node playtight/scripts/check-element.js https://example.com h1
-node playtight/scripts/get-text.js https://example.com "#content"
-node playtight/scripts/take-screenshot.js https://example.com test.png
+node play-tight/scripts/check-element.js https://example.com h1
+node play-tight/scripts/get-text.js https://example.com "#content"
+node play-tight/scripts/take-screenshot.js https://example.com test.png
 
 # Or cd to scripts directory first
-cd playtight/scripts/
+cd play-tight/scripts/
 node check-element.js https://example.com h1
 node get-text.js https://example.com "#main-content"
 node take-screenshot.js https://example.com test.png
@@ -129,9 +129,9 @@ All skills in this repository follow the same architecture:
 - Absorbs all verbose responses in isolated context
 - Returns concise summary (< 500 tokens) to parent
 
-## Playtight Skill Details
+## Play-Tight Skill Details
 
-### Core Scripts (located in `playtight/scripts/`)
+### Core Scripts (located in `play-tight/scripts/`)
 
 **check-element.js** - Check if element exists and get properties
 ```bash
@@ -172,7 +172,7 @@ node navigate-and-extract.js <url> '<config-json>'
 
 ### Browser Investigator Subagent
 
-**Location:** `playtight/agents/browser-investigator-subagent.md`
+**Location:** `play-tight/agents/browser-investigator-subagent.md`
 
 **Purpose:** Execute complex multi-step browser investigations while isolating verbose responses from parent agent.
 
@@ -201,7 +201,7 @@ node navigate-and-extract.js <url> '<config-json>'
 
 **Type:** Workflow/Design Skill
 
-Pixel Pusher is a comprehensive UI/UX design skill that guides Claude through systematic design thinking. Unlike script-based skills like Playtight, this is a **workflow skill** that provides structured guidance for creating professional web interfaces.
+Pixel Pusher is a comprehensive UI/UX design skill that guides Claude through systematic design thinking. Unlike script-based skills like Play-Tight, this is a **workflow skill** that provides structured guidance for creating professional web interfaces.
 
 ### Key Characteristics
 
@@ -354,10 +354,10 @@ Result: 225x more efficient than MCP
 - `.claude-plugin/marketplace.json` - Plugin marketplace metadata
 - `LICENSE` - MIT License
 
-### Playtight Skill (Browser Automation)
-- `playtight/SKILL.md` - Complete Playtight skill reference
-- `playtight/references/patterns.md` - Common usage patterns
-- `playtight/agents/browser-investigator-subagent.md` - Subagent definition
+### Play-Tight Skill (Browser Automation)
+- `play-tight/SKILL.md` - Complete Play-Tight skill reference
+- `play-tight/references/patterns.md` - Common usage patterns
+- `play-tight/agents/browser-investigator-subagent.md` - Subagent definition
 
 ### Pixel Pusher Skill (UI/UX Design)
 - `pixel-pusher/SKILL.md` - Complete Pixel Pusher skill reference
@@ -416,9 +416,9 @@ When adding new skills to this repository:
 
 ### Testing Changes
 
-To test modifications to Playtight scripts:
+To test modifications to Play-Tight scripts:
 
-1. Make changes to the script file in `playtight/scripts/`
+1. Make changes to the script file in `play-tight/scripts/`
 2. Run directly with node (no build step required)
 3. Verify output is compact JSON
 4. Ensure text truncation limits are respected

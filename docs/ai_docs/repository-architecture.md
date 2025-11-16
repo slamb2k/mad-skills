@@ -27,7 +27,7 @@ The repository is organized into three plugins, each serving a different purpose
 **Purpose:** Context-optimized alternatives to verbose MCP debugging tools
 
 **Skills:**
-- **Playtight** (Browser Automation) - Replaces Playwright MCP Server with compact JSON responses
+- **Play-Tight** (Browser Automation) - Replaces Playwright MCP Server with compact JSON responses
 
 **Architecture Pattern:**
 - Filtered scripts (Node.js) that return compact JSON
@@ -62,7 +62,7 @@ The repository is organized into three plugins, each serving a different purpose
 mad-skills/
 ├── .claude-plugin/
 │   └── marketplace.json        # Defines all three plugins and their skills
-├── playtight/                  # debug-skills: Browser automation
+├── play-tight/                  # debug-skills: Browser automation
 │   ├── SKILL.md
 │   ├── scripts/                # Node.js scripts with compact output
 │   ├── agents/                 # Subagent definitions
@@ -106,7 +106,7 @@ skill-name/
   "plugins": [
     {
       "name": "debug-skills",
-      "skills": ["./playtight"]
+      "skills": ["./play-tight"]
     },
     {
       "name": "design-skills",

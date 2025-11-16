@@ -19,20 +19,20 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Validate Playtight skill structure
+    - name: Validate Play-Tight skill structure
       run: |
-        echo "Validating Playtight skill structure..."
+        echo "Validating Play-Tight skill structure..."
 
         # Check required files exist
         required_files=(
-          "playtight/SKILL.md"
-          "playtight/scripts/package.json"
-          "playtight/scripts/check-element.js"
-          "playtight/scripts/get-text.js"
-          "playtight/scripts/take-screenshot.js"
-          "playtight/scripts/navigate-and-extract.js"
-          "playtight/agents/browser-investigator-subagent.md"
-          "playtight/references/patterns.md"
+          "play-tight/SKILL.md"
+          "play-tight/scripts/package.json"
+          "play-tight/scripts/check-element.js"
+          "play-tight/scripts/get-text.js"
+          "play-tight/scripts/take-screenshot.js"
+          "play-tight/scripts/navigate-and-extract.js"
+          "play-tight/agents/browser-investigator-subagent.md"
+          "play-tight/references/patterns.md"
         )
 
         for file in "${required_files[@]}"; do
@@ -78,12 +78,12 @@ jobs:
         fi
         echo "✓ .claude-plugin/marketplace.json is valid JSON"
 
-        # Validate Playtight scripts package.json
-        if ! jq empty playtight/scripts/package.json 2>/dev/null; then
-          echo "ERROR: playtight/scripts/package.json is not valid JSON"
+        # Validate Play-Tight scripts package.json
+        if ! jq empty play-tight/scripts/package.json 2>/dev/null; then
+          echo "ERROR: play-tight/scripts/package.json is not valid JSON"
           exit 1
         fi
-        echo "✓ playtight/scripts/package.json is valid JSON"
+        echo "✓ play-tight/scripts/package.json is valid JSON"
 
         # Validate Pixel Pusher design system template
         if ! jq empty pixel-pusher/assets/design-system-template.json 2>/dev/null; then
@@ -124,9 +124,9 @@ jobs:
         python3 -m py_compile cyberarian/scripts/validate_doc_metadata.py
         echo "✓ All Python scripts parse correctly"
 
-    - name: Install Playtight dependencies
+    - name: Install Play-Tight dependencies
       run: |
-        cd playtight/scripts
+        cd play-tight/scripts
         npm install
 
     - name: Validate scripts parse correctly
@@ -134,9 +134,9 @@ jobs:
         echo "Validating scripts can parse..."
 
         # Test that scripts at least parse correctly
-        node -c playtight/scripts/check-element.js
-        node -c playtight/scripts/get-text.js
-        node -c playtight/scripts/take-screenshot.js
-        node -c playtight/scripts/navigate-and-extract.js
+        node -c play-tight/scripts/check-element.js
+        node -c play-tight/scripts/get-text.js
+        node -c play-tight/scripts/take-screenshot.js
+        node -c play-tight/scripts/navigate-and-extract.js
 
         echo "✓ All scripts parse correctly"

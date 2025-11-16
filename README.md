@@ -27,7 +27,7 @@ Skills that optimize and enhance the development process, including documentatio
 
 Context-optimized alternatives to verbose MCP debugging tools.
 
-#### Playtight - Browser Automation
+#### Play-Tight - Browser Automation
 
 **Version:** 1.0.0
 **Status:** ✅ Available
@@ -37,7 +37,7 @@ Context-optimized alternatives to verbose MCP debugging tools.
 **Context Efficiency:** 225x more efficient
 **Typical Response Size:** < 500 bytes vs 50KB+ with MCP
 
-A context-efficient browser automation skill that replaces the Playwright MCP server. Instead of returning 50KB+ HTML accessibility trees per interaction, Playtight provides compact script responses and automatic browser detection.
+A context-efficient browser automation skill that replaces the Playwright MCP server. Instead of returning 50KB+ HTML accessibility trees per interaction, Play-Tight provides compact script responses and automatic browser detection.
 
 **Features:**
 - ✅ Element verification (`check-element.js`)
@@ -56,9 +56,9 @@ A context-efficient browser automation skill that replaces the Playwright MCP se
 ```
 
 **Documentation:**
-- [Skill Reference](playtight/SKILL.md)
-- [Usage Patterns](playtight/references/patterns.md)
-- [Subagent Guide](playtight/agents/browser-investigator-subagent.md)
+- [Skill Reference](play-tight/SKILL.md)
+- [Usage Patterns](play-tight/references/patterns.md)
+- [Subagent Guide](play-tight/agents/browser-investigator-subagent.md)
 
 ### Design Skills
 
@@ -260,7 +260,7 @@ mad-skills/
 ├── .github/
 │   └── workflows/
 │       └── validate.yml               # Validation workflow
-├── playtight/                         # Browser automation skill
+├── play-tight/                         # Browser automation skill
 │   ├── SKILL.md                       # Complete skill reference
 │   ├── scripts/                       # Executable Playwright scripts
 │   │   ├── check-element.js
@@ -313,7 +313,7 @@ Then browse and select plugins (choose `debug-skills`, `design-skills`, `dev-flo
 /plugin install dev-flow@slamb2k/mad-skills
 ```
 
-**Note:** Playtight (browser automation) will automatically detect and offer to install required browsers when first used. No manual setup needed!
+**Note:** Play-Tight (browser automation) will automatically detect and offer to install required browsers when first used. No manual setup needed!
 
 ## Design Principles
 
@@ -341,8 +341,8 @@ When building or modifying design skills (workflow-based tools):
 ## Documentation
 
 ### Skills Documentation
-- [Playtight Skill Reference](playtight/SKILL.md) - Complete Playtight documentation
-- [Playtight Usage Patterns](playtight/references/patterns.md) - Common usage patterns
+- [Play-Tight Skill Reference](play-tight/SKILL.md) - Complete Play-Tight documentation
+- [Play-Tight Usage Patterns](play-tight/references/patterns.md) - Common usage patterns
 - [Pixel Pusher Skill Reference](pixel-pusher/SKILL.md) - Complete Pixel Pusher documentation
 - [Design System Layers](pixel-pusher/references/design-system-layers.md) - Component breakdown
 - [Accessibility Guidelines](pixel-pusher/references/accessibility-guidelines.md) - WCAG compliance

@@ -4,7 +4,7 @@ category: plans
 status: draft
 created: 2024-11-12
 last_updated: 2025-11-16
-tags: [tempo-telemetry, playtight, planning, architecture]
+tags: [tempo-telemetry, play-tight, planning, architecture]
 ---
 
 # Context-Efficient Automation Skills - Summary

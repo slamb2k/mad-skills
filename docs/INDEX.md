@@ -23,7 +23,7 @@ By category:
 
 ## Plans
 
-- [Context-Efficient Automation Skills - Summary](plans/tempo-skill-planning/skills-summary.md) | **draft** | updated: 2025-11-16 | tags: [tempo-telemetry, playtight, planning, architecture]
+- [Context-Efficient Automation Skills - Summary](plans/tempo-skill-planning/skills-summary.md) | **draft** | updated: 2025-11-16 | tags: [tempo-telemetry, play-tight, planning, architecture]
 - [Tempo Telemetry Skill - Installation & Usage Guide](plans/tempo-skill-planning/tempo-skill-installation.md) | **draft** | updated: 2025-11-16 | tags: [tempo-telemetry, planning, installation-guide, grafana]
 
 ## Templates

@@ -1,15 +1,15 @@
 ---
-name: playtight
+name: play-tight
 description: Context-efficient browser automation using Playwright scripts and subagent isolation. Use when you need to interact with web pages, extract data from websites, verify page elements, or automate browser tasks while avoiding context window pollution from verbose HTML/accessibility trees. Provides both direct script execution and a specialized subagent pattern for complex investigations that generate large intermediate responses.
 ---
 
-# Playtight
+# Play-Tight
 
-Playtight provides context-efficient browser automation using Playwright scripts executed via bash, with an optional subagent pattern for isolating verbose browser responses. The skill replaces the verbose Playwright MCP server with optimized scripts and subagent patterns to minimize context window pollution, saving context for actual engineering processes.
+Play-Tight provides context-efficient browser automation using Playwright scripts executed via bash, with an optional subagent pattern for isolating verbose browser responses. The skill replaces the verbose Playwright MCP server with optimized scripts and subagent patterns to minimize context window pollution, saving context for actual engineering processes.
 
 ## When to Use This Skill
 
-Use Playtight when you need to:
+Use Play-Tight when you need to:
 - Verify elements exist on web pages (buttons, forms, links)
 - Extract text content or structured data from websites
 - Check status of web dashboards (CI/CD, monitoring, PRs)
@@ -33,11 +33,11 @@ node -e "const { chromium } = require('playwright'); chromium.executablePath()" 
    - Offer to run the installation: "I can install the required browsers by running `npm run install-browsers` in the scripts directory. Would you like me to do that?"
    - If user agrees, run:
    ```bash
-   cd ~/.claude/plugins/mad-skills/playtight/scripts && npm run install-browsers
+   cd ~/.claude/plugins/mad-skills/play-tight/scripts && npm run install-browsers
    ```
 
 3. **If npm dependencies are missing** (error about 'playwright' module not found):
-   - First install npm dependencies: `cd ~/.claude/plugins/mad-skills/playtight/scripts && npm install`
+   - First install npm dependencies: `cd ~/.claude/plugins/mad-skills/play-tight/scripts && npm install`
    - Then install browsers: `npm run install-browsers`
 
 ### Example Detection Flow
@@ -53,10 +53,10 @@ node scripts/check-element.js https://example.com h1
 "I see that Playwright browsers aren't installed yet. I can install them now by running 'npm run install-browsers'. This will download Chromium (~100MB). Would you like me to proceed?"
 
 # On user approval:
-cd ~/.claude/plugins/mad-skills/playtight/scripts && npm install && npm run install-browsers
+cd ~/.claude/plugins/mad-skills/play-tight/scripts && npm install && npm run install-browsers
 ```
 
-**When to skip detection**: If you've already successfully run a Playtight script in the current session, browsers are installed and you can skip detection.
+**When to skip detection**: If you've already successfully run a Play-Tight script in the current session, browsers are installed and you can skip detection.
 
 ## Two Approaches
 
@@ -410,7 +410,7 @@ This should be automatically detected (see "Automatic Browser Detection" section
 
 1. Check if npm dependencies are installed:
 ```bash
-cd ~/.claude/plugins/mad-skills/playtight/scripts
+cd ~/.claude/plugins/mad-skills/play-tight/scripts
 npm list playwright
 ```
 

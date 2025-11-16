@@ -26,7 +26,7 @@ node -e "const { chromium } = require('playwright'); chromium.executablePath()" 
 ```
 
 **If this fails**:
-1. Install npm dependencies if missing: `cd ~/.claude/plugins/mad-skills/playtight/scripts && npm install`
+1. Install npm dependencies if missing: `cd ~/.claude/plugins/mad-skills/play-tight/scripts && npm install`
 2. Install browsers: `npm run install-browsers`
 3. Inform parent agent that setup was needed (include in your summary)
 
