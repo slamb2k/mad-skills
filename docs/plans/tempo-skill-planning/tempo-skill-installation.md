@@ -1,3 +1,12 @@
+---
+title: Tempo Telemetry Skill - Installation & Usage Guide
+category: plans
+status: draft
+created: 2024-11-12
+last_updated: 2025-11-16
+tags: [tempo-telemetry, planning, installation-guide, grafana]
+---
+
 # Tempo Telemetry Skill - Installation & Usage Guide
 
 Your Tempo telemetry skill has been successfully created! This skill provides context-efficient Grafana Tempo querying to replace the Tempo MCP server, using filtered API scripts with a subagent pattern to isolate massive trace payloads.

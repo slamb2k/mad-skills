@@ -1,3 +1,12 @@
+---
+title: Context-Efficient Automation Skills - Summary
+category: plans
+status: draft
+created: 2024-11-12
+last_updated: 2025-11-16
+tags: [tempo-telemetry, playtight, planning, architecture]
+---
+
 # Context-Efficient Automation Skills - Summary
 
 Both skills follow the same pattern to solve context window pollution from verbose tool responses.
