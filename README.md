@@ -163,6 +163,57 @@ The digital librarian for Claude Code projects. Cyberarian enforces structured d
 - [Metadata Schema](cyberarian/references/metadata-schema.md)
 - [Archiving Criteria](cyberarian/references/archiving-criteria.md)
 
+#### Start Right - Repository Scaffolding
+
+**Version:** 1.0.0
+**Status:** ✅ Available
+**Plugin:** dev-flow
+**Type:** Workflow/Development Skill
+
+Comprehensive repository initialization and scaffolding for new projects. Start Right provides end-to-end repository setup for solo developers, automating everything from git initialization to production deployment workflows. Pure workflow skill with Python automation scripts - includes git initialization, GitHub repository creation, branch protection, validation checks, git hooks, and comprehensive GitHub Actions workflows.
+
+**Features:**
+- ✅ Git initialization with main branch and appropriate .gitignore
+- ✅ GitHub repository creation and configuration (public/private, org support)
+- ✅ Tooling configuration (ESLint, Prettier, TypeScript, Black, Flake8, Mypy, Rustfmt)
+- ✅ Git hooks setup (Husky for Node.js, Lefthook for other projects)
+- ✅ Comprehensive GitHub Actions workflows (PR validation, main CI/CD, releases)
+- ✅ Branch protection rules (enforce PRs, squash merge, auto-delete branches)
+- ✅ Automated versioning and tagging
+- ✅ Project-specific release workflows (npm, PyPI, Docker, GitHub Pages, binaries, skills)
+
+**Quick Start:**
+```
+# In Claude Code, simply ask:
+"Set up a new TypeScript project with CI/CD"
+"Initialize a Python project with GitHub Actions"
+"Scaffold a new repository with branch protection"
+
+# The skill guides you through:
+1. Prerequisites check (git, gh CLI)
+2. Project type detection and preferences gathering
+3. Git and GitHub repository initialization
+4. Tooling configuration (linting, formatting, type checking)
+5. Git hooks setup (pre-commit, pre-push)
+6. GitHub Actions workflow generation
+7. Branch protection rules configuration
+8. Initial commit and verification
+```
+
+**Use Cases:**
+- New repository initialization from scratch
+- Production-ready project scaffolding
+- CI/CD pipeline setup for existing projects
+- Branch protection and PR workflow enforcement
+- Automated release workflows (npm, PyPI, Docker, etc.)
+- Git hooks for validation checks
+- Multi-platform build and release automation
+
+**Documentation:**
+- [Skill Reference](start-right/SKILL.md)
+- [Project Types](start-right/references/project-types.md)
+- [Release Strategies](start-right/references/release-strategies.md)
+
 ## Coming Soon
 
 ### Grafana Tempo Telemetry (Debug Skills)
@@ -283,18 +334,29 @@ mad-skills/
 │       ├── persona-template.md
 │       ├── style-guide-template.md
 │       └── user-flow-template.md
-└── cyberarian/                        # Document lifecycle management skill
+├── cyberarian/                        # Document lifecycle management skill
+│   ├── SKILL.md                       # Complete skill reference
+│   ├── scripts/                       # Python automation scripts
+│   │   ├── init_docs_structure.py
+│   │   ├── index_docs.py
+│   │   ├── archive_docs.py
+│   │   └── validate_doc_metadata.py
+│   ├── assets/
+│   │   └── doc_template.md
+│   └── references/
+│       ├── metadata-schema.md
+│       └── archiving-criteria.md
+└── start-right/                       # Repository scaffolding skill
     ├── SKILL.md                       # Complete skill reference
     ├── scripts/                       # Python automation scripts
-    │   ├── init_docs_structure.py
-    │   ├── index_docs.py
-    │   ├── archive_docs.py
-    │   └── validate_doc_metadata.py
-    ├── assets/
-    │   └── doc_template.md
+    │   ├── init_git_repo.py
+    │   ├── setup_tooling.py
+    │   ├── setup_git_hooks.py
+    │   ├── generate_workflows.py
+    │   └── setup_branch_protection.py
     └── references/
-        ├── metadata-schema.md
-        └── archiving-criteria.md
+        ├── project-types.md
+        └── release-strategies.md
 ```
 
 ## Installation

@@ -1,9 +1,9 @@
 ---
-name: repo-scaffolding
+name: start-right
 description: Comprehensive repository initialization and scaffolding for new projects. Use when setting up a new repository from scratch with git, GitHub, CI/CD workflows, branch protection, validation checks (format, lint, type-check, tests, builds), git hooks (husky/lefthook), GitHub Actions for PR and main branch validation, automated versioning and tagging, and project-specific release workflows. Ideal for solo developers who want production-ready repository setup including (1) Git initialization with main branch, (2) GitHub repository creation and configuration, (3) Branch protection rules, (4) PR workflow with squash merging and auto-delete branches, (5) Comprehensive validation checks, (6) Git hooks for pre-commit and pre-push validation, (7) GitHub Actions CI/CD pipelines, (8) Automated releases with GitHub Releases integration.
 ---
 
-# Repository Scaffolding
+# Start Right
 
 Complete repository initialization and scaffolding for new projects with production-ready CI/CD workflows, validation checks, and automated releases.
 

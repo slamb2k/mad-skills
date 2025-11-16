@@ -25,6 +25,7 @@ This repository serves multiple purposes:
 
 **Dev Flow (dev-flow plugin):**
 - **Cyberarian** (Document Lifecycle Management) - ✅ Complete - Digital librarian for project documentation
+- **Start Right** (Repository Scaffolding) - ✅ Complete - Production-ready repository initialization
 
 **In Development:**
 - **Grafana Tempo Telemetry Skill** - 🚧 Planned (debug-skills plugin)
@@ -67,18 +68,29 @@ mad-skills/
 │       ├── persona-template.md          # User persona structure
 │       ├── style-guide-template.md      # Visual reference
 │       └── user-flow-template.md        # User journey mapping
-└── cyberarian/                        # Cyberarian skill source
+├── cyberarian/                        # Cyberarian skill source
+│   ├── SKILL.md                       # Complete skill reference
+│   ├── scripts/                       # Python automation scripts
+│   │   ├── init_docs_structure.py     # Initialize docs directory structure
+│   │   ├── index_docs.py              # Generate INDEX.md
+│   │   ├── archive_docs.py            # Archive old documents
+│   │   └── validate_doc_metadata.py   # Validate YAML frontmatter
+│   ├── assets/
+│   │   └── doc_template.md            # Document template with frontmatter
+│   └── references/
+│       ├── metadata-schema.md         # YAML frontmatter specification
+│       └── archiving-criteria.md      # Archiving rules and philosophy
+└── start-right/                       # Start Right skill source
     ├── SKILL.md                       # Complete skill reference
     ├── scripts/                       # Python automation scripts
-    │   ├── init_docs_structure.py     # Initialize docs directory structure
-    │   ├── index_docs.py              # Generate INDEX.md
-    │   ├── archive_docs.py            # Archive old documents
-    │   └── validate_doc_metadata.py   # Validate YAML frontmatter
-    ├── assets/
-    │   └── doc_template.md            # Document template with frontmatter
+    │   ├── init_git_repo.py           # Initialize git and create GitHub repo
+    │   ├── setup_tooling.py           # Configure linting, formatting, type checking
+    │   ├── setup_git_hooks.py         # Set up pre-commit and pre-push hooks
+    │   ├── generate_workflows.py      # Generate GitHub Actions workflows
+    │   └── setup_branch_protection.py # Configure branch protection rules
     └── references/
-        ├── metadata-schema.md         # YAML frontmatter specification
-        └── archiving-criteria.md      # Archiving rules and philosophy
+        ├── project-types.md           # Project type validation and build requirements
+        └── release-strategies.md      # Deployment options and strategies
 ```
 
 ## Development Commands
@@ -310,6 +322,74 @@ Claude:
 - `metadata-schema.md` - Complete YAML frontmatter specification
 - `archiving-criteria.md` - Archiving rules by category
 
+## Start Right Skill Details
+
+### Overview
+
+**Type:** Workflow/Development Skill
+
+Start Right is a comprehensive repository scaffolding skill that automates end-to-end repository setup for new projects. Unlike passive template repositories, this is an **interactive workflow skill** that guides users through project initialization, provides Python automation scripts for GitHub setup, and generates production-ready CI/CD workflows tailored to the project type.
+
+### Key Characteristics
+
+- **Python automation scripts** - Tools for git initialization, tooling setup, git hooks, workflow generation, and branch protection
+- **Project type detection** - Automatically detects or prompts for project type (Node.js, TypeScript, Python, Rust, Go, Docker, Claude Code skill)
+- **Interactive workflow** - Guides users through preferences gathering and setup execution
+- **Production-ready CI/CD** - Generates comprehensive GitHub Actions workflows with validation checks, automated versioning, tagging, and releases
+- **Git hooks integration** - Supports Husky (Node.js) or Lefthook (universal) for pre-commit and pre-push validation
+
+### Usage Pattern
+
+When users request repository initialization:
+1. Check prerequisites (git, gh CLI authentication)
+2. Gather project information and preferences
+3. Execute scaffolding scripts in order
+4. Verify setup and provide next steps
+
+### Scripts (in `start-right/scripts/`)
+
+- `init_git_repo.py` - Initialize git repository and create GitHub repository
+- `setup_tooling.py` - Configure linting, formatting, and type checking based on project type
+- `setup_git_hooks.py` - Set up pre-commit and pre-push hooks with Husky or Lefthook
+- `generate_workflows.py` - Generate GitHub Actions workflows for PR validation, main CI/CD, and releases
+- `setup_branch_protection.py` - Configure branch protection rules to enforce PR workflow
+
+### Example Usage
+
+```
+User: "Set up a new TypeScript project with CI/CD"
+
+Claude invokes start-right skill and:
+1. Asks for repository name, visibility (public/private), organization
+2. Asks which validation checks to enable (format, lint, type-check, test, build)
+3. Asks about git hooks and release strategy
+4. Executes scripts in order:
+   - init_git_repo.py → Creates git repo and GitHub repository
+   - setup_tooling.py → Creates .eslintrc.json, .prettierrc.json, tsconfig.json
+   - setup_git_hooks.py → Installs Husky, creates pre-commit and pre-push hooks
+   - generate_workflows.py → Creates pr-validation.yml, main-ci-cd.yml, release.yml
+   - setup_branch_protection.py → Configures branch protection for main
+5. Creates initial commit and pushes to main
+6. Provides next steps for dependency installation and first PR
+
+User: "Initialize a Python project with GitHub Actions"
+
+Claude invokes start-right skill and:
+1. Gathers preferences (same as above)
+2. Executes scripts:
+   - init_git_repo.py → Creates git repo with Python .gitignore
+   - setup_tooling.py → Creates .flake8, .black.toml, mypy.ini
+   - setup_git_hooks.py → Installs Lefthook, creates validation hooks
+   - generate_workflows.py → Creates workflows with PyPI release
+   - setup_branch_protection.py → Configures branch protection
+3. Provides instructions for installing Python tools (black, flake8, mypy, pytest)
+```
+
+### Reference Files (in `start-right/references/`)
+
+- `project-types.md` - Validation and build requirements for each project type
+- `release-strategies.md` - Comprehensive deployment options (npm, PyPI, Docker, GitHub Pages, binaries, skills)
+
 ## Critical Design Principles
 
 When modifying or extending skills in this repository:
@@ -372,6 +452,12 @@ Result: 225x more efficient than MCP
 - `cyberarian/references/metadata-schema.md` - YAML frontmatter specification
 - `cyberarian/references/archiving-criteria.md` - Archiving rules and philosophy
 - `cyberarian/scripts/` - Python automation scripts
+
+### Start Right Skill (Repository Scaffolding)
+- `start-right/SKILL.md` - Complete Start Right skill reference
+- `start-right/references/project-types.md` - Project type validation and build requirements
+- `start-right/references/release-strategies.md` - Deployment options and strategies
+- `start-right/scripts/` - Python automation scripts for repository initialization
 
 ## Working with This Repository
 

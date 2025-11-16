@@ -124,6 +124,39 @@ jobs:
         python3 -m py_compile cyberarian/scripts/validate_doc_metadata.py
         echo "✓ All Python scripts parse correctly"
 
+    - name: Validate Start Right skill structure
+      run: |
+        echo "Validating Start Right skill structure..."
+
+        # Check required files exist
+        required_files=(
+          "start-right/SKILL.md"
+          "start-right/scripts/init_git_repo.py"
+          "start-right/scripts/setup_tooling.py"
+          "start-right/scripts/setup_git_hooks.py"
+          "start-right/scripts/generate_workflows.py"
+          "start-right/scripts/setup_branch_protection.py"
+          "start-right/references/project-types.md"
+          "start-right/references/release-strategies.md"
+        )
+
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "ERROR: Required file missing: $file"
+            exit 1
+          fi
+          echo "✓ Found: $file"
+        done
+
+        # Validate Python scripts can at least be parsed
+        echo "Validating Python scripts..."
+        python3 -m py_compile start-right/scripts/init_git_repo.py
+        python3 -m py_compile start-right/scripts/setup_tooling.py
+        python3 -m py_compile start-right/scripts/setup_git_hooks.py
+        python3 -m py_compile start-right/scripts/generate_workflows.py
+        python3 -m py_compile start-right/scripts/setup_branch_protection.py
+        echo "✓ All Python scripts parse correctly"
+
     - name: Install Play-Tight dependencies
       run: |
         cd play-tight/scripts

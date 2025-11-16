@@ -31,7 +31,8 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./cyberarian"
+        "./cyberarian",
+        "./start-right"
       ]
     }
   ]
