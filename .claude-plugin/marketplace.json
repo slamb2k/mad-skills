@@ -32,8 +32,28 @@
       "strict": false,
       "skills": [
         "./cyberarian",
-        "./start-right"
-      ]
+        "./start-right",
+        "./carbon"
+      ],
+      "keywords": [
+        "graphite",
+        "git",
+        "context-optimization",
+        "subagents",
+        "task-delegation",
+        "stacked-diffs",
+        "productivity",
+        "workflow",
+        "efficiency"
+      ],
+      "category": "productivity",
+      "main": "settings.json",
+      "hooks": {
+        "sessionStart": "hooks/session-start.sh"
+      },
+      "agents": {
+        "graphite-ops": "agents/graphite-ops-template.md"
+      }
     }
   ]
 }

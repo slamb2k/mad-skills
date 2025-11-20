@@ -3,7 +3,7 @@ title: MAD Skills Repository Architecture
 category: ai_docs
 status: active
 created: 2025-11-16
-last_updated: 2025-11-16
+last_updated: 2025-11-21
 tags: [architecture, repository-structure, plugins, skills]
 ---
 
@@ -50,11 +50,13 @@ The repository is organized into three plugins, each serving a different purpose
 
 **Skills:**
 - **Cyberarian** (Document Lifecycle Management) - Structured documentation organization
+- **Start Right** (Repository Scaffolding) - Production-ready repository initialization
+- **Carbon** (Context-Efficient Git/Graphite Workflows) - Automatic delegation for verbose git operations
 
-**Architecture Pattern:**
-- Python automation scripts for maintenance tasks
-- YAML frontmatter for metadata-driven automation
-- Category-based organization with automatic archiving
+**Architecture Patterns:**
+- **Cyberarian**: Python automation scripts, YAML frontmatter, category-based organization
+- **Start Right**: Python automation scripts for git/GitHub setup, workflow generation, branch protection
+- **Carbon**: SessionStart hooks, automatic delegation patterns, context isolation (225x efficiency)
 
 ## Repository Structure
 
@@ -76,6 +78,17 @@ mad-skills/
 │   ├── scripts/                # Python automation
 │   ├── assets/                 # Document templates
 │   └── references/             # Schemas, criteria
+├── start-right/                # dev-flow: Repository scaffolding
+│   ├── SKILL.md
+│   ├── scripts/                # Python automation for git/GitHub
+│   └── references/             # Project types, release strategies
+├── carbon/                     # dev-flow: Context-efficient Git/Graphite
+│   ├── SKILL.md
+│   ├── install.sh              # Installation script
+│   ├── hooks/                  # SessionStart hook
+│   ├── agents/                 # Custom agent template
+│   ├── references/             # Documentation, examples
+│   └── test/                   # Verification scripts
 ├── docs/                       # Repository documentation (managed by Cyberarian)
 └── [README.md, CLAUDE.md, etc.]
 ```
@@ -114,7 +127,7 @@ skill-name/
     },
     {
       "name": "dev-flow",
-      "skills": ["./cyberarian"]
+      "skills": ["./cyberarian", "./start-right", "./carbon"]
     }
   ]
 }
