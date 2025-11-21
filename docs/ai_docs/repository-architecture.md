@@ -16,12 +16,12 @@ This document explains the architecture of the mad-skills repository for Claude 
 ## Repository Purpose
 
 **Dual Purpose:**
-1. **Plugin Marketplace** - Distributes three distinct plugin categories via `.claude-plugin/marketplace.json`
+1. **Plugin Marketplace** - Distributes four distinct plugin categories via `.claude-plugin/marketplace.json`
 2. **Skill Source Repository** - Contains the source code, scripts, and documentation for all skills
 
-## Three-Plugin Architecture
+## Four-Plugin Architecture
 
-The repository is organized into three plugins, each serving a different purpose:
+The repository is organized into four plugins, each serving a different purpose:
 
 ### 1. debug-skills
 **Purpose:** Context-optimized alternatives to verbose MCP debugging tools
@@ -46,17 +46,27 @@ The repository is organized into three plugins, each serving a different purpose
 - Multi-stage design process
 
 ### 3. dev-flow
-**Purpose:** Development process optimization tools
+**Purpose:** Development process optimization tools - work immediately after installation
 
 **Skills:**
 - **Cyberarian** (Document Lifecycle Management) - Structured documentation organization
 - **Start Right** (Repository Scaffolding) - Production-ready repository initialization
-- **Carbon** (Context-Efficient Git/Graphite Workflows) - Automatic delegation for verbose git operations
 
 **Architecture Patterns:**
 - **Cyberarian**: Python automation scripts, YAML frontmatter, category-based organization
 - **Start Right**: Python automation scripts for git/GitHub setup, workflow generation, branch protection
-- **Carbon**: SessionStart hooks, automatic delegation patterns, context isolation (225x efficiency)
+
+### 4. carbon-flow
+**Purpose:** Context-efficient Git and Graphite workflows - requires per-project setup
+
+**Skills:**
+- **Graphite Skill** (Context-Efficient Git/Graphite Workflows) - Automatic delegation for verbose git operations
+
+**Architecture Pattern:**
+- SessionStart hooks for automatic pattern injection
+- Per-project installation required (hooks must be in `.claude/`)
+- Automatic delegation patterns with context isolation
+- 225x efficiency improvement (4,108 tokens → 18 tokens)
 
 ## Repository Structure
 
@@ -82,7 +92,7 @@ mad-skills/
 │   ├── SKILL.md
 │   ├── scripts/                # Python automation for git/GitHub
 │   └── references/             # Project types, release strategies
-├── carbon/                     # dev-flow: Context-efficient Git/Graphite
+├── graphite-skill/                     # dev-flow: Context-efficient Git/Graphite
 │   ├── SKILL.md
 │   ├── install.sh              # Installation script
 │   ├── hooks/                  # SessionStart hook
@@ -127,7 +137,11 @@ skill-name/
     },
     {
       "name": "dev-flow",
-      "skills": ["./cyberarian", "./start-right", "./carbon"]
+      "skills": ["./cyberarian", "./start-right"]
+    },
+    {
+      "name": "carbon-flow",
+      "skills": ["./graphite-skill"]
     }
   ]
 }

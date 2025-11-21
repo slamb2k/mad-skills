@@ -27,6 +27,9 @@ This repository serves multiple purposes:
 - **Cyberarian** (Document Lifecycle Management) - ✅ Complete - Digital librarian for project documentation
 - **Start Right** (Repository Scaffolding) - ✅ Complete - Production-ready repository initialization
 
+**Carbon Flow (carbon-flow plugin):**
+- **Graphite Skill** (Context-Efficient Git/Graphite Workflows) - ✅ Complete - 225x efficiency for git/Graphite operations via SessionStart hooks
+
 **In Development:**
 - **Grafana Tempo Telemetry Skill** - 🚧 Planned (debug-skills plugin)
 
@@ -80,17 +83,31 @@ mad-skills/
 │   └── references/
 │       ├── metadata-schema.md         # YAML frontmatter specification
 │       └── archiving-criteria.md      # Archiving rules and philosophy
-└── start-right/                       # Start Right skill source
+├── start-right/                       # Start Right skill source
+│   ├── SKILL.md                       # Complete skill reference
+│   ├── scripts/                       # Python automation scripts
+│   │   ├── init_git_repo.py           # Initialize git and create GitHub repo
+│   │   ├── setup_tooling.py           # Configure linting, formatting, type checking
+│   │   ├── setup_git_hooks.py         # Set up pre-commit and pre-push hooks
+│   │   ├── generate_workflows.py      # Generate GitHub Actions workflows
+│   │   └── setup_branch_protection.py # Configure branch protection rules
+│   └── references/
+│       ├── project-types.md           # Project type validation and build requirements
+│       └── release-strategies.md      # Deployment options and strategies
+└── graphite-skill/                    # Graphite Skill source
     ├── SKILL.md                       # Complete skill reference
-    ├── scripts/                       # Python automation scripts
-    │   ├── init_git_repo.py           # Initialize git and create GitHub repo
-    │   ├── setup_tooling.py           # Configure linting, formatting, type checking
-    │   ├── setup_git_hooks.py         # Set up pre-commit and pre-push hooks
-    │   ├── generate_workflows.py      # Generate GitHub Actions workflows
-    │   └── setup_branch_protection.py # Configure branch protection rules
-    └── references/
-        ├── project-types.md           # Project type validation and build requirements
-        └── release-strategies.md      # Deployment options and strategies
+    ├── install.sh                     # Automated installation script
+    ├── settings.json                  # Configuration settings
+    ├── hooks/
+    │   └── session-start.sh          # SessionStart hook for pattern injection
+    ├── agents/
+    │   └── graphite-ops-template.md  # Custom agent template (optional)
+    ├── references/
+    │   ├── quickstart.md             # Quick start guide
+    │   ├── readme.md                 # Complete documentation
+    │   └── team-configuration.md     # Team setup examples
+    └── test/
+        └── verify-installation.sh    # Installation verification script
 ```
 
 ## Development Commands
@@ -390,6 +407,118 @@ Claude invokes start-right skill and:
 - `project-types.md` - Validation and build requirements for each project type
 - `release-strategies.md` - Comprehensive deployment options (npm, PyPI, Docker, GitHub Pages, binaries, skills)
 
+## Graphite Skill Details
+
+### Overview
+
+**Type:** Hook-Based Workflow Skill
+**Plugin:** carbon-flow
+
+Graphite Skill is a context-efficient Git and Graphite workflow skill that automatically delegates verbose git/Graphite CLI operations to isolated Task subagents, reducing context pollution by 225x. Unlike traditional approaches that flood the context window with raw CLI output, Graphite Skill uses SessionStart hooks to inject delegation patterns automatically, achieving 99.6% context reduction (4,108 tokens → 18 tokens).
+
+### Key Characteristics
+
+- **SessionStart hook** - Automatically injects ~800 tokens of delegation patterns into every session
+- **Automatic delegation** - Recognizes verbose operations and delegates to Task subagents without manual invocation
+- **Context isolation** - Processes 15KB+ raw output in isolated subagent context
+- **Concise summaries** - Returns <50 token summaries to parent agent
+- **Team-ready** - Git-trackable configuration for team-wide distribution
+- **Per-project setup required** - Unlike other skills, requires running install script in each project
+- **Optional custom agent** - Enhanced UX with colored terminal output
+
+### Installation Pattern
+
+**Unlike other skills in this repository, Graphite Skill requires two-step installation:**
+
+1. **Global plugin installation** (makes skill available):
+   ```bash
+   /plugin install carbon-flow@slamb2k/mad-skills
+   ```
+
+2. **Per-project setup** (activates SessionStart hook):
+   ```bash
+   cd /your/project
+   bash ~/.claude/plugins/mad-skills/graphite-skill/install.sh --project
+   ```
+
+The per-project setup creates:
+- `.claude/plugins/graphite-skill/hooks/session-start.sh`
+- `.claude/plugins/graphite-skill/settings.json`
+- `.claude/agents/graphite-ops-template.md` (optional)
+
+### Why Per-Project Setup?
+
+Graphite Skill uses SessionStart hooks that must be in each project's `.claude/` directory to:
+1. Detect git repository and Graphite CLI presence
+2. Inject delegation patterns into every session automatically
+3. Enable team-wide adoption (`.claude/` can be committed to git)
+
+Other skills (Cyberarian, Start Right, Play-Tight, Pixel Pusher) work immediately after global installation because they don't use hooks.
+
+### Usage Pattern
+
+Graphite Skill works automatically through the SessionStart hook:
+
+1. **Session starts** → SessionStart hook fires
+2. **Hook injects patterns** → ~800 tokens of delegation instructions added to context
+3. **User requests git/Graphite operation** → Claude recognizes verbose operation
+4. **Automatic delegation** → Task subagent spawned with filtering instructions
+5. **Isolated processing** → Subagent handles 15KB+ output in separate context
+6. **Summary returned** → <50 token concise summary to parent
+7. **Context preserved** → 225x efficiency gain
+
+### Example Usage
+
+```
+User: "Check my Graphite stack"
+
+Without Graphite Skill:
+Claude: [Runs gt stack]
+→ Returns 15KB JSON (4,108 tokens)
+→ Context polluted
+→ Reasoning degraded
+
+With Graphite Skill (automatic):
+Claude: [Recognizes verbose operation → delegates to Task]
+Task subagent: [Runs gt stack --json 2>/dev/null]
+Task subagent: [Processes 15KB in isolated context]
+Task subagent: [Parses and summarizes]
+Claude receives: "✓ feature/auth | 3 PRs | #456 (needs review), #457 (approved), #458 (draft)"
+→ 18 tokens used
+→ Context clean
+→ Reasoning optimal
+```
+
+### Supported Operations
+
+**Git commands (auto-delegated):**
+- `git log --graph` - Commit history summarization
+- `git diff` - Change statistics
+- `git status` - Status with file grouping
+- `git branch` - Branch listing
+- All verbose git operations
+
+**Graphite CLI commands (auto-delegated):**
+- `gt stack` - Stack status with PR summaries
+- `gt pr list` - PR listing with filtering
+- `gt pr info` - Detailed PR data
+- `gt submit` - Submission with confirmation
+- All verbose gt operations
+
+### Efficiency Metrics
+
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Tokens consumed | 4,108 | 18 | 225x |
+| Context pollution | High | Minimal | 99.6% reduction |
+| Operations possible | 2-3 | 100+ | 50x |
+
+### Reference Files (in `graphite-skill/references/`)
+
+- `quickstart.md` - Quick start guide (5 minutes)
+- `readme.md` - Complete documentation with examples
+- `team-configuration.md` - Team setup and distribution examples
+
 ## Critical Design Principles
 
 When modifying or extending skills in this repository:
@@ -458,6 +587,16 @@ Result: 225x more efficient than MCP
 - `start-right/references/project-types.md` - Project type validation and build requirements
 - `start-right/references/release-strategies.md` - Deployment options and strategies
 - `start-right/scripts/` - Python automation scripts for repository initialization
+
+### Graphite Skill (Context-Efficient Git/Graphite Workflows)
+- `graphite-skill/SKILL.md` - Complete Graphite Skill reference
+- `graphite-skill/install.sh` - Automated installation script for per-project setup
+- `graphite-skill/hooks/session-start.sh` - SessionStart hook for automatic pattern injection
+- `graphite-skill/agents/graphite-ops-template.md` - Custom agent template
+- `graphite-skill/references/quickstart.md` - Quick start guide
+- `graphite-skill/references/readme.md` - Complete documentation
+- `graphite-skill/references/team-configuration.md` - Team setup examples
+- `graphite-skill/test/` - Installation verification scripts
 
 ## Working with This Repository
 

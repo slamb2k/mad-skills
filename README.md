@@ -214,6 +214,82 @@ Comprehensive repository initialization and scaffolding for new projects. Start 
 - [Project Types](start-right/references/project-types.md)
 - [Release Strategies](start-right/references/release-strategies.md)
 
+### Carbon Flow
+
+Context-efficient Git and Graphite workflows that require per-project setup.
+
+#### Graphite Skill - Context-Efficient Git/Graphite Workflows
+
+**Version:** 1.0.0
+**Status:** ✅ Available
+**Plugin:** carbon-flow
+**Type:** Hook-Based Workflow Skill
+
+Stop drowning in verbose git/Graphite output. Graphite Skill automatically enables context-efficient workflows for all git and Graphite CLI operations through SessionStart hooks and automatic delegation patterns. Reduces context pollution by 225x (4,108 tokens → 18 tokens).
+
+**Features:**
+- ✅ Automatic delegation of verbose git/Graphite operations to Task subagents
+- ✅ SessionStart hook for zero-friction pattern injection
+- ✅ Context isolation (15KB+ processed in subagent, <50 token summaries returned)
+- ✅ 225x efficiency improvement (99.6% context reduction)
+- ✅ Team-ready with git-trackable configuration
+- ✅ Optional custom agent support with colored terminal output
+- ✅ Works with Graphite stacked diffs workflow
+- ✅ Supports all git commands (log, diff, status, branch, etc.)
+
+**Installation:**
+```bash
+# 1. Install the plugin globally
+/plugin install carbon-flow@slamb2k/mad-skills
+
+# 2. Set up in your project (required for hooks to work)
+cd /your/project
+bash ~/.claude/plugins/mad-skills/graphite-skill/install.sh --project
+
+# This creates:
+# - .claude/plugins/graphite-skill/hooks/session-start.sh
+# - .claude/plugins/graphite-skill/settings.json
+# - .claude/agents/graphite-ops-template.md (optional)
+```
+
+**Quick Start:**
+```
+# After per-project setup, SessionStart hook activates automatically
+# Just use git/Graphite naturally:
+"Check my Graphite stack"
+"Show PRs needing review"
+"Show me recent commits"
+
+# Claude automatically:
+1. Recognizes verbose operation
+2. Delegates to Task subagent
+3. Processes output in isolated context
+4. Returns concise summary (<50 tokens)
+```
+
+**Use Cases:**
+- Graphite stacked diff workflows
+- Git commit history review
+- PR management and review queue
+- Branch navigation and stack management
+- Git status and diff operations
+- Any git/Graphite operation that produces verbose output
+- Team-wide context optimization
+
+**How It Works:**
+1. SessionStart hook injects ~800 tokens of delegation patterns
+2. Claude recognizes verbose git/Graphite operations automatically
+3. Delegates to Task subagent with explicit instructions
+4. Subagent processes raw output (15KB+) in isolated context
+5. Returns concise summary (<50 tokens) to parent
+6. 225x efficiency: 4,108 tokens → 18 tokens
+
+**Documentation:**
+- [Skill Reference](graphite-skill/SKILL.md)
+- [Quick Start Guide](graphite-skill/references/quickstart.md)
+- [Complete Documentation](graphite-skill/references/readme.md)
+- [Team Configuration](graphite-skill/references/team-configuration.md)
+
 ## Coming Soon
 
 ### Grafana Tempo Telemetry (Debug Skills)
@@ -346,17 +422,31 @@ mad-skills/
 │   └── references/
 │       ├── metadata-schema.md
 │       └── archiving-criteria.md
-└── start-right/                       # Repository scaffolding skill
+├── start-right/                       # Repository scaffolding skill
+│   ├── SKILL.md                       # Complete skill reference
+│   ├── scripts/                       # Python automation scripts
+│   │   ├── init_git_repo.py
+│   │   ├── setup_tooling.py
+│   │   ├── setup_git_hooks.py
+│   │   ├── generate_workflows.py
+│   │   └── setup_branch_protection.py
+│   └── references/
+│       ├── project-types.md
+│       └── release-strategies.md
+└── graphite-skill/                    # Context-efficient Git/Graphite workflows
     ├── SKILL.md                       # Complete skill reference
-    ├── scripts/                       # Python automation scripts
-    │   ├── init_git_repo.py
-    │   ├── setup_tooling.py
-    │   ├── setup_git_hooks.py
-    │   ├── generate_workflows.py
-    │   └── setup_branch_protection.py
-    └── references/
-        ├── project-types.md
-        └── release-strategies.md
+    ├── install.sh                     # Automated installation script
+    ├── settings.json                  # Configuration settings
+    ├── hooks/
+    │   └── session-start.sh          # SessionStart hook
+    ├── agents/
+    │   └── graphite-ops-template.md  # Custom agent template
+    ├── references/
+    │   ├── quickstart.md             # Quick start guide
+    │   ├── readme.md                 # Complete documentation
+    │   └── team-configuration.md     # Team setup examples
+    └── test/
+        └── verify-installation.sh    # Installation verification
 ```
 
 ## Installation
@@ -368,12 +458,15 @@ Register the marketplace:
 /plugin marketplace add slamb2k/mad-skills
 ```
 
-Then browse and select plugins (choose `debug-skills`, `design-skills`, `dev-flow`, or any combination), or install directly:
+Then browse and select plugins (choose `debug-skills`, `design-skills`, `dev-flow`, `carbon-flow`, or any combination), or install directly:
 ```
 /plugin install debug-skills@slamb2k/mad-skills
 /plugin install design-skills@slamb2k/mad-skills
 /plugin install dev-flow@slamb2k/mad-skills
+/plugin install carbon-flow@slamb2k/mad-skills  # Requires per-project setup
 ```
+
+**Note:** The `carbon-flow` plugin requires additional per-project setup after installation. See the [Graphite Skill](#graphite-skill---context-efficient-gitgraphite-workflows) section for details.
 
 **Note:** Play-Tight (browser automation) will automatically detect and offer to install required browsers when first used. No manual setup needed!
 

@@ -1,9 +1,9 @@
 ---
-name: carbon
+name: graphite-skill
 description: Context-efficient Git and Graphite workflows for Claude Code. Automatically delegates verbose git/Graphite CLI operations to isolated subagents, reducing context pollution by 225x. Use when working with git operations, Graphite stacked diffs, or any git workflow that produces verbose output. Prevents context window exhaustion by automatically applying delegation patterns via SessionStart hooks.
 ---
 
-# Carbon - Context-Efficient Git/Graphite Workflows
+# Graphite Skill - Context-Efficient Git/Graphite Workflows
 
 Stop drowning in verbose git/Graphite output. This skill automatically enables context-efficient workflows for all git and Graphite CLI operations in Claude Code through automatic delegation patterns.
 
@@ -17,7 +17,7 @@ Stop drowning in verbose git/Graphite output. This skill automatically enables c
 
 ## Problem Statement
 
-### Before Carbon (Context Pollution)
+### Before Graphite Skill (Context Pollution)
 
 ```bash
 You: "Check my Graphite stack"
@@ -31,7 +31,7 @@ Result: Context polluted, reasoning degraded, 2-3 operations max
 - `gt pr info` → 20KB JSON (5,000+ tokens)
 - Multiple queries → Context window exhaustion
 
-### After Carbon (Context Efficiency)
+### After Graphite Skill (Context Efficiency)
 
 ```bash
 You: "Check my Graphite stack"
@@ -57,10 +57,10 @@ Result: Clean context, 18 tokens used, 100+ operations possible
 cd /path/to/your/project
 
 # Run the installer
-bash ~/.claude/plugins/mad-skills/carbon/install.sh --project
+bash ~/.claude/plugins/mad-skills/graphite-skill/install.sh --project
 
 # The installer will:
-# - Copy hooks to .claude/plugins/carbon/
+# - Copy hooks to .claude/plugins/graphite-skill/
 # - Configure SessionStart hook
 # - Set up agent templates
 # - Make scripts executable
@@ -70,25 +70,25 @@ bash ~/.claude/plugins/mad-skills/carbon/install.sh --project
 
 ```bash
 # In your project
-mkdir -p .claude/plugins/carbon/hooks
+mkdir -p .claude/plugins/graphite-skill/hooks
 
 # Copy files from the carbon skill directory
-cp ~/.claude/plugins/mad-skills/carbon/hooks/session-start.sh .claude/plugins/carbon/hooks/
-cp ~/.claude/plugins/mad-skills/carbon/settings.json .claude/plugins/carbon/
+cp ~/.claude/plugins/mad-skills/graphite-skill/hooks/session-start.sh .claude/plugins/graphite-skill/hooks/
+cp ~/.claude/plugins/mad-skills/graphite-skill/settings.json .claude/plugins/graphite-skill/
 
 # Make hook executable
-chmod +x .claude/plugins/carbon/hooks/session-start.sh
+chmod +x .claude/plugins/graphite-skill/hooks/session-start.sh
 
 # Optional: Copy agent template
 mkdir -p .claude/agents
-cp ~/.claude/plugins/mad-skills/carbon/agents/graphite-ops-template.md .claude/agents/
+cp ~/.claude/plugins/mad-skills/graphite-skill/agents/graphite-ops-template.md .claude/agents/
 ```
 
 ### Verification
 
 ```bash
 # Test hook execution
-bash .claude/plugins/carbon/hooks/session-start.sh
+bash .claude/plugins/graphite-skill/hooks/session-start.sh
 
 # Should output JSON with hookSpecificOutput
 
@@ -244,17 +244,17 @@ graphite-ops [cyan]: ✓ feature/auth | 3 PRs | Review #456
 - 🎯 Same context isolation
 - 🔧 Requires one-time agent creation
 
-**Agent Template Location:** `carbon/agents/graphite-ops-template.md`
+**Agent Template Location:** `graphite-skill/agents/graphite-ops-template.md`
 
 ## Team Distribution
 
-Carbon is designed for team-wide adoption:
+Graphite Skill is designed for team-wide adoption:
 
 ```bash
 # One team member sets up
 ./install.sh --project
 git add .claude/
-git commit -m "Add Carbon context-optimization for git/Graphite"
+git commit -m "Add Graphite Skill context-optimization for git/Graphite"
 git push
 
 # Other team members pull and get:
@@ -277,7 +277,7 @@ The skill works out-of-box with sensible defaults. No configuration required.
 
 ### Custom Configuration
 
-Adjust behavior by editing `.claude/plugins/carbon/settings.json`:
+Adjust behavior by editing `.claude/plugins/graphite-skill/settings.json`:
 
 ```json
 {
@@ -300,7 +300,7 @@ Adjust behavior by editing `.claude/plugins/carbon/settings.json`:
 
 ## Efficiency Metrics
 
-| Metric | Before (Raw CLI) | After (Carbon) | Improvement |
+| Metric | Before (Raw CLI) | After (Graphite Skill) | Improvement |
 |--------|------------------|----------------|-------------|
 | Tokens consumed | 4,108 | 18 | **225x** |
 | Context pollution | High | Minimal | **99.6% reduction** |
@@ -314,20 +314,20 @@ Adjust behavior by editing `.claude/plugins/carbon/settings.json`:
 
 ```bash
 # Check permissions
-chmod +x .claude/plugins/carbon/hooks/session-start.sh
+chmod +x .claude/plugins/graphite-skill/hooks/session-start.sh
 
 # Check settings.json exists
 ls -la .claude/settings.json
 
 # Test manually
-bash .claude/plugins/carbon/hooks/session-start.sh | jq .
+bash .claude/plugins/graphite-skill/hooks/session-start.sh | jq .
 ```
 
 ### Context not appearing
 
 ```bash
 # Verify hook returns correct JSON
-bash .claude/plugins/carbon/hooks/session-start.sh | \
+bash .claude/plugins/graphite-skill/hooks/session-start.sh | \
   jq '.hookSpecificOutput.hookEventName'
 
 # Should output: "SessionStart"
@@ -358,7 +358,7 @@ If Claude doesn't delegate automatically:
 ## Files and Structure
 
 ```
-carbon/
+graphite-skill/
 ├── SKILL.md                       # This file - complete skill reference
 ├── install.sh                     # Automated installation script
 ├── settings.json                  # Configuration settings
@@ -398,10 +398,10 @@ References (from root skill directory):
 ## References
 
 For detailed information:
-- **Quick Start**: `carbon/QUICKSTART.md` - 5-minute setup guide
-- **Installation**: `carbon/install.sh` - Automated installation
-- **Team Setup**: `carbon/examples/team-configuration.md` - Team configuration examples
-- **Agent Template**: `carbon/agents/graphite-ops-template.md` - Custom agent definition
+- **Quick Start**: `graphite-skill/QUICKSTART.md` - 5-minute setup guide
+- **Installation**: `graphite-skill/install.sh` - Automated installation
+- **Team Setup**: `graphite-skill/examples/team-configuration.md` - Team configuration examples
+- **Agent Template**: `graphite-skill/agents/graphite-ops-template.md` - Custom agent definition
 
 ## Status
 

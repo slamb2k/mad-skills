@@ -157,6 +157,45 @@ jobs:
         python3 -m py_compile start-right/scripts/setup_branch_protection.py
         echo "✓ All Python scripts parse correctly"
 
+    - name: Validate Graphite Skill structure
+      run: |
+        echo "Validating Graphite Skill structure..."
+
+        # Check required files exist
+        required_files=(
+          "graphite-skill/SKILL.md"
+          "graphite-skill/install.sh"
+          "graphite-skill/settings.json"
+          "graphite-skill/hooks/session-start.sh"
+          "graphite-skill/agents/graphite-ops-template.md"
+          "graphite-skill/references/quickstart.md"
+          "graphite-skill/references/readme.md"
+          "graphite-skill/references/team-configuration.md"
+          "graphite-skill/test/verify-installation.sh"
+        )
+
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "ERROR: Required file missing: $file"
+            exit 1
+          fi
+          echo "✓ Found: $file"
+        done
+
+        # Validate hook is executable
+        if [ ! -x "graphite-skill/hooks/session-start.sh" ]; then
+          echo "ERROR: Hook is not executable: graphite-skill/hooks/session-start.sh"
+          exit 1
+        fi
+        echo "✓ Hook is executable"
+
+        # Validate install script is executable
+        if [ ! -x "graphite-skill/install.sh" ]; then
+          echo "ERROR: Install script is not executable: graphite-skill/install.sh"
+          exit 1
+        fi
+        echo "✓ Install script is executable"
+
     - name: Install Play-Tight dependencies
       run: |
         cd play-tight/scripts

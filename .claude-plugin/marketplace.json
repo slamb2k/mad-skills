@@ -27,13 +27,21 @@
     },
     {
       "name": "dev-flow",
-      "description": "Skills to optimize and enhance the development process",
+      "description": "Skills to optimize and enhance the development process - work immediately after installation",
       "source": "./",
       "strict": false,
       "skills": [
         "./cyberarian",
-        "./start-right",
-        "./carbon"
+        "./start-right"
+      ]
+    },
+    {
+      "name": "carbon-flow",
+      "description": "Context-efficient Git and Graphite workflows - requires per-project setup after installation",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./graphite-skill"
       ],
       "keywords": [
         "graphite",
