@@ -54,13 +54,7 @@
         "workflow",
         "efficiency"
       ],
-      "category": "productivity",
-      "hooks": {
-        "sessionStart": "hooks/session-start.sh"
-      },
-      "agents": {
-        "graphite-ops": "agents/graphite-ops-template.md"
-      }
+      "category": "productivity"
     }
   ]
 }
