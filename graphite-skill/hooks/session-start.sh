@@ -12,6 +12,66 @@ if [ ! -d "$CLAUDE_PROJECT_DIR/.git" ]; then
   exit 0
 fi
 
+# Detect if per-project setup has been completed
+PROJECT_SETUP_COMPLETE=false
+if [ -f "$CLAUDE_PROJECT_DIR/.claude/plugins/graphite-skill/hooks/session-start.sh" ]; then
+  PROJECT_SETUP_COMPLETE=true
+fi
+
+# If setup not complete, prompt user to install
+if [ "$PROJECT_SETUP_COMPLETE" = false ]; then
+  SETUP_PROMPT="# ⚠️ Graphite Skill Setup Required
+
+The **Graphite Skill** (carbon-flow plugin) is installed globally but not set up in this project.
+
+## What This Skill Does
+
+Graphite Skill provides **225x context efficiency** for git and Graphite CLI operations by automatically delegating verbose commands to Task subagents. This keeps your context window clean and allows 100+ operations before context exhaustion.
+
+**Without setup:** git/Graphite commands flood context with thousands of tokens
+**With setup:** Same commands consume <50 tokens via automatic delegation
+
+## Quick Setup (30 seconds)
+
+To enable automatic context-efficient git/Graphite workflows in this project:
+
+\`\`\`bash
+bash ~/.claude/plugins/mad-skills/graphite-skill/install.sh --project
+\`\`\`
+
+This will:
+- Copy SessionStart hook to project's \`.claude/plugins/graphite-skill/\` directory
+- Enable automatic delegation patterns for git/Graphite operations
+- Activate 225x efficiency improvement immediately
+
+## What You Get
+
+After setup, all git/Graphite operations automatically become context-efficient:
+- \`gt stack\` → Returns concise summary instead of 15KB JSON
+- \`git log\` → Returns formatted commits instead of verbose output
+- \`git diff\` → Returns change stats instead of full diff
+- All operations → <50 tokens per command
+
+**Would you like to set up Graphite Skill in this project now?**
+
+If yes, run: \`bash ~/.claude/plugins/mad-skills/graphite-skill/install.sh --project\`
+If not now, you can set it up anytime - just run the command above.
+
+---
+*This prompt appears because the carbon-flow plugin is installed but per-project setup hasn't been run yet.*"
+
+  # Return JSON with setup prompt
+  cat <<EOF
+{
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": $(echo "$SETUP_PROMPT" | jq -Rs .)
+  }
+}
+EOF
+  exit 0
+fi
+
 # Detect available tools
 HAS_GRAPHITE=false
 if command -v gt &> /dev/null 2>&1; then

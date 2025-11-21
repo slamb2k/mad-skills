@@ -43,6 +43,22 @@ Result: Clean context, 18 tokens used, 100+ operations possible
 
 ## Installation
 
+### Auto-Detection (Recommended)
+
+**The skill automatically detects if setup is needed!**
+
+When you have the carbon-flow plugin installed globally but haven't set up Graphite Skill in your project, the SessionStart hook will automatically prompt you with:
+
+```
+⚠️ Graphite Skill Setup Required
+
+Would you like to set up Graphite Skill in this project now?
+
+If yes, run: bash ~/.claude/plugins/mad-skills/graphite-skill/install.sh --project
+```
+
+Simply run the provided command and the skill activates immediately. No need to remember or look up installation steps.
+
 ### Prerequisites
 
 - Git repository
@@ -50,7 +66,7 @@ Result: Clean context, 18 tokens used, 100+ operations possible
 - (Optional) Graphite CLI for Graphite-specific workflows
 - (Optional) jq for JSON processing in hooks
 
-### Automated Installation
+### Manual Installation
 
 ```bash
 # Navigate to your project
@@ -108,11 +124,21 @@ The skill uses a SessionStart hook to inject context-optimization patterns autom
 
 ```
 1. Session starts → SessionStart hook fires
-2. Hook detects: git repo, Graphite CLI presence, custom agent availability
-3. Hook injects: ~800 tokens of delegation patterns into context
+2. Hook detects: git repo, project setup status, Graphite CLI, custom agent
+3a. If not set up → Prompts user to run install.sh (auto-detection)
+3b. If set up → Hook injects ~800 tokens of delegation patterns into context
 4. Claude knows: Use Task delegation for verbose operations automatically
 5. User benefits: Automatic context efficiency, zero manual effort
 ```
+
+**Auto-Detection Logic:**
+
+The hook intelligently detects whether per-project setup has been completed by checking for the existence of `.claude/plugins/graphite-skill/hooks/session-start.sh` in your project directory.
+
+- **Not set up**: Hook displays setup prompt with installation instructions
+- **Set up**: Hook injects delegation patterns and activates context optimization
+
+This means you never have to remember installation steps - the skill tells you exactly what to do.
 
 ### Automatic Delegation Pattern
 
