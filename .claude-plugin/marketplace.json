@@ -55,7 +55,6 @@
         "efficiency"
       ],
       "category": "productivity",
-      "main": "settings.json",
       "hooks": {
         "sessionStart": "hooks/session-start.sh"
       },
