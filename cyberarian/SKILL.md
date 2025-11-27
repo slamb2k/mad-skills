@@ -13,6 +13,66 @@ This skill enforces a structured approach to documentation in Claude Code projec
 2. **No Temporary Docs in docs/**: Ephemeral/scratch documents belong in `/tmp` or system temp, never in `docs/`
 3. **Metadata-Driven**: YAML frontmatter enables automation and lifecycle management
 4. **Automatic Maintenance**: Indexing and archiving happen automatically, not manually
+5. **Context Efficiency**: Bulk operations delegate to subagents to preserve main context
+
+## Context-Efficient Operations
+
+### The Problem
+
+Document management operations can produce verbose output that pollutes the main agent's context:
+- Validation scripts listing many errors across files
+- Index generation scanning dozens of documents
+- Archive operations listing all files being moved
+- Search results returning many matches
+
+### The Solution: Subagent Delegation
+
+**Delegate to Task subagent** for operations that return verbose output. The subagent absorbs the verbose output in its isolated context and returns a concise summary (<50 tokens).
+
+### Delegation Rules
+
+**Execute directly** (simple, low-output):
+- Creating a single document from template
+- Reading a specific document's metadata
+- Checking if `docs/` directory exists
+
+**Delegate to Task subagent** (complex, verbose):
+- Running validation across all documents
+- Regenerating the index
+- Archiving operations (especially dry-run)
+- Searching documents by tag/status/category
+- Summarizing INDEX.md contents
+- Any operation touching multiple files
+
+### Delegation Pattern
+
+When verbose output is expected:
+
+```
+1. Recognize the operation will be verbose
+2. Delegate to Task subagent with explicit instructions
+3. Subagent executes scripts, absorbs output
+4. Subagent parses and returns summary <50 tokens
+5. Main agent receives only essential summary
+```
+
+**Task subagent prompt format:**
+```
+Execute document operation and return concise summary:
+- Run: [command]
+- Parse: Extract [specific data needed]
+- Return: [emoji] [state] | [metric] | [next action]
+- Limit: <50 tokens
+
+Use agents/doc-librarian-subagent.md patterns for response formatting.
+```
+
+### Response Formats
+
+**Success:** `✓ [result] | [metric] | Next: [action]`
+**List:** `📋 [N] items: [item1], [item2], ... (+[remainder] more)`
+**Error:** `❌ [operation] failed | Reason: [brief] | Fix: [action]`
+**Warning:** `⚠️ [concern] | Impact: [brief] | Consider: [action]`
 
 ## Directory Structure
 
@@ -115,24 +175,30 @@ When creating ephemeral documents (scratchpads, temporary notes, single-use docs
 - Weekly/monthly: Run archiving to clean up completed work
 - Before commits: Validate metadata
 
-**Maintenance workflow**:
+**Maintenance workflow** (delegate to Task subagent for context efficiency):
 
-1. **Validate metadata**:
-   ```bash
-   python scripts/validate_doc_metadata.py
+1. **Validate metadata** → Delegate to subagent:
    ```
-   Checks all documents have proper frontmatter
-
-2. **Archive old documents** (dry run first):
-   ```bash
-   python scripts/archive_docs.py --dry-run
-   python scripts/archive_docs.py
+   Task: Run python scripts/validate_doc_metadata.py
+   Return: ✓ [N] valid | [N] issues: [list top 3] | Next: [action]
    ```
 
-3. **Update index**:
-   ```bash
-   python scripts/index_docs.py
+2. **Archive old documents** → Delegate to subagent:
    ```
+   Task: Run python scripts/archive_docs.py --dry-run
+   Return: 📦 [N] ready for archive: [list top 3] | Next: Run archive
+
+   Task: Run python scripts/archive_docs.py
+   Return: ✓ Archived [N] docs | Categories: [list] | Index updated
+   ```
+
+3. **Update index** → Delegate to subagent:
+   ```
+   Task: Run python scripts/index_docs.py
+   Return: ✓ Index updated | [N] documents | Categories: [summary]
+   ```
+
+**Why delegate?** These operations can scan dozens of files and produce verbose output. Subagent isolation keeps the main context clean for reasoning.
 
 ### Archiving Documents
 
@@ -178,6 +244,7 @@ Load these when needed for detailed guidance:
 
 - **references/metadata-schema.md**: Complete YAML frontmatter specification
 - **references/archiving-criteria.md**: Detailed archiving rules and philosophy
+- **agents/doc-librarian-subagent.md**: Subagent template for context-efficient operations
 
 ## Scripts Reference
 
@@ -215,12 +282,26 @@ python scripts/archive_docs.py
 ```
 
 ### Finding Documents
-```bash
-# Check the INDEX.md (auto-maintained)
-cat docs/INDEX.md
 
-# Or search by tag, category, status
-grep -r "tags:.*performance" docs/
+**Delegate searches to subagent** for context efficiency:
+
+```
+Task: Summarize docs/INDEX.md
+Return: 📊 [N] total docs | Categories: [breakdown] | Recent: [latest doc]
+
+Task: Search docs for tag "performance"
+Run: grep -r "tags:.*performance" docs/ --include="*.md" | head -10
+Return: 📋 [N] docs match: [path1], [path2], ... | Next: Read [most relevant]
+
+Task: Find all draft documents
+Run: grep -r "status: draft" docs/ --include="*.md"
+Return: 📋 [N] drafts: [list top 5] | Next: [action]
+```
+
+**Direct execution** (only for quick checks):
+```bash
+# Check if docs/ exists
+ls docs/ 2>/dev/null
 ```
 
 ## Best Practices
@@ -232,6 +313,7 @@ grep -r "tags:.*performance" docs/
 5. **Run maintenance regularly**: Index and archive periodically
 6. **Temp goes in /tmp**: Never create temporary/scratch docs in docs/
 7. **Validate before committing**: Run `validate_doc_metadata.py` to catch issues
+8. **Delegate bulk operations**: Use Task subagents for validation, indexing, archiving, and search to preserve main context
 
 ## Error Handling
 

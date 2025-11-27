@@ -80,6 +80,8 @@ mad-skills/
 │   │   └── validate_doc_metadata.py   # Validate YAML frontmatter
 │   ├── assets/
 │   │   └── doc_template.md            # Document template with frontmatter
+│   ├── agents/
+│   │   └── doc-librarian-subagent.md  # Subagent for context-efficient operations
 │   └── references/
 │       ├── metadata-schema.md         # YAML frontmatter specification
 │       └── archiving-criteria.md      # Archiving rules and philosophy
@@ -276,7 +278,7 @@ Claude invokes pixel-pusher skill and:
 
 **Type:** Workflow/Development Skill
 
-Cyberarian (The Digital Librarian) is a document lifecycle management skill that enforces structured organization, automatic indexing, and intelligent archiving of project documentation. Unlike script-based skills, this is a **workflow skill** that provides automation scripts and structured guidance.
+Cyberarian (The Digital Librarian) is a document lifecycle management skill that enforces structured organization, automatic indexing, and intelligent archiving of project documentation. This skill combines Python automation scripts with **context-efficient subagent patterns** to keep the main agent's context clean during bulk operations.
 
 ### Key Characteristics
 
@@ -284,6 +286,7 @@ Cyberarian (The Digital Librarian) is a document lifecycle management skill that
 - **YAML frontmatter** - Metadata-driven document lifecycle tracking
 - **Category-based organization** - Semantic directory structure (specs, analysis, plans, ai_docs, templates)
 - **Automatic maintenance** - Index generation and archiving based on age and status
+- **Context-efficient operations** - Bulk operations delegate to Task subagents for context isolation
 
 ### Usage Pattern
 
@@ -313,6 +316,23 @@ docs/
 - `index_docs.py` - Generate INDEX.md from document metadata
 - `archive_docs.py` - Archive old documents based on status and age
 - `validate_doc_metadata.py` - Validate YAML frontmatter
+
+### Context-Efficient Operations
+
+Cyberarian uses Task subagent delegation for bulk operations that produce verbose output:
+
+**Delegate to subagent:**
+- Validation across all documents
+- Index regeneration
+- Archive operations
+- Document searches
+
+**Execute directly:**
+- Creating single documents
+- Reading specific metadata
+- Checking directory existence
+
+This pattern keeps the main agent's context clean for reasoning while allowing comprehensive document management.
 
 ### Example Usage
 
@@ -581,6 +601,7 @@ Result: 225x more efficient than MCP
 - `cyberarian/references/metadata-schema.md` - YAML frontmatter specification
 - `cyberarian/references/archiving-criteria.md` - Archiving rules and philosophy
 - `cyberarian/scripts/` - Python automation scripts
+- `cyberarian/agents/doc-librarian-subagent.md` - Subagent template for context-efficient operations
 
 ### Start Right Skill (Repository Scaffolding)
 - `start-right/SKILL.md` - Complete Start Right skill reference

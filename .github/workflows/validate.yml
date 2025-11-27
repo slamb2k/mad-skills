@@ -106,6 +106,7 @@ jobs:
           "cyberarian/assets/doc_template.md"
           "cyberarian/references/metadata-schema.md"
           "cyberarian/references/archiving-criteria.md"
+          "cyberarian/agents/doc-librarian-subagent.md"
         )
 
         for file in "${required_files[@]}"; do
