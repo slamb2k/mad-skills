@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reference Implementations of Hosted MCP Servers in the Microsoft Agent Framework - Deep Research Report</title>
+    <style>
+         {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: 1a1a1a;
+            background: ffffff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+        }
+
+        .header {
+            background: 003d5c;
+            color: white;
+            padding: 25px 40px;
+            border-bottom: 3px solid 002840;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .header-meta {
+            font-size: 13px;
+            color: b8d4e6;
+            display: flex;
+            gap: 25px;
+        }
+
+        .metrics-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0;
+            border-bottom: 2px solid 003d5c;
+        }
+
+        .metric {
+            padding: 20px 30px;
+            background: f8f9fa;
+            border-right: 1px solid d1d5db;
+            text-align: center;
+        }
+
+        .metric:last-child {
+            border-right: none;
+        }
+
+        .metric-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: 003d5c;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: 4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 30px 40px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: 003d5c;
+            margin: 32px 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid 003d5c;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            line-height: 1.3;
+        }
+
+        .subsection-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: 1a1a1a;
+            margin: 24px 0 12px 0;
+            line-height: 1.4;
+        }
+
+        .executive-summary {
+            background: f8f9fa;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid 003d5c;
+        }
+
+        .executive-summary p {
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        p {
+            margin-bottom: 14px;
+            line-height: 1.7;
+            text-align: left;
+        }
+
+        / Better paragraph spacing in content sections /
+        .content > p,
+        .section p {
+            margin-bottom: 16px;
+        }
+
+        .findings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .finding-card {
+            background: f8f9fa;
+            padding: 18px;
+            border-left: 3px solid 003d5c;
+        }
+
+        .finding-card h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: 003d5c;
+            margin-bottom: 10px;
+        }
+
+        .finding-card p {
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+
+        .data-table th {
+            background: 003d5c;
+            color: white;
+            padding: 10px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid e5e7eb;
+        }
+
+        .data-table tr:hover {
+            background: f8f9fa;
+        }
+
+        ul, ol {
+            margin: 16px 0 16px 28px;
+            padding-left: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            padding-left: 8px;
+        }
+
+        / Nested lists /
+        li ul, li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        / Better bullet/number spacing /
+        ol {
+            list-style-position: outside;
+            padding-left: 0;
+        }
+
+        ul {
+            list-style-position: outside;
+            padding-left: 0;
+        }
+
+        .key-insight {
+            background: white;
+            border: 1px solid d1d5db;
+            border-left: 3px solid 003d5c;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .key-insight strong {
+            color: 003d5c;
+            font-weight: 600;
+        }
+
+        .citation {
+            color: 003d5c;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            padding: 2px 4px;
+            background: f0f7fc;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .citation:hover {
+            background: 003d5c;
+            color: white;
+        }
+
+        / Attribution Gradients (2025 Enhancement) /
+        .citation-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+            background: white;
+            border: 2px solid 003d5c;
+            box-shadow: 0 4px 12px rgba(0, 61, 92, 0.15);
+            padding: 12px;
+            min-width: 300px;
+            max-width: 500px;
+            z-index: 1000;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .citation:hover .citation-tooltip {
+            display: block;
+        }
+
+        .tooltip-title {
+            font-weight: 700;
+            color: 003d5c;
+            margin-bottom: 8px;
+            font-size: 13px;
+            border-bottom: 1px solid d1d5db;
+            padding-bottom: 6px;
+        }
+
+        .tooltip-source {
+            color: 4a5568;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+
+        .tooltip-claim {
+            background: f8f9fa;
+            padding: 8px;
+            margin-top: 8px;
+            border-left: 3px solid 003d5c;
+            font-size: 11px;
+        }
+
+        .tooltip-claim-label {
+            font-weight: 600;
+            color: 003d5c;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .evidence-chain {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid d1d5db;
+        }
+
+        .evidence-chain-label {
+            font-weight: 600;
+            color: 003d5c;
+            font-size: 11px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .evidence-step {
+            padding: 6px;
+            background: f8f9fa;
+            margin-bottom: 4px;
+            font-size: 11px;
+            border-left: 2px solid d1d5db;
+            padding-left: 8px;
+        }
+
+        .bibliography {
+            background: f8f9fa;
+            padding: 30px;
+            margin-top: 40px;
+            border-left: 4px solid 003d5c;
+        }
+
+        .bibliography-content {
+            background: f8f9fa;
+            padding: 20px 0;
+        }
+
+        .bib-entry {
+            margin-bottom: 18px;
+            padding-left: 50px;
+            text-indent: -50px;
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        .bib-number {
+            color: 003d5c;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .bib-entry a {
+            color: 003d5c;
+            word-wrap: break-word;
+            text-decoration: none;
+        }
+
+        .bib-entry a:hover {
+            text-decoration: underline;
+        }
+
+        .compact-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .compact-list li {
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .info-box {
+            background: white;
+            border: 1px solid d1d5db;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .info-box h4 {
+            font-size: 13px;
+            font-weight: 700;
+            color: 003d5c;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .highlight-stat {
+            font-weight: 700;
+            color: 003d5c;
+        }
+
+        strong {
+            font-weight: 600;
+            color: 1a1a1a;
+        }
+
+        @media print {
+            .container {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .metrics-dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .findings-grid {
+                grid-template-columns: 1fr;
+            }
+            .compact-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Reference Implementations of Hosted MCP Servers in the Microsoft Agent Framework</h1>
+            <div class="header-meta">
+                <span>2026-02-10</span>
+                <span>•</span>
+                <span>30 Sources</span>
+            </div>
+        </div>
+
+        <div class="metrics-dashboard">
+    <div class="metric"><span class="metric-number">3</span><span class="metric-label">Azure Hosting Options</span></div>
+    <div class="metric"><span class="metric-number">30</span><span class="metric-label">Sources Consulted</span></div>
+    <div class="metric"><span class="metric-number">6</span><span class="metric-label">Key Findings</span></div>
+    <div class="metric"><span class="metric-number">4</span><span class="metric-label">Language Templates</span></div>
+</div>
+
+        <div class="content">
+            <div class="section"><div class="executive-summary"><h2 class="section-title">Executive Summary</h2>
+
+<ul>
+<li><strong>Key Finding 1:</strong> Microsoft Agent Framework provides first-class MCP client and server support across both .NET and Python SDKs, enabling agents to consume remote MCP tools and to expose themselves as MCP servers for agent-to-agent communication [1][2][3].</li>
+<li><strong>Key Finding 2:</strong> Azure offers three primary hosting paths for production MCP servers: Azure Functions (serverless, pay-per-use with azd templates in .NET, Python, TypeScript, and Java), Azure Container Apps (self-hosted remote with managed identity), and Azure App Service (web app as MCP server) [5][6][17].</li>
+<li><strong>Key Finding 3:</strong> The cloud-hosted Foundry MCP Server, previewed at Ignite 2025, eliminates infrastructure management entirely by providing a Microsoft-managed MCP endpoint with Entra ID authentication and on-behalf-of token flow [4][7].</li>
+<li><strong>Key Finding 4:</strong> Semantic Kernel integrates bidirectionally with MCP, supporting both consumption of remote MCP tools via <code>MCPStreamableHttpPlugin</code> and exposure of SK plugins as MCP tools via the MCP C SDK [10][11][12].</li>
+<li><strong>Key Finding 5:</strong> The MCP transport layer has evolved from legacy SSE to Streamable HTTP (protocol version 2025-03-26), with the <code>ModelContextProtocol.AspNetCore</code> NuGet package providing backward-compatible support for both protocols in .NET [13][21].</li>
+</ul>
+
+<p><strong>Primary Recommendation:</strong> Teams building AI agents on the Microsoft stack should adopt Azure Functions with the official azd templates as the default MCP server hosting strategy, leveraging the Foundry MCP Server for first-party Azure/Foundry tool access, and reserve Container Apps or App Service for custom scenarios requiring persistent connections or complex middleware.
+</p>
+
+<p><strong>Confidence Level:</strong> High -- findings are triangulated across official Microsoft documentation, first-party GitHub repositories, and Microsoft DevBlogs published between 2025 and February 2026.
+</p>
+
+<p>---
+</p>
+
+</div>
+<div class="section"><h2 class="section-title">Introduction</h2>
+
+<h3 class="subsection-title">Research Question</h3>
+
+<p>What are the reference implementations for hosting Model Context Protocol (MCP) servers within the Microsoft Agent Framework ecosystem, and how do they integrate with Azure services for production deployment?
+</p>
+
+<p>This question is critical for development teams evaluating the Microsoft AI stack for building multi-agent systems. The Model Context Protocol, originally introduced by Anthropic in November 2024 and donated to the Linux Foundation's Agentic AI Foundation in December 2025, has become the de facto standard for connecting AI agents to external tools and data sources [1][9]. Microsoft's adoption of MCP across its agent framework, Semantic Kernel, Azure AI Foundry, and Visual Studio toolchain represents a major investment in interoperability. Understanding the available reference implementations, hosting options, and security patterns is essential for architects designing production-grade agentic systems.
+</p>
+
+<h3 class="subsection-title">Scope & Methodology</h3>
+
+<p>This research investigates the complete landscape of hosted MCP server implementations within the Microsoft Agent Framework and its surrounding ecosystem. The scope includes: the Microsoft Agent Framework's built-in MCP support (.NET and Python), Azure hosting options (Functions, Container Apps, App Service), the managed Foundry MCP Server, Semantic Kernel's MCP integration, official sample code repositories, transport protocol details, and security architecture.
+</p>
+
+<p>Excluded from scope are non-Microsoft MCP implementations (e.g., Cloudflare Workers, standalone FastMCP deployments without Azure), the Google A2A protocol comparison, and pricing analysis of Azure hosting tiers. The research also does not cover local-only (stdio) MCP servers except where they serve as the basis for understanding the remote hosting story.
+</p>
+
+<p>The research was conducted using 13 parallel web searches across Microsoft Learn documentation, Microsoft DevBlogs, GitHub repositories (microsoft/agent-framework, microsoft/mcp, Azure-Samples), NuGet package registries, Visual Studio Magazine, and community blog posts. A total of 30 distinct sources published between 2024 and February 2026 were consulted, with emphasis on official Microsoft documentation and first-party code samples.
+</p>
+
+<h3 class="subsection-title">Key Assumptions</h3>
+
+<ul>
+<li><strong>Assumption 1: Remote/hosted MCP is the production target.</strong> Local stdio-based MCP servers are useful for development but not for production multi-agent deployments. This report focuses on remotely accessible MCP server patterns.</li>
+<li><strong>Assumption 2: The .NET and Python SDKs represent the primary implementation paths.</strong> While MCP is language-agnostic, Microsoft's Agent Framework officially supports these two languages, and the majority of reference implementations target them.</li>
+<li><strong>Assumption 3: Azure is the intended deployment platform.</strong> The reference implementations assume Azure as the cloud provider. The patterns are conceptually portable but the tooling (azd, Entra ID, RBAC) is Azure-specific.</li>
+<li><strong>Assumption 4: Readers have working knowledge of AI agent concepts.</strong> The report assumes familiarity with LLMs, tool calling, and basic agent architecture.</li>
+</ul>
+
+<p>---
+</p>
+
+</div>
+<div class="section"><h2 class="section-title">Main Analysis</h2>
+
+<h3 class="subsection-title">Finding 1: Microsoft Agent Framework Provides Native MCP Client and Server Capabilities Across .NET and Python</h3>
+
+<p>The Microsoft Agent Framework, which combines Semantic Kernel and AutoGen into an open-source development kit for building AI agents, has first-class support for the Model Context Protocol in both its .NET and Python SDKs [1][2]. This is not a third-party integration or community add-on -- MCP is built into the framework's core tool-calling architecture, allowing any Agent Framework agent to discover, invoke, and compose tools hosted on remote MCP servers.
+</p>
+
+<p>In .NET, consuming MCP tools requires three NuGet packages: <code>Microsoft.Agents.AI.OpenAI</code>, <code>ModelContextProtocol</code>, and <code>ModelContextProtocol.AspNetCore</code> [2][13]. The developer creates an MCP client using <code>McpClientFactory.CreateAsync</code> with either a <code>StdioClientTransport</code> (for local servers) or an SSE/Streamable HTTP transport (for remote servers), retrieves the tool list via <code>mcpClient.ListToolsAsync()</code>, and passes the resulting <code>AITool</code> collection to the <code>AIAgent</code> constructor. The framework automatically handles tool schema discovery, argument marshalling, and response parsing. A representative .NET code pattern from the official documentation creates an agent backed by Azure OpenAI and wires in MCP tools in a single fluent expression [15]:
+</p>
+
+<p><code>`</code>csharp
+AIAgent agent = new AzureOpenAIClient(new Uri(endpoint), new AzureCliCredential())
+    .GetChatClient(deploymentName)
+    .AsAIAgent(
+        instructions: "You answer questions related to GitHub repositories only.",
+        tools: [.. mcpTools.Cast<AITool>()]
+    );
+</p>
+<code>`</code>
+
+<p>In Python, the framework provides <code>MCPStdioTool</code> for local servers and <code>MCPStreamableHTTPTool</code> for remote servers [2][19]. Each tool class manages its own connection lifecycle. An important implementation detail noted in the documentation is that Python MCP tools must remain connected for the full duration of an agent run, because the Python SDK streams partial tool calls that require buffering [2]. This differs from the .NET SDK, where tool calls are fully materialized before dispatch.
+</p>
+
+<p>The official Agent Framework repository on GitHub contains a dedicated set of MCP samples under <code>dotnet/samples/GettingStarted/ModelContextProtocol/</code>, including <code>Agent_MCP_Server</code> (consuming MCP tools), <code>Agent_MCP_Protected_Server</code> (consuming authenticated MCP servers), and <code>Agent_MCP_HostedTool</code> (using MCP tools hosted in the Foundry Agent Service) [15]. A companion repository, <code>microsoft/Agent-Framework-Samples</code>, provides structured learning paths where Module 05 covers MCP and agent-to-agent communication patterns [15].
+</p>
+
+<strong>Key Evidence:</strong>
+<ul>
+<li>Official .NET NuGet packages: <code>Microsoft.Agents.AI.OpenAI</code>, <code>ModelContextProtocol</code> (0.4.0-preview.3), <code>ModelContextProtocol.AspNetCore</code> [2][21]</li>
+<li>Official Python classes: <code>MCPStdioTool</code>, <code>MCPStreamableHTTPTool</code>, <code>HostedMCPTool</code> [2][19]</li>
+<li>5+ official sample projects in the agent-framework GitHub repository [15]</li>
+</ul>
+
+<strong>Implications:</strong>
+<p>MCP is not an afterthought in the Microsoft Agent Framework -- it is a core extensibility mechanism. Teams that adopt the framework get MCP interoperability out of the box, enabling their agents to consume tools from any MCP-compliant server (Microsoft or third-party) and to participate in multi-agent orchestration scenarios. The availability of both .NET and Python SDKs ensures coverage across enterprise backend (.NET) and data science/ML (Python) teams.
+</p>
+
+<p><strong>Sources:</strong> [1], [2], [13], [15], [19], [21]
+</p>
+
+<p>---
+</p>
+
+<h3 class="subsection-title">Finding 2: Azure Functions Is the Primary Reference Architecture for Hosting Production MCP Servers</h3>
+
+<p>Azure Functions has emerged as Microsoft's recommended serverless hosting platform for remote MCP servers, with official quickstart templates available in four languages (.NET/C, Python, TypeScript/JavaScript, and Java) deployed via the Azure Developer CLI (azd) [17][18]. The reference architecture uses a Flex Consumption plan that provides scale-to-zero, burst scaling, and pay-per-use billing, making it economically viable for both experimental and production MCP workloads.
+</p>
+
+<p>The canonical .NET reference implementation is the <code>Azure-Samples/remote-mcp-functions-dotnet</code> repository on GitHub [16]. This template demonstrates a complete MCP server with two tool endpoints (<code>GetSnippet</code> and <code>SaveSnippet</code>), backed by Azure Blob Storage. The server uses the Azure Functions MCP server extension, which maps MCP protocol endpoints to HTTP triggers. Deployment is a single <code>azd up</code> command that provisions all Azure resources using Bicep templates following security best practices, including Entra ID authentication, VNET isolation, and API Management integration [16][18].
+</p>
+
+<p>The architecture provides multiple layers of security. At the transport level, the MCP server endpoint is exposed at <code>https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp</code> and requires a system key for access control [17]. At the identity level, the template supports Microsoft Entra authentication with the built-in server authentication and authorization feature, implementing the MCP authorization specification including 401 challenges and Protected Resource Metadata (PRM) [16]. For accessing downstream Azure resources, the template uses a token exchange flow: it extracts the bearer token from request headers, obtains an assertion token via managed identity, and exchanges it for a Microsoft Graph access token using <code>OnBehalfOfCredential</code> [16].
+</p>
+
+<p>Beyond the Functions-native extension, Microsoft also supports hosting existing MCP servers built with Anthropic's official MCP SDKs on Azure Functions via the custom handler pattern [28]. This allows teams that have already built MCP servers using the TypeScript or Python MCP SDKs to deploy them without code changes, benefiting from Functions' scaling, pricing, and security features. The <code>Azure-Samples/mcp-sdk-functions-hosting-dotnet</code> repository provides samples for this approach [28].
+</p>
+
+<p>Equivalent quickstart templates exist for Python (<code>Azure-Samples/remote-mcp-functions-python</code>), TypeScript (<code>Azure-Samples/remote-mcp-functions-typescript</code>), and Java (<code>azd init --template remote-mcp-functions-java</code>) [17]. All templates follow the same security-by-default architecture and support the same <code>azd up</code> deployment workflow.
+</p>
+
+<strong>Key Evidence:</strong>
+<ul>
+<li>4 language-specific azd templates officially maintained by Microsoft [17]</li>
+<li>Flex Consumption plan: pay-per-use, scale-to-zero, burst scaling [17]</li>
+<li>Built-in Entra ID authentication with MCP authorization spec compliance [16]</li>
+<li>Custom handler support for existing MCP SDK servers [28]</li>
+</ul>
+
+<strong>Implications:</strong>
+<p>Azure Functions provides the lowest-friction path from local MCP server development to production cloud deployment. The one-command <code>azd up</code> deployment, combined with infrastructure-as-code via Bicep, means teams can go from code to cloud in minutes. The security architecture is production-grade by default, addressing the common concern about MCP servers exposing sensitive tool access without proper authentication.
+</p>
+
+<p><strong>Sources:</strong> [5], [16], [17], [18], [28]
+</p>
+
+<p>---
+</p>
+
+<h3 class="subsection-title">Finding 3: The Cloud-Hosted Foundry MCP Server Eliminates Infrastructure Management for First-Party Azure Tools</h3>
+
+<p>At Microsoft Ignite 2025, Microsoft previewed the Foundry MCP Server as a fully cloud-hosted, Microsoft-managed implementation of the Model Context Protocol [4][7]. This represents a qualitative shift from the experimental local MCP server released at Build 2025: the new server runs entirely in Microsoft's cloud, offering public endpoints with zero infrastructure provisioning required from the developer.
+</p>
+
+<p>The Foundry MCP Server exposes a growing catalog of tools for read and write operations on models, deployments, evaluations, and agents within Microsoft Foundry [4][7]. These tools are extensible and discoverable via the standard MCP protocol, allowing any MCP-compliant client to enumerate and invoke them. The server's primary use case is enabling AI coding assistants and orchestration agents to interact with Azure AI Foundry resources without custom API integrations -- developers connect to a single MCP endpoint and gain access to the entire Foundry tool surface.
+</p>
+
+<p>Security is enforced via Microsoft Entra ID using on-behalf-of (OBO) token flow [4][7]. The server accepts only Entra ID tokens scoped to the MCP endpoint, and every operation executes under the signed-in user's Azure RBAC permissions. This means an agent cannot perform operations beyond its user's rights, and all activity is logged for audit. Tenant administrators can apply Conditional Access policies through Azure Policy to control MCP usage across the organization [4].
+</p>
+
+<p>Developers can connect to the Foundry MCP Server from multiple clients: Visual Studio Code with GitHub Copilot in agent mode, Visual Studio 2026 (which shipped with built-in MCP server support), and programmatically via the Agent Framework's <code>HostedMCPTool</code> class in Python [4][19][26]. Within Microsoft Foundry's portal, the connection is a single-action operation through the Tools menu. The <code>HostedMCPTool</code> Python class simplifies programmatic access:
+</p>
+
+<p><code>`</code>python
+HostedMCPTool(
+    name="Microsoft Learn MCP",
+    url="https://learn.microsoft.com/api/mcp",
+    approval_mode="never_require",
+)
+</p>
+<code>`</code>
+
+<p>The Azure AI Foundry Agent Service itself also functions as a first-class MCP client [7][19]. When connecting external MCP servers to Foundry agents, the Agent Service runtime requires a remote MCP server endpoint -- local stdio servers must be self-hosted on Azure Container Apps or Azure Functions to obtain a remote endpoint [7]. The connection is configured with <code>server_url</code>, <code>server_label</code>, and optional <code>allowed_tools</code> parameters, and supports custom headers for authentication [25].
+</p>
+
+<strong>Key Evidence:</strong>
+<ul>
+<li>Cloud-hosted, zero-infrastructure MCP endpoint managed by Microsoft [4][7]</li>
+<li>Entra ID + OBO token flow for per-user RBAC enforcement [4]</li>
+<li>Accessible from VS Code, VS 2026, Agent Framework Python SDK, and Foundry portal [4][19][26]</li>
+<li>Agent Service runtime requires remote endpoints; local servers must be self-hosted [7]</li>
+</ul>
+
+<strong>Implications:</strong>
+<p>The Foundry MCP Server represents the "managed service" tier of MCP hosting. For teams whose primary tool needs center on Azure AI Foundry operations (model management, evaluation, agent orchestration), this eliminates all hosting complexity. However, for custom business logic tools, teams still need to self-host MCP servers using Functions, Container Apps, or App Service. The two approaches are complementary: use the managed Foundry MCP Server for first-party Azure tools and self-hosted servers for custom tools.
+</p>
+
+<p><strong>Sources:</strong> [4], [7], [19], [25], [26]
+</p>
+
+<p>---
+</p>
+
+<h3 class="subsection-title">Finding 4: Agents Can Be Exposed as MCP Servers, Enabling Bidirectional Agent-to-Agent Communication</h3>
+
+<p>A distinctive capability of the Microsoft Agent Framework is its support for exposing an agent as an MCP server, not just consuming MCP tools from external servers [3][23][30]. This bidirectional pattern enables true agent-to-agent communication: orchestrator agents (hosts) discover and invoke specialist agents (tools) through standard MCP connections, creating composable multi-agent systems where each agent can serve dual roles.
+</p>
+
+<p>In Python, exposing an agent as an MCP server uses the <code>as_mcp_server()</code> method, which wraps the agent's capabilities as MCP-discoverable tools [3]. Any MCP-compatible client -- whether another Agent Framework agent, VS Code GitHub Copilot, Claude Desktop, or a custom application -- can then invoke the agent through standard MCP protocol calls. The agent continues to handle reasoning internally while the MCP layer manages protocol transport.
+</p>
+
+<p>In .NET, the pattern requires wrapping the <code>AIAgent</code> in a function and registering it with <code>McpServerTool.Create(agent.AsAIFunction())</code> [3][30]. The server is then started using the standard .NET hosting model:
+</p>
+
+<p><code>`</code>csharp
+var builder = Host.CreateApplicationBuilder();
+builder.Services.AddMcpServer()
+    .WithStdioServerTransport()  // or WithHttpTransport() for remote
+    .WithTools([tool]);
+await builder.Build().RunAsync();
+</p>
+<code>`</code>
+
+<p>This exposes the agent as a tool endpoint over MCP, allowing multiple clients to invoke it. For remote access, the stdio transport is replaced with HTTP transport via <code>ModelContextProtocol.AspNetCore</code>, enabling the agent-as-server to be deployed to Azure and accessed over the network [3][13].
+</p>
+
+<p>The MCP specification itself has evolved to support these agentic patterns. Recent enhancements include resumable streams, elicitation (tools requesting user input from clients), sampling (tools requesting LLM completions from hosts), and progress notifications [23]. These capabilities transform MCP from a simple tool-calling protocol into a foundation for complex agent-to-agent coordination. According to the Microsoft developer blog, "These agents are tools available on MCP servers and can be invoked by host applications through standard MCP client connections. Importantly, the host applications themselves are also agents -- they coordinate tasks, maintain state, and make intelligent routing decisions" [23].
+</p>
+
+<p>The official tutorial on Microsoft Learn walks through a complete example of exposing an existing AI agent as an MCP tool, including the NuGet package setup (<code>Azure.AI.OpenAI</code>, <code>Azure.Identity</code>, <code>Microsoft.Agents.AI.OpenAI</code>, <code>ModelContextProtocol</code>), agent creation, tool wrapping, and MCP server startup [3]. A community walkthrough published on February 8, 2026 by Jamie Maguire provides additional step-by-step guidance with annotated code [30].
+</p>
+
+<strong>Key Evidence:</strong>
+<ul>
+<li>Python: <code>as_mcp_server()</code> method for one-line agent-to-server conversion [3]</li>
+<li>.NET: <code>McpServerTool.Create(agent.AsAIFunction())</code> pattern with hosting model integration [3][30]</li>
+<li>MCP spec enhancements: resumable streams, elicitation, sampling, progress notifications [23]</li>
+<li>Official Microsoft Learn tutorial and community walkthroughs available [3][30]</li>
+</ul>
+
+<strong>Implications:</strong>
+<p>The bidirectional MCP pattern fundamentally changes how multi-agent systems can be architected. Instead of building custom inter-agent communication protocols, teams can use MCP as a universal agent interface. An agent built with the Microsoft Agent Framework can simultaneously consume tools from external MCP servers and expose itself as a tool for other agents, creating mesh-like topologies. This interoperability extends beyond the Microsoft ecosystem -- any MCP-compatible client (Claude Desktop, OpenAI Agents SDK, third-party frameworks) can discover and invoke these agents.
+</p>
+
+<p><strong>Sources:</strong> [3], [13], [23], [30]
+</p>
+
+<p>---
+</p>
+
+<h3 class="subsection-title">Finding 5: Semantic Kernel Provides Full MCP Integration for Both Tool Consumption and Server Exposure</h3>
+
+<p>Microsoft Semantic Kernel (SK), the orchestration engine underlying much of the Agent Framework, has independently developed comprehensive MCP support for both its .NET and Python SDKs [10][11][12][22]. This integration allows SK to function as an MCP host (consuming tools from remote servers), an MCP server (exposing SK plugins as MCP tools), and a bridge between the two patterns.
+</p>
+
+<p>For consuming remote MCP tools, SK supports multiple plugin types. The <code>MCPStdioPlugin</code> connects to local MCP servers via standard input/output, while <code>MCPStreamableHttpPlugin</code> (Python: <code>MCPSsePlugin</code>) connects to remote servers over HTTPS [10][12][22]. Connecting to a remote SSE-based server requires only the server URL. The retrieved MCP tools are automatically converted to Semantic Kernel functions via the <code>AsKernelFunction()</code> extension method, which maps MCP tool schemas to SK's native function abstraction [10]. Once converted, these tools participate in SK's automatic function calling, allowing the LLM to discover and invoke them through the standard kernel function pipeline.
+</p>
+
+<p>For exposing SK plugins as MCP servers, a detailed walkthrough is provided on the Semantic Kernel DevBlog [11]. The pattern uses the MCP C SDK alongside SK to create an ASP.NET Core application that publishes SK plugins as MCP-discoverable tools. Three key reasons motivate this approach: interoperability (reusing existing SK plugins in non-SK applications or across platforms), content safety (validating tool calls via SK Filters before execution), and observability (collecting tool-call telemetry through SK's existing monitoring infrastructure) [11].
+</p>
+
+<p>SK's MCP support extends to running as a remote server for scenarios where the SK host cannot directly call out to LLM providers. According to the documentation, "you want to run SK as a server in an environment that is not allowed to directly call out to those models, while the host can do that" [10]. This architecture separates the tool execution environment from the LLM inference environment, enabling security-sensitive deployments where tool code runs in isolated networks.
+</p>
+
+<p>The integration with Azure OpenAI demonstrates a production-ready pattern where LLM evaluation of prompts is mapped to kernel functions backed by MCP tools [10][22]. The MCP Client-Server ecosystem makes tools hosted on remote servers available to the SK client, which registers them as kernel functions. The LLM then evaluates prompts against these functions, selecting and invoking relevant tools automatically.
+</p>
+
+<strong>Key Evidence:</strong>
+<ul>
+<li>.NET: <code>MCPStreamableHttpPlugin</code> for remote servers; <code>AsKernelFunction()</code> for tool-to-function conversion [10][22]</li>
+<li>Python: <code>MCPSsePlugin</code> for remote SSE connections [12]</li>
+<li>Server exposure: SK plugins published as MCP tools via MCP C SDK + ASP.NET Core [11]</li>
+<li>Integration with Azure OpenAI for automatic function calling [10]</li>
+</ul>
+
+<strong>Implications:</strong>
+<p>For teams already invested in Semantic Kernel, MCP integration is a natural extension rather than a new technology to adopt. Existing SK plugins can be exposed to the broader MCP ecosystem without rewriting them, and external MCP tools can be consumed without abandoning SK's orchestration model. This positions SK as a bridge technology: teams can incrementally adopt MCP while preserving their existing SK investments.
+</p>
+
+<p><strong>Sources:</strong> [10], [11], [12], [22]
+</p>
+
+<p>---
+</p>
+
+<h3 class="subsection-title">Finding 6: The MCP Transport Layer Has Evolved to Streamable HTTP, with Full .NET and Azure Support</h3>
+
+<p>The MCP protocol's transport layer underwent a significant architectural change with the March 2025 specification update (version 2025-03-26), transitioning from Server-Sent Events (SSE) as the primary remote transport to Streamable HTTP [13][21]. This evolution directly impacts how hosted MCP servers are built and deployed on Azure, and Microsoft's tooling has adopted the new standard while maintaining backward compatibility.
+</p>
+
+<p>The legacy SSE transport required two separate HTTP endpoints: a <code>/sse</code> endpoint establishing a persistent connection for server-to-client responses, and a POST endpoint for client-to-server messages. This dual-endpoint design created complexity in load balancing, proxy configuration, and serverless hosting where persistent connections are expensive. Streamable HTTP consolidates communication into standard HTTP POST requests for client-to-server messages, with optional SSE streams for server-to-client push [13]. The result is that MCP can be implemented as a plain HTTP server without dedicated SSE infrastructure, simplifying deployment to platforms like Azure Functions where persistent connections are not the natural model.
+</p>
+
+<p>The <code>ModelContextProtocol.AspNetCore</code> NuGet package (currently at version 0.4.0-preview.3) provides the .NET implementation of Streamable HTTP transport [21]. Integration with ASP.NET Core is straightforward:
+</p>
+
+<p><code>`</code>csharp
+builder.Services.AddMcpServer()
+    .WithHttpTransport()
+    .WithToolsFromAssembly();
+</p>
+
+<p>app.MapMcp();  // Maps MCP protocol endpoints
+</p>
+<code>`</code>
+
+<p>The package supports both stateful mode (with GET and DELETE endpoints for server-initiated communication and session cleanup) and stateless mode (where each request is independent and session management is disabled) [21]. Stateless mode is particularly suited to serverless deployments like Azure Functions, where requests may be routed to different application instances.
+</p>
+
+<p>Critically, the .NET SDK provides automatic backward compatibility. When developers upgrade the <code>ModelContextProtocol</code> NuGet package and use <code>WithHttpTransport()</code>, the server automatically supports both the legacy SSE transport and the new Streamable HTTP transport [21]. The legacy <code>/sse</code> and <code>/message</code> endpoints are conditionally mapped alongside the new unified endpoint, ensuring existing clients continue to work during the transition period.
+</p>
+
+<p>For Azure deployments, the Streamable HTTP transport aligns well with Azure's managed services. Azure Functions supports HTTP triggers natively, and the stateless mode of Streamable HTTP maps directly to the serverless execution model. Azure Container Apps supports both stateful and stateless modes, with the container-based hosting model accommodating persistent connections where needed. The Azure MCP Server for Copilot Studio uses a specific protocol marker (<code>x-ms-agentic-protocol: mcp-streamable-1.0</code> header) to signal Streamable HTTP support [27].
+</p>
+
+<strong>Key Evidence:</strong>
+<ul>
+<li>Protocol version 2025-03-26 deprecated standalone SSE in favor of Streamable HTTP [13]</li>
+<li><code>ModelContextProtocol.AspNetCore</code> 0.4.0-preview.3 supports both transports [21]</li>
+<li>Stateless mode ideal for Azure Functions; stateful mode for Container Apps [21]</li>
+<li>Automatic backward compatibility with legacy SSE clients [21]</li>
+</ul>
+
+<strong>Implications:</strong>
+<p>The transport evolution simplifies MCP server hosting by removing the persistent-connection requirement that made SSE challenging in serverless environments. Teams deploying MCP servers to Azure Functions can use stateless Streamable HTTP, which aligns with the ephemeral, request-based execution model of serverless. Teams requiring server-initiated push (e.g., progress notifications during long-running tool calls) should use stateful mode on Container Apps. The backward compatibility means existing MCP clients will continue to work during the transition.
+</p>
+
+<p><strong>Sources:</strong> [13], [21], [27]
+</p>
+
+<p>---
+</p>
+
+</div>
+<div class="section"><h2 class="section-title">Synthesis & Insights</h2>
+
+<h3 class="subsection-title">Patterns Identified</h3>
+
+<strong>Pattern 1: Layered Hosting Strategy</strong>
+
+<p>Microsoft's MCP hosting story follows a clear three-tier pattern. The top tier is fully managed: the Foundry MCP Server handles Azure AI Foundry operations with zero infrastructure. The middle tier is serverless self-hosted: Azure Functions with azd templates provides one-command deployment for custom MCP servers. The bottom tier is container-based self-hosted: Azure Container Apps and App Service offer full control for complex scenarios requiring persistent state or custom middleware. Each tier trades increasing operational responsibility for increasing flexibility, and the reference implementations guide teams to the appropriate tier for their use case [4][5][7][17].
+</p>
+
+<strong>Pattern 2: Bidirectional MCP as Universal Agent Interface</strong>
+
+<p>Across the Agent Framework, Semantic Kernel, and Foundry Agent Service, the same bidirectional pattern recurs: any component can be both an MCP client (consuming tools) and an MCP server (exposing capabilities). This is not merely a design option -- it is the architecture Microsoft is building toward for multi-agent systems. The <code>as_mcp_server()</code> pattern in Python and <code>McpServerTool.Create()</code> in .NET make this bidirectionality a first-class operation [3][10][23]. The MCP spec's recent additions (elicitation, sampling, progress notifications) further reinforce this direction [23].
+</p>
+
+<strong>Pattern 3: Security as a Default, Not an Add-On</strong>
+
+<p>Every reference implementation ships with Entra ID authentication configured by default. The Azure Functions templates use built-in auth with MCP authorization spec compliance. The Foundry MCP Server enforces per-user RBAC via OBO tokens. The Container Apps templates use managed identity. This "secure by default" posture is notable because MCP servers expose tool execution capabilities that, if unprotected, could allow unauthorized agents to perform sensitive operations [4][16].
+</p>
+
+<h3 class="subsection-title">Novel Insights</h3>
+
+<strong>Insight 1: MCP Decouples Agent Intelligence from Tool Infrastructure</strong>
+
+<p>By examining the full set of reference implementations, a strategic insight emerges that no single source explicitly states: MCP enables teams to evolve their agent intelligence layer (LLM, orchestration logic, prompting strategy) independently of their tool infrastructure. An agent built with the Microsoft Agent Framework can switch from Azure OpenAI to another LLM provider without changing any MCP server code, and a team can swap out an Azure Functions MCP server for a Container Apps deployment without modifying the agent. This decoupling is the architectural equivalent of the database abstraction layer that revolutionized application development -- MCP is becoming the tool abstraction layer for AI agents.
+</p>
+
+<strong>Insight 2: The Microsoft MCP Ecosystem Is Converging Toward a Unified Catalog</strong>
+
+<p>The <code>microsoft/mcp</code> GitHub repository, the Azure API Center integration for registering MCP servers, and the MCP Center at mcp.azure.com collectively point toward a unified, governable catalog of MCP tools [5][14][20]. When combined with the <code>microsoft/agent-skills</code> repository (126 skills with MCP configurations) and the Microsoft Learn MCP Server (MicrosoftDocs/mcp), the emerging picture is of an enterprise tool marketplace where MCP servers are discoverable, versioned, and governed through Azure's identity and policy frameworks. This has significant implications for enterprise adoption, where tool governance is a hard requirement.
+</p>
+
+<h3 class="subsection-title">Implications</h3>
+
+<strong>For Development Teams:</strong>
+<p>Teams building agents on the Microsoft stack should design their tool layer as MCP servers from the start, even for tools that are initially consumed only internally. The minimal overhead of wrapping business logic in an MCP server (a single NuGet package and a few lines of configuration) provides future-proof interoperability -- the tool becomes accessible to any MCP client, not just the original consuming agent.
+</p>
+
+<strong>Broader Implications:</strong>
+<p>Microsoft's deep investment in MCP across its entire AI toolchain (Agent Framework, Semantic Kernel, Foundry, VS Code, VS 2026, Copilot Studio) signals that MCP is becoming the standard plumbing for tool integration in enterprise AI. Competing approaches (custom REST APIs, proprietary tool protocols) will face increasing friction as the MCP ecosystem matures and tooling assumes MCP compliance.
+</p>
+
+<strong>Second-Order Effects:</strong>
+<p>As MCP servers proliferate, the "context rot" problem identified in the <code>microsoft/agent-skills</code> documentation becomes critical: agents with access to too many MCP tools suffer degraded reasoning quality [20]. This will drive demand for intelligent tool routing, where orchestrator agents select relevant MCP servers per task rather than loading all available tools. The Agent-to-Agent MCP pattern is likely to evolve toward hierarchical architectures with specialized routing agents.
+</p>
+
+<p>---
+</p>
+
+</div>
+<div class="section"><h2 class="section-title">Limitations & Caveats</h2>
+
+<h3 class="subsection-title">Counterevidence Register</h3>
+
+<strong>Contradictory Finding 1: Preview Status of Key Components</strong>
+<p>Multiple core components are still in preview or prerelease. The <code>ModelContextProtocol.AspNetCore</code> NuGet package is at 0.4.0-preview.3 [21], the Foundry MCP Server is in preview [4], and the <code>Microsoft.Agents.AI.OpenAI</code> package is prerelease [2]. Microsoft explicitly states that "breaking changes can be introduced without prior notice" for preview packages [21]. This means the code patterns documented in this report may change before GA.
+</p>
+<ul>
+<li>Impact on conclusions: Moderate. The architectural patterns are stable, but specific API surfaces may evolve.</li>
+</ul>
+
+<strong>Contradictory Finding 2: Python SDK Maturity Lags .NET</strong>
+<p>While both .NET and Python are officially supported, the .NET SDK has more complete documentation, more sample projects, and more community coverage. The Python Agent Framework's MCP integration, while functional, has fewer tutorials and the streaming behavior differences (requiring buffered partial tool calls) suggest it is still being refined [2].
+</p>
+<ul>
+<li>Impact on conclusions: Minimal for .NET-first teams; moderate for Python-first teams.</li>
+</ul>
+
+<h3 class="subsection-title">Known Gaps</h3>
+
+<strong>Gap 1: Performance Benchmarks</strong>
+<p>No official performance benchmarks were found for MCP server hosting options. Questions such as cold-start latency for Azure Functions MCP servers, throughput under concurrent agent requests, and latency comparison between Streamable HTTP and legacy SSE remain unanswered. Teams designing high-throughput multi-agent systems will need to conduct their own benchmarking.
+</p>
+
+<strong>Gap 2: Multi-Region and High-Availability Patterns</strong>
+<p>The reference implementations are single-region deployments. No documentation was found on multi-region MCP server deployment, failover strategies, or geographic load balancing for MCP endpoints.
+</p>
+
+<strong>Gap 3: Cost Modeling</strong>
+<p>While the Azure Functions templates mention "a few USD cents" for the quickstart, no detailed cost modeling is available for production-scale MCP server workloads with high concurrency or large payload sizes.
+</p>
+
+<h3 class="subsection-title">Areas of Uncertainty</h3>
+
+<strong>Uncertainty 1: Long-Term Transport Protocol Stability</strong>
+<p>The MCP transport layer changed significantly in March 2025 (SSE to Streamable HTTP). While backward compatibility is maintained, it is unclear whether further transport changes are planned as the protocol matures under the Linux Foundation's Agentic AI Foundation governance.
+</p>
+
+<strong>Uncertainty 2: Foundry MCP Server Tool Catalog Scope</strong>
+<p>The Foundry MCP Server's tool catalog is described as "growing" but no roadmap or tool inventory was publicly documented. The extent to which it will cover Foundry operations versus requiring supplementary custom MCP servers is unclear.
+</p>
+
+<p>---
+</p>
+
+</div>
+<div class="section"><h2 class="section-title">Recommendations</h2>
+
+<h3 class="subsection-title">Immediate Actions</h3>
+
+<ol>
+<li><strong>Start with the Azure Functions MCP Template</strong></li>
+<li>What: Clone the <code>Azure-Samples/remote-mcp-functions-dotnet</code> (or Python/TypeScript equivalent) and deploy with <code>azd up</code> to validate the end-to-end MCP hosting pattern.</li>
+<li>Why: This is the lowest-friction path to a production-grade hosted MCP server with security pre-configured.</li>
+<li>How: <code>azd init --template remote-mcp-functions-dotnet && azd up</code></li>
+<li>Timeline: 1-2 hours for a working proof of concept.</li>
+</ol>
+
+<ol>
+<li><strong>Evaluate the Foundry MCP Server for First-Party Azure Tool Needs</strong></li>
+<li>What: Connect to the cloud-hosted Foundry MCP Server from VS Code or programmatically via <code>HostedMCPTool</code> to assess whether its tool catalog covers your Foundry interaction needs.</li>
+<li>Why: If it does, you eliminate an entire category of custom server development.</li>
+<li>How: Add the Foundry MCP Server endpoint to your VS Code MCP configuration or Agent Framework Python code.</li>
+<li>Timeline: 1-2 hours for initial evaluation.</li>
+</ol>
+
+<ol>
+<li><strong>Adopt the Bidirectional MCP Pattern for New Agents</strong></li>
+<li>What: When building new agents with the Microsoft Agent Framework, expose them as MCP servers using <code>as_mcp_server()</code> (Python) or <code>McpServerTool.Create()</code> (.NET) in addition to consuming MCP tools.</li>
+<li>Why: This makes agents composable and discoverable by other agents and tools without additional integration work.</li>
+<li>How: Follow the official tutorial at [learn.microsoft.com/en-us/agent-framework/tutorials/agents/agent-as-mcp-tool](https://learn.microsoft.com/en-us/agent-framework/tutorials/agents/agent-as-mcp-tool).</li>
+<li>Timeline: Add 2-4 hours to agent development for MCP server exposure.</li>
+</ol>
+
+<h3 class="subsection-title">Next Steps</h3>
+
+<ol>
+<li><strong>Implement MCP Server Governance via Azure API Center</strong></li>
+<li>Register all internal MCP servers in Azure API Center to create a discoverable, governed tool catalog. This enables consistent access control and avoids tool sprawl.</li>
+</ol>
+
+<ol>
+<li><strong>Benchmark MCP Server Performance on Target Hosting Platform</strong></li>
+<li>Conduct load testing on your chosen hosting platform (Functions, Container Apps) to establish cold-start latency, throughput, and cost-per-invocation baselines for your specific tool workloads.</li>
+</ol>
+
+<ol>
+<li><strong>Design Agent-to-Agent Architecture Using MCP</strong></li>
+<li>Map your multi-agent orchestration patterns to MCP's bidirectional model. Identify which agents should be exposed as MCP servers and which should remain internal-only.</li>
+</ol>
+
+<h3 class="subsection-title">Further Research Needs</h3>
+
+<ol>
+<li><strong>MCP Server Observability Patterns</strong></li>
+<li>Investigate: How to implement comprehensive telemetry (distributed tracing, metrics, logging) for MCP server tool invocations across Azure hosting platforms.</li>
+<li>Why it matters: Observability is critical for debugging multi-agent systems where tool calls traverse multiple MCP servers.</li>
+<li>Suggested approach: Evaluate OpenTelemetry integration with the MCP C SDK and Azure Monitor.</li>
+</ol>
+
+<ol>
+<li><strong>MCP Authorization Patterns for Multi-Tenant Scenarios</strong></li>
+<li>Investigate: How to implement tenant-isolated MCP servers where different organizations or teams have scoped access to different tool sets.</li>
+<li>Why it matters: Enterprise deployments require tenant isolation for compliance.</li>
+<li>Suggested approach: Explore Azure API Management policies combined with Entra ID tenant-scoped tokens.</li>
+</ol>
+
+<ol>
+<li><strong>MCP Server Versioning and Migration Strategies</strong></li>
+<li>Investigate: How to version MCP server tool schemas and manage breaking changes without disrupting consuming agents.</li>
+<li>Why it matters: As MCP server catalogs grow, schema evolution becomes an operational concern.</li>
+<li>Suggested approach: Study API versioning patterns and evaluate Azure API Center's version management capabilities.</li>
+</ol>
+
+<p>---
+</p>
+
+
+</div>
+
+            <div class="bibliography">
+                <div class="section-title">Bibliography</div>
+                <div class="bibliography-content">
+<div class="bib-entry"><span class="bib-number">[1]</span> Microsoft (2025). "Model Context Protocol". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/agent-framework/user-guide/model-context-protocol/" target="_blank">https://learn.microsoft.com/en-us/agent-framework/user-guide/model-context-protocol/</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[2]</span> Microsoft (2025). "Using MCP Tools". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/agent-framework/user-guide/model-context-protocol/using-mcp-tools" target="_blank">https://learn.microsoft.com/en-us/agent-framework/user-guide/model-context-protocol/using-mcp-tools</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[3]</span> Microsoft (2025). "Exposing an agent as an MCP tool". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/agent-framework/tutorials/agents/agent-as-mcp-tool" target="_blank">https://learn.microsoft.com/en-us/agent-framework/tutorials/agents/agent-as-mcp-tool</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[4]</span> Visual Studio Magazine (2025). "Microsoft Previews Cloud-Hosted Foundry MCP Server for AI Agent Development". Visual Studio Magazine. <a href="https://visualstudiomagazine.com/articles/2025/12/04/microsoft-previews-cloud-hosted-foundry-mcp-server-for-ai-agent-development.aspx" target="_blank">https://visualstudiomagazine.com/articles/2025/12/04/microsoft-previews-cloud-hosted-foundry-mcp-server-for-ai-agent-development.aspx</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[5]</span> Microsoft (2025). "Build and register a Model Context Protocol (MCP) server". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/azure/ai-foundry/mcp/build-your-own-mcp-server" target="_blank">https://learn.microsoft.com/en-us/azure/ai-foundry/mcp/build-your-own-mcp-server</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[6]</span> Microsoft (2025). "Use App Service as a Model Context Protocol (MCP) server". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/azure/app-service/scenario-ai-model-context-protocol-server" target="_blank">https://learn.microsoft.com/en-us/azure/app-service/scenario-ai-model-context-protocol-server</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[7]</span> Microsoft Foundry Blog (2025). "Announcing Model Context Protocol Support (preview) in Azure AI Foundry Agent Service". Microsoft DevBlogs. <a href="https://devblogs.microsoft.com/foundry/announcing-model-context-protocol-support-preview-in-azure-ai-foundry-agent-service/" target="_blank">https://devblogs.microsoft.com/foundry/announcing-model-context-protocol-support-preview-in-azure-ai-foundry-agent-service/</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[8]</span> Microsoft Foundry Blog (2025). "Introducing Model Context Protocol (MCP) in Azure AI Foundry: Create an MCP Server with Azure AI Agent Service". Microsoft DevBlogs. <a href="https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/" target="_blank">https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[9]</span> Microsoft (2025). "Build Agents using Model Context Protocol on Azure". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/azure/developer/ai/intro-agents-mcp" target="_blank">https://learn.microsoft.com/en-us/azure/developer/ai/intro-agents-mcp</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[10]</span> Microsoft Semantic Kernel Blog (2025). "Integrating Model Context Protocol Tools with Semantic Kernel: A Step-by-Step Guide". Microsoft DevBlogs. <a href="https://devblogs.microsoft.com/semantic-kernel/integrating-model-context-protocol-tools-with-semantic-kernel-a-step-by-step-guide/" target="_blank">https://devblogs.microsoft.com/semantic-kernel/integrating-model-context-protocol-tools-with-semantic-kernel-a-step-by-step-guide/</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[11]</span> Microsoft Semantic Kernel Blog (2025). "Building a Model Context Protocol Server with Semantic Kernel". Microsoft DevBlogs. <a href="https://devblogs.microsoft.com/semantic-kernel/building-a-model-context-protocol-server-with-semantic-kernel/" target="_blank">https://devblogs.microsoft.com/semantic-kernel/building-a-model-context-protocol-server-with-semantic-kernel/</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[12]</span> Microsoft Semantic Kernel Blog (2025). "Semantic Kernel adds Model Context Protocol (MCP) support for Python". Microsoft DevBlogs. <a href="https://devblogs.microsoft.com/semantic-kernel/semantic-kernel-adds-model-context-protocol-mcp-support-for-python/" target="_blank">https://devblogs.microsoft.com/semantic-kernel/semantic-kernel-adds-model-context-protocol-mcp-support-for-python/</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[13]</span> Microsoft .NET Blog (2025). "Build a Model Context Protocol (MCP) server in C". Microsoft DevBlogs. <a href="https://devblogs.microsoft.com/dotnet/build-a-model-context-protocol-mcp-server-in-csharp/" target="_blank">https://devblogs.microsoft.com/dotnet/build-a-model-context-protocol-mcp-server-in-csharp/</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[14]</span> Microsoft (2025). "What is the Azure MCP Server?". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/azure/developer/azure-mcp-server/overview" target="_blank">https://learn.microsoft.com/en-us/azure/developer/azure-mcp-server/overview</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[15]</span> Microsoft (2025). "agent-framework - GitHub". GitHub. <a href="https://github.com/microsoft/agent-framework" target="_blank">https://github.com/microsoft/agent-framework</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[16]</span> Azure-Samples (2025). "remote-mcp-functions-dotnet - GitHub". GitHub. <a href="https://github.com/Azure-Samples/remote-mcp-functions-dotnet" target="_blank">https://github.com/Azure-Samples/remote-mcp-functions-dotnet</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[17]</span> Microsoft (2025). "Build a custom remote MCP server using Azure Functions". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/azure/azure-functions/scenario-custom-remote-mcp-server" target="_blank">https://learn.microsoft.com/en-us/azure/azure-functions/scenario-custom-remote-mcp-server</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[18]</span> Microsoft .NET Blog (2025). "Build MCP Remote Servers with Azure Functions". Microsoft DevBlogs. <a href="https://devblogs.microsoft.com/dotnet/build-mcp-remote-servers-with-azure-functions/" target="_blank">https://devblogs.microsoft.com/dotnet/build-mcp-remote-servers-with-azure-functions/</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[19]</span> Microsoft (2025). "MCP and Foundry Agents". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/agent-framework/user-guide/model-context-protocol/using-mcp-with-foundry-agents" target="_blank">https://learn.microsoft.com/en-us/agent-framework/user-guide/model-context-protocol/using-mcp-with-foundry-agents</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[20]</span> Microsoft (2025). "microsoft/mcp - Catalog of official Microsoft MCP server implementations". GitHub. <a href="https://github.com/microsoft/mcp" target="_blank">https://github.com/microsoft/mcp</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[21]</span> NuGet (2025). "ModelContextProtocol.AspNetCore 0.4.0-preview.3". NuGet Gallery. <a href="https://www.nuget.org/packages/ModelContextProtocol.AspNetCore" target="_blank">https://www.nuget.org/packages/ModelContextProtocol.AspNetCore</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[22]</span> Microsoft (2025). "Give agents access to MCP Servers". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/adding-mcp-plugins" target="_blank">https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/adding-mcp-plugins</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[23]</span> Microsoft Developer Blog (2025). "Can You Build Agent2Agent Communication on MCP? Yes!". Microsoft for Developers. <a href="https://developer.microsoft.com/blog/can-you-build-agent2agent-communication-on-mcp-yes" target="_blank">https://developer.microsoft.com/blog/can-you-build-agent2agent-communication-on-mcp-yes</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[24]</span> Azure-Samples (2025). "foundry-agent-service-remote-mcp-python - GitHub". GitHub. <a href="https://github.com/Azure-Samples/foundry-agent-service-remote-mcp-python" target="_blank">https://github.com/Azure-Samples/foundry-agent-service-remote-mcp-python</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[25]</span> Microsoft (2025). "Code Samples for the Model Context Protocol Tool (Preview)". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples" target="_blank">https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[26]</span> Visual Studio Magazine (2025). "Visual Studio 2026 Integrates Azure MCP Server for Agentic Cloud Workflows". Visual Studio Magazine. <a href="https://visualstudiomagazine.com/articles/2025/11/14/visual-studio-2026-integrates-azure-mcp-server-for-agentic-cloud-workflows.aspx" target="_blank">https://visualstudiomagazine.com/articles/2025/11/14/visual-studio-2026-integrates-azure-mcp-server-for-agentic-cloud-workflows.aspx</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[27]</span> Microsoft (2025). "Deploy the Azure MCP Server as a remote MCP server and connect using Microsoft Foundry". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/azure/developer/azure-mcp-server/how-to/deploy-remote-mcp-server-microsoft-foundry" target="_blank">https://learn.microsoft.com/en-us/azure/developer/azure-mcp-server/how-to/deploy-remote-mcp-server-microsoft-foundry</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[28]</span> Microsoft (2025). "Host servers built with MCP SDKs on Azure Functions". Microsoft Learn. <a href="https://learn.microsoft.com/en-us/azure/azure-functions/scenario-host-mcp-server-sdks" target="_blank">https://learn.microsoft.com/en-us/azure/azure-functions/scenario-host-mcp-server-sdks</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[29]</span> Microsoft (2025). "mcp-for-beginners - GitHub". GitHub. <a href="https://github.com/microsoft/mcp-for-beginners" target="_blank">https://github.com/microsoft/mcp-for-beginners</a> (Retrieved: 2026-02-10)</div>
+<div class="bib-entry"><span class="bib-number">[30]</span> Jamie Maguire (2026). "Microsoft Agent Framework: Exposing an Existing AI Agent as an MCP Tool". jamiemaguire.net. <a href="https://jamiemaguire.net/index.php/2026/02/08/microsoft-agent-framework-exposing-an-existing-ai-agent-as-an-mcp-tool/" target="_blank">https://jamiemaguire.net/index.php/2026/02/08/microsoft-agent-framework-exposing-an-existing-ai-agent-as-an-mcp-tool/</a> (Retrieved: 2026-02-10)</div>
+</div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
