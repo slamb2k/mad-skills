@@ -1,60 +1,24 @@
 {
-  "name": "mad-skills",
+  "name": "slamb2k-plugins",
+  "description": "Claude Code plugins by Simon Lamb",
+  "version": "1.2.0",
   "owner": {
     "name": "slamb2k",
-    "email": "slamb2k@users.noreply.github.com"
+    "url": "https://github.com/slamb2k"
   },
-  "version": "1.2.0",
-  "description": "Claude Code skills including context-efficient debugging tools, design workflows, and development process optimization",
   "plugins": [
     {
-      "name": "debug-skills",
-      "description": "Context-optimized alternatives to common MCP-based debugging tools",
+      "name": "mad-skills",
+      "description": "AI-assisted planning, development and governance tools",
+      "version": "0.3.1",
+      "author": {
+        "name": "slamb2k",
+        "url": "https://github.com/slamb2k"
+      },
       "source": "./",
-      "strict": false,
-      "skills": [
-        "./play-tight"
-      ]
-    },
-    {
-      "name": "design-skills",
-      "description": "Professional UI/UX design workflows and design system tools",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./pixel-pusher"
-      ]
-    },
-    {
-      "name": "dev-flow",
-      "description": "Skills to optimize and enhance the development process - work immediately after installation",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./cyberarian",
-        "./start-right"
-      ]
-    },
-    {
-      "name": "carbon-flow",
-      "description": "Context-efficient Git and Graphite workflows - requires per-project setup after installation",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./graphite-skill"
-      ],
-      "keywords": [
-        "graphite",
-        "git",
-        "context-optimization",
-        "subagents",
-        "task-delegation",
-        "stacked-diffs",
-        "productivity",
-        "workflow",
-        "efficiency"
-      ],
-      "category": "productivity"
+      "category": "development",
+      "homepage": "https://github.com/slamb2k/mad-skills.git",
+      "tags": ["planning", "tdd", "architecture", "llm-review", "implementation"]
     }
   ]
 }
