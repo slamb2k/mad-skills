@@ -3,7 +3,7 @@
   "description": "Claude Code plugins by Simon Lamb",
   "version": "1.2.0",
   "owner": {
-    "name": "slamb2k",
+    "name": "Simon Lamb",
     "url": "https://github.com/slamb2k"
   },
   "plugins": [
@@ -17,7 +17,7 @@
       },
       "source": "./",
       "category": "development",
-      "homepage": "https://github.com/slamb2k/mad-skills.git",
+      "homepage": "https://github.com/slamb2k/mad-skills",
       "tags": ["planning", "tdd", "architecture", "llm-review", "implementation"]
     }
   ]
