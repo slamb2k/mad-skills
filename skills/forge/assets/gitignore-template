@@ -1,0 +1,28 @@
+# Credentials & secrets
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+token.json
+
+# Data & databases
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Temp & scratch
+.tmp/
+
+# Memory embeddings cache
+memory/*.npy
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS files
+.DS_Store
+Thumbs.db

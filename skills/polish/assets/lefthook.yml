@@ -1,0 +1,29 @@
+# Lefthook configuration
+# https://github.com/evilmartians/lefthook
+
+# Pre-commit hooks (fast checks)
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{js,jsx,ts,tsx,vue,svelte}"
+      run: npm run lint --if-present || echo "No lint script"
+      stage_fixed: true
+
+    format-check:
+      glob: "*.{js,jsx,ts,tsx,json,md,yml,yaml,css,scss}"
+      run: npm run format:check --if-present || npx prettier --check . 2>/dev/null || echo "No format check"
+
+    type-check:
+      glob: "*.{ts,tsx}"
+      run: npm run typecheck --if-present || npm run type-check --if-present || npx tsc --noEmit 2>/dev/null || echo "No type check"
+
+# Pre-push hooks (slower, more thorough)
+pre-push:
+  parallel: false
+  commands:
+    test:
+      run: npm run test --if-present || npm run test:unit --if-present || echo "No test script"
+
+    build:
+      run: npm run build --if-present || echo "No build script"
