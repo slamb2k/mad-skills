@@ -55,7 +55,13 @@ jobs:
       - name: Run skill evals
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: npm run eval -- --verbose
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENROUTER_API_KEY" ]; then
+            echo "::warning::No API key configured — skipping evals"
+            exit 0
+          fi
+          npm run eval -- --verbose
 
       - name: Upload eval results
         if: always()
