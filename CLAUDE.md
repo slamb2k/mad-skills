@@ -1,681 +1,127 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
 
 ## Repository Overview
 
-**MAD Skills** is a repository containing Claude Code skills organized into three plugins:
-
-1. **debug-skills** - Context-optimized alternatives to verbose MCP debugging tools
-2. **design-skills** - Professional UI/UX design workflows
-3. **dev-flow** - Skills to optimize and enhance the development process
-
-This repository serves multiple purposes:
-- Claude Code plugin marketplace containing three distinct skill categories
-- Documentation and examples of context-efficient debugging patterns
-- Template for creating similar skills
-
-## Current Status
-
-**Debug Skills (debug-skills plugin):**
-- **Play-Tight** (Browser Automation) - ✅ Complete - Replaces Playwright MCP Server
-
-**Design Skills (design-skills plugin):**
-- **Pixel Pusher** (UI/UX Design System) - ✅ Complete - Workflow-based design tool
-
-**Dev Flow (dev-flow plugin):**
-- **Cyberarian** (Document Lifecycle Management) - ✅ Complete - Digital librarian for project documentation
-- **Start Right** (Repository Scaffolding) - ✅ Complete - Production-ready repository initialization
-
-**Carbon Flow (carbon-flow plugin):**
-- **Graphite Skill** (Context-Efficient Git/Graphite Workflows) - ✅ Complete - 225x efficiency for git/Graphite operations via SessionStart hooks
-
-**In Development:**
-- **Grafana Tempo Telemetry Skill** - 🚧 Planned (debug-skills plugin)
+**MAD Skills** is an npm-based skill framework for Claude Code. It ships 7 skills covering the full development lifecycle — from project initialization to shipping PRs. Skills are installed via `npx @slamb2k/mad-skills` and invoked as slash commands.
 
 ## Project Structure
 
 ```
 mad-skills/
-├── README.md                          # Repository overview, usage, design principles
-├── CLAUDE.md                          # This file - guidance for Claude Code
-├── CHANGELOG.md                       # Release history
-├── LICENSE                            # MIT License
-├── VERSION                            # Semantic version
-├── .gitignore                         # Git ignore patterns
-├── .claude-plugin/
-│   └── marketplace.json               # Plugin marketplace metadata
-├── .github/
-│   └── workflows/
-│       └── validate.yml               # Validation workflow
-├── play-tight/                         # Play-Tight skill source
-│   ├── SKILL.md                       # Complete skill reference
-│   ├── scripts/                       # Executable Playwright scripts
-│   │   ├── check-element.js           # Element verification
-│   │   ├── get-text.js                # Text extraction with truncation
-│   │   ├── take-screenshot.js         # Screenshot capture
-│   │   ├── navigate-and-extract.js    # Structured data extraction
-│   │   └── package.json               # npm dependencies
-│   ├── agents/
-│   │   └── browser-investigator-subagent.md  # Subagent definition
-│   └── references/
-│       └── patterns.md                # Common usage patterns
-├── pixel-pusher/                      # Pixel Pusher skill source
-│   ├── SKILL.md                       # Complete skill reference
-│   ├── assets/
-│   │   └── design-system-template.json  # Design system template
-│   └── references/
-│       ├── accessibility-guidelines.md  # WCAG compliance
-│       ├── design-best-practices.md     # Professional design principles
-│       ├── design-system-layers.md      # Component breakdown
-│       ├── persona-template.md          # User persona structure
-│       ├── style-guide-template.md      # Visual reference
-│       └── user-flow-template.md        # User journey mapping
-├── cyberarian/                        # Cyberarian skill source
-│   ├── SKILL.md                       # Complete skill reference
-│   ├── scripts/                       # Python automation scripts
-│   │   ├── init_docs_structure.py     # Initialize docs directory structure
-│   │   ├── index_docs.py              # Generate INDEX.md
-│   │   ├── archive_docs.py            # Archive old documents
-│   │   └── validate_doc_metadata.py   # Validate YAML frontmatter
-│   ├── assets/
-│   │   └── doc_template.md            # Document template with frontmatter
-│   ├── agents/
-│   │   └── doc-librarian-subagent.md  # Subagent for context-efficient operations
-│   └── references/
-│       ├── metadata-schema.md         # YAML frontmatter specification
-│       └── archiving-criteria.md      # Archiving rules and philosophy
-├── start-right/                       # Start Right skill source
-│   ├── SKILL.md                       # Complete skill reference
-│   ├── scripts/                       # Python automation scripts
-│   │   ├── init_git_repo.py           # Initialize git and create GitHub repo
-│   │   ├── setup_tooling.py           # Configure linting, formatting, type checking
-│   │   ├── setup_git_hooks.py         # Set up pre-commit and pre-push hooks
-│   │   ├── generate_workflows.py      # Generate GitHub Actions workflows
-│   │   └── setup_branch_protection.py # Configure branch protection rules
-│   └── references/
-│       ├── project-types.md           # Project type validation and build requirements
-│       └── release-strategies.md      # Deployment options and strategies
-└── graphite-skill/                    # Graphite Skill source
-    ├── SKILL.md                       # Complete skill reference
-    ├── install.sh                     # Automated installation script
-    ├── settings.json                  # Configuration settings
-    ├── hooks/
-    │   └── session-start.sh          # SessionStart hook for pattern injection
-    ├── agents/
-    │   └── graphite-ops-template.md  # Custom agent template (optional)
-    ├── references/
-    │   ├── quickstart.md             # Quick start guide
-    │   ├── readme.md                 # Complete documentation
-    │   └── team-configuration.md     # Team setup examples
-    └── test/
-        └── verify-installation.sh    # Installation verification script
+├── skills/                  # Skill definitions
+│   ├── build/               # Context-isolated feature dev pipeline
+│   ├── forge/               # GOTCHA/FORGE project initialization
+│   ├── polish/              # Repo bootstrapping (hooks, CI, templates)
+│   ├── prime/               # Project context loading
+│   ├── refinery/            # Web design variation generator
+│   ├── ship/                # Full PR lifecycle
+│   └── sync/                # Repo sync with origin/main
+├── scripts/                 # Build and CI tooling
+│   ├── validate-skills.js   # Structural validation
+│   ├── lint-skills.js       # SKILL.md linting
+│   ├── run-evals.js         # Eval runner (Anthropic/OpenRouter)
+│   ├── build-manifests.js   # Generate skills/manifest.json
+│   └── package-skills.js    # Package .skill archives
+├── src/cli.js               # npx installer CLI
+├── commands/                # Slash command stubs (one per skill)
+├── hooks/                   # Session hooks (session-guard.sh)
+├── agents/                  # Agent definitions (ship-analyzer.md)
+├── tests/results/           # Eval output
+├── archive/                 # Legacy v1.x skills
+├── .claude-plugin/          # Plugin metadata
+│   ├── marketplace.json
+│   └── plugin.json
+└── .github/workflows/
+    ├── ci.yml               # PR validation + evals
+    └── release.yml          # Tagged release → npm + GitHub
 ```
+
+## Current Skills
+
+| Skill | Status | Description |
+|-------|--------|-------------|
+| build | Complete | Context-isolated feature dev pipeline via subagents |
+| forge | Complete | GOTCHA/FORGE project initialization |
+| polish | Complete | Repo bootstrapping with hooks, templates, CI |
+| prime | Complete | Domain-specific project context loading |
+| refinery | Complete | Multiple web design variation generator |
+| ship | Complete | Full PR lifecycle (commit, merge, cleanup) |
+| sync | Complete | Repo sync with origin/main |
 
 ## Development Commands
 
-### Play-Tight Script Setup
 ```bash
-cd play-tight/scripts/
-npm install
-npm run install-browsers  # Installs Chromium
+npm run validate          # Validate all skill structures
+npm run lint              # Lint SKILL.md files
+npm run eval              # Run evals (needs API key)
+npm run eval -- --verbose # Verbose eval output
+npm run eval:update       # Update eval snapshots
+npm run build:manifests   # Generate skills/manifest.json
+npm run build:skills      # Package .skill archives
+npm run build             # Both manifests + skills
+npm test                  # validate + lint + eval
 ```
 
-### Testing Play-Tight Scripts
+No build step is required for development. Scripts run directly with Node.js (>=18).
+
+## Skill Architecture
+
+Each skill follows the standard layout:
+
+```
+skills/<name>/
+├── SKILL.md              # Frontmatter (name, description) + ASCII banner
+├── instructions.md       # Execution logic (max 500 lines)
+├── references/           # Extracted prompts, contracts, guides
+├── assets/               # Static files (templates, components)
+└── tests/
+    └── evals.json        # Eval test cases
+```
+
+**SKILL.md**: Frontmatter with `name`, `description`, and optional `argument-hint`. Must include an ASCII art banner that displays immediately on invocation. Max 30 lines.
+
+**instructions.md**: The orchestration skeleton. References content from `references/` files for progressive disclosure. Max 500 lines.
+
+**references/**: Large prompt blocks, report schemas, and guides loaded on demand by the orchestrator.
+
+**tests/evals.json**: Eval cases with prompts and assertions for automated testing.
+
+## CI/CD Pipelines
+
+**ci.yml** — PR validation:
+- Triggers on PRs touching `skills/`, `scripts/`, `src/`, or `package.json`
+- Jobs: validate + lint, then evals (with API key guard)
+- Posts eval results as PR comments
+
+**release.yml** — Tagged releases:
+- Triggers on `v*` tags
+- Validates, lints, runs evals, builds manifests
+- Publishes to npm with provenance
+- Builds `.skill` packages for GitHub Release
+
+## Adding New Skills
+
+1. Create `skills/<name>/` with:
+   - `SKILL.md` — Frontmatter + banner (max 30 lines)
+   - `instructions.md` — Execution logic (max 500 lines)
+   - `references/` — Supporting prompts and guides
+   - `tests/evals.json` — Eval test cases
+2. Create `commands/<name>.md` — Slash command stub
+3. Run `npm run validate` and `npm run lint` to verify
+4. Run `npm run eval` to test evals
+
+## Testing
+
 ```bash
-# From repository root
-node play-tight/scripts/check-element.js https://example.com h1
-node play-tight/scripts/get-text.js https://example.com "#content"
-node play-tight/scripts/take-screenshot.js https://example.com test.png
-
-# Or cd to scripts directory first
-cd play-tight/scripts/
-node check-element.js https://example.com h1
-node get-text.js https://example.com "#main-content"
-node take-screenshot.js https://example.com test.png
-node navigate-and-extract.js "https://example.com" '{"selectors": {"title": "h1"}}'
+npm run validate          # Structure checks for all 7 skills
+npm run lint              # SKILL.md format checks
+npm run eval              # Eval assertions (requires API key)
 ```
 
-### No Build Process
-This repository has no build, lint, or test commands. Scripts are standalone Node.js programs that run directly via `node`.
+Evals support both `ANTHROPIC_API_KEY` and `OPENROUTER_API_KEY` environment variables.
 
-## Architecture: The Three-Layer Pattern
+## Archive
 
-All skills in this repository follow the same architecture:
-
-### 1. Filtered Scripts (bash/nodejs)
-- Direct API/CLI access with controlled output
-- All scripts return structured JSON, never raw data
-- Built-in truncation and size limits
-- Aggressive filtering to prevent irrelevant data retrieval
-
-### 2. Direct Execution (Simple Tasks)
-- Use scripts directly for single-step operations
-- Parent agent receives compact responses
-- Good for known selectors/filters and focused checks
-
-### 3. Subagent Isolation (Complex Tasks)
-- Specialized subagent handles multi-step exploration
-- Makes 5-10+ script calls internally
-- Absorbs all verbose responses in isolated context
-- Returns concise summary (< 500 tokens) to parent
-
-## Play-Tight Skill Details
-
-### Core Scripts (located in `play-tight/scripts/`)
-
-**check-element.js** - Check if element exists and get properties
-```bash
-node check-element.js <url> <selector>
-# Returns: {found: bool, tagName, text, visible, enabled, attributes}
-```
-- Text limited to 100 chars
-- Only essential attributes extracted (id, class, type, href, value)
-- 30s timeout for page load
-
-**get-text.js** - Extract text content
-```bash
-node get-text.js <url> [selector]
-# Returns: {found: bool, text, length, truncated}
-```
-- Auto-truncates to 2000 chars to prevent context flooding
-- Extracts only visible text (excludes hidden, script, style tags)
-- Selector optional - defaults to entire page body
-
-**take-screenshot.js** - Capture screenshot
-```bash
-node take-screenshot.js <url> <output-path> [selector]
-# Returns: {success: bool, path, url, selector}
-```
-- Full page or specific element
-- Keeps response compact by saving to disk
-
-**navigate-and-extract.js** - Structured data extraction
-```bash
-node navigate-and-extract.js <url> '<config-json>'
-# Config: {waitFor, selectors, counts, checks}
-# Returns: {success: bool, url, data}
-```
-- `waitFor`: Selector to wait for before extracting
-- `selectors`: Map of name->selector for text extraction (200 char limit per field)
-- `counts`: Map of name->selector for element counting
-- `checks`: Map of name->selector for visibility checks
-
-### Browser Investigator Subagent
-
-**Location:** `play-tight/agents/browser-investigator-subagent.md`
-
-**Purpose:** Execute complex multi-step browser investigations while isolating verbose responses from parent agent.
-
-**When to use:**
-- Multiple exploration steps needed
-- Unknown selectors requiring discovery
-- Complex element hierarchy navigation
-- Parent context must stay clean
-- Need comprehensive page analysis
-
-**When to use direct scripts:**
-- Single, focused query
-- Known selectors
-- Quick checks
-- Parent context has room
-
-**Return formats:**
-- Element location: `{type, selector, element_type, verification, attempts}`
-- Data extraction: `{type, extracted_data, data_points, confidence}`
-- Verification: `{type, status, checks_completed, issues, screenshot_path}`
-- Status check: `{type, url, status, summary}`
-
-## Pixel Pusher Skill Details
-
-### Overview
-
-**Type:** Workflow/Design Skill
-
-Pixel Pusher is a comprehensive UI/UX design skill that guides Claude through systematic design thinking. Unlike script-based skills like Play-Tight, this is a **workflow skill** that provides structured guidance for creating professional web interfaces.
-
-### Key Characteristics
-
-- **No executable scripts** - Pure SKILL.md guidance with reference templates
-- **Reference-heavy** - Multiple template files for different design aspects
-- **Multi-stage process** - Structured workflow from discovery to delivery
-
-### Usage Pattern
-
-When users request design work, Claude will:
-1. Invoke pixel-pusher skill automatically
-2. Follow the multi-stage design process
-3. Use reference templates for structured outputs
-4. Guide users through iterative refinement
-
-### Reference Templates (in `pixel-pusher/references/`)
-
-- `design-system-template.json` - Structured design system format
-- `accessibility-guidelines.md` - WCAG 2.1 Level AA compliance
-- `design-best-practices.md` - Professional design principles
-- `design-system-layers.md` - Component breakdown and patterns
-- `persona-template.md` - User persona structure
-- `user-flow-template.md` - User journey mapping
-- `style-guide-template.md` - Visual reference documentation
-
-### Example Usage
-
-```
-User: "Design a landing page for my SaaS product"
-
-Claude invokes pixel-pusher skill and:
-1. Asks discovery questions (purpose, audience, inspiration)
-2. Requests reference designs/screenshots
-3. Extracts design system from references
-4. Generates 2-3 mockup variations as HTML files
-5. Iterates based on feedback
-6. Delivers final design + documentation
-```
-
-## Cyberarian Skill Details
-
-### Overview
-
-**Type:** Workflow/Development Skill
-
-Cyberarian (The Digital Librarian) is a document lifecycle management skill that enforces structured organization, automatic indexing, and intelligent archiving of project documentation. This skill combines Python automation scripts with **context-efficient subagent patterns** to keep the main agent's context clean during bulk operations.
-
-### Key Characteristics
-
-- **Python automation scripts** - Tools for initialization, indexing, archiving, and validation
-- **YAML frontmatter** - Metadata-driven document lifecycle tracking
-- **Category-based organization** - Semantic directory structure (specs, analysis, plans, ai_docs, templates)
-- **Automatic maintenance** - Index generation and archiving based on age and status
-- **Context-efficient operations** - Bulk operations delegate to Task subagents for context isolation
-
-### Usage Pattern
-
-When users request documentation management:
-1. Initialize structured `docs/` directory if needed
-2. Create documents with proper metadata and categorization
-3. Automatically generate index for discoverability
-4. Archive completed documents based on category-specific rules
-
-### Directory Structure (in projects using cyberarian)
-
-```
-docs/
-├── README.md           # Human-written guide
-├── INDEX.md            # Auto-generated index
-├── ai_docs/           # Reference materials for Claude Code
-├── specs/             # Feature specifications
-├── analysis/          # Investigation outputs
-├── plans/             # Implementation plans
-├── templates/         # Reusable templates
-└── archive/           # Historical documents
-```
-
-### Scripts (in `cyberarian/scripts/`)
-
-- `init_docs_structure.py` - Initialize docs directory structure
-- `index_docs.py` - Generate INDEX.md from document metadata
-- `archive_docs.py` - Archive old documents based on status and age
-- `validate_doc_metadata.py` - Validate YAML frontmatter
-
-### Context-Efficient Operations
-
-Cyberarian uses Task subagent delegation for bulk operations that produce verbose output:
-
-**Delegate to subagent:**
-- Validation across all documents
-- Index regeneration
-- Archive operations
-- Document searches
-
-**Execute directly:**
-- Creating single documents
-- Reading specific metadata
-- Checking directory existence
-
-This pattern keeps the main agent's context clean for reasoning while allowing comprehensive document management.
-
-### Example Usage
-
-```
-User: "Set up documentation structure for this project"
-
-Claude invokes cyberarian skill and:
-1. Runs init_docs_structure.py to create directory structure
-2. Creates README.md explaining the structure
-3. Generates initial INDEX.md
-4. Explains category usage and metadata requirements
-
-User: "Create a specification for the new authentication feature"
-
-Claude:
-1. Copies doc_template.md to docs/specs/auth-feature-spec.md
-2. Fills in frontmatter (category: specs, status: draft, tags, dates)
-3. Writes specification content
-4. Runs index_docs.py to update INDEX.md
-```
-
-### Reference Files (in `cyberarian/references/`)
-
-- `metadata-schema.md` - Complete YAML frontmatter specification
-- `archiving-criteria.md` - Archiving rules by category
-
-## Start Right Skill Details
-
-### Overview
-
-**Type:** Workflow/Development Skill
-
-Start Right is a comprehensive repository scaffolding skill that automates end-to-end repository setup for new projects. Unlike passive template repositories, this is an **interactive workflow skill** that guides users through project initialization, provides Python automation scripts for GitHub setup, and generates production-ready CI/CD workflows tailored to the project type.
-
-### Key Characteristics
-
-- **Python automation scripts** - Tools for git initialization, tooling setup, git hooks, workflow generation, and branch protection
-- **Project type detection** - Automatically detects or prompts for project type (Node.js, TypeScript, Python, Rust, Go, Docker, Claude Code skill)
-- **Interactive workflow** - Guides users through preferences gathering and setup execution
-- **Production-ready CI/CD** - Generates comprehensive GitHub Actions workflows with validation checks, automated versioning, tagging, and releases
-- **Git hooks integration** - Supports Husky (Node.js) or Lefthook (universal) for pre-commit and pre-push validation
-
-### Usage Pattern
-
-When users request repository initialization:
-1. Check prerequisites (git, gh CLI authentication)
-2. Gather project information and preferences
-3. Execute scaffolding scripts in order
-4. Verify setup and provide next steps
-
-### Scripts (in `start-right/scripts/`)
-
-- `init_git_repo.py` - Initialize git repository and create GitHub repository
-- `setup_tooling.py` - Configure linting, formatting, and type checking based on project type
-- `setup_git_hooks.py` - Set up pre-commit and pre-push hooks with Husky or Lefthook
-- `generate_workflows.py` - Generate GitHub Actions workflows for PR validation, main CI/CD, and releases
-- `setup_branch_protection.py` - Configure branch protection rules to enforce PR workflow
-
-### Example Usage
-
-```
-User: "Set up a new TypeScript project with CI/CD"
-
-Claude invokes start-right skill and:
-1. Asks for repository name, visibility (public/private), organization
-2. Asks which validation checks to enable (format, lint, type-check, test, build)
-3. Asks about git hooks and release strategy
-4. Executes scripts in order:
-   - init_git_repo.py → Creates git repo and GitHub repository
-   - setup_tooling.py → Creates .eslintrc.json, .prettierrc.json, tsconfig.json
-   - setup_git_hooks.py → Installs Husky, creates pre-commit and pre-push hooks
-   - generate_workflows.py → Creates pr-validation.yml, main-ci-cd.yml, release.yml
-   - setup_branch_protection.py → Configures branch protection for main
-5. Creates initial commit and pushes to main
-6. Provides next steps for dependency installation and first PR
-
-User: "Initialize a Python project with GitHub Actions"
-
-Claude invokes start-right skill and:
-1. Gathers preferences (same as above)
-2. Executes scripts:
-   - init_git_repo.py → Creates git repo with Python .gitignore
-   - setup_tooling.py → Creates .flake8, .black.toml, mypy.ini
-   - setup_git_hooks.py → Installs Lefthook, creates validation hooks
-   - generate_workflows.py → Creates workflows with PyPI release
-   - setup_branch_protection.py → Configures branch protection
-3. Provides instructions for installing Python tools (black, flake8, mypy, pytest)
-```
-
-### Reference Files (in `start-right/references/`)
-
-- `project-types.md` - Validation and build requirements for each project type
-- `release-strategies.md` - Comprehensive deployment options (npm, PyPI, Docker, GitHub Pages, binaries, skills)
-
-## Graphite Skill Details
-
-### Overview
-
-**Type:** Hook-Based Workflow Skill
-**Plugin:** carbon-flow
-
-Graphite Skill is a context-efficient Git and Graphite workflow skill that automatically delegates verbose git/Graphite CLI operations to isolated Task subagents, reducing context pollution by 225x. Unlike traditional approaches that flood the context window with raw CLI output, Graphite Skill uses SessionStart hooks to inject delegation patterns automatically, achieving 99.6% context reduction (4,108 tokens → 18 tokens).
-
-### Key Characteristics
-
-- **SessionStart hook** - Automatically injects ~800 tokens of delegation patterns into every session
-- **Automatic delegation** - Recognizes verbose operations and delegates to Task subagents without manual invocation
-- **Context isolation** - Processes 15KB+ raw output in isolated subagent context
-- **Concise summaries** - Returns <50 token summaries to parent agent
-- **Team-ready** - Git-trackable configuration for team-wide distribution
-- **Per-project setup required** - Unlike other skills, requires running install script in each project
-- **Optional custom agent** - Enhanced UX with colored terminal output
-
-### Installation Pattern
-
-**Unlike other skills in this repository, Graphite Skill requires two-step installation:**
-
-1. **Global plugin installation** (makes skill available):
-   ```bash
-   /plugin install carbon-flow@slamb2k/mad-skills
-   ```
-
-2. **Per-project setup** (activates SessionStart hook):
-   ```bash
-   cd /your/project
-   bash ~/.claude/plugins/mad-skills/graphite-skill/install.sh --project
-   ```
-
-The per-project setup creates:
-- `.claude/plugins/graphite-skill/hooks/session-start.sh`
-- `.claude/plugins/graphite-skill/settings.json`
-- `.claude/agents/graphite-ops-template.md` (optional)
-
-### Why Per-Project Setup?
-
-Graphite Skill uses SessionStart hooks that must be in each project's `.claude/` directory to:
-1. Detect git repository and Graphite CLI presence
-2. Inject delegation patterns into every session automatically
-3. Enable team-wide adoption (`.claude/` can be committed to git)
-
-Other skills (Cyberarian, Start Right, Play-Tight, Pixel Pusher) work immediately after global installation because they don't use hooks.
-
-### Usage Pattern
-
-Graphite Skill works automatically through the SessionStart hook:
-
-1. **Session starts** → SessionStart hook fires
-2. **Hook injects patterns** → ~800 tokens of delegation instructions added to context
-3. **User requests git/Graphite operation** → Claude recognizes verbose operation
-4. **Automatic delegation** → Task subagent spawned with filtering instructions
-5. **Isolated processing** → Subagent handles 15KB+ output in separate context
-6. **Summary returned** → <50 token concise summary to parent
-7. **Context preserved** → 225x efficiency gain
-
-### Example Usage
-
-```
-User: "Check my Graphite stack"
-
-Without Graphite Skill:
-Claude: [Runs gt stack]
-→ Returns 15KB JSON (4,108 tokens)
-→ Context polluted
-→ Reasoning degraded
-
-With Graphite Skill (automatic):
-Claude: [Recognizes verbose operation → delegates to Task]
-Task subagent: [Runs gt stack --json 2>/dev/null]
-Task subagent: [Processes 15KB in isolated context]
-Task subagent: [Parses and summarizes]
-Claude receives: "✓ feature/auth | 3 PRs | #456 (needs review), #457 (approved), #458 (draft)"
-→ 18 tokens used
-→ Context clean
-→ Reasoning optimal
-```
-
-### Supported Operations
-
-**Git commands (auto-delegated):**
-- `git log --graph` - Commit history summarization
-- `git diff` - Change statistics
-- `git status` - Status with file grouping
-- `git branch` - Branch listing
-- All verbose git operations
-
-**Graphite CLI commands (auto-delegated):**
-- `gt stack` - Stack status with PR summaries
-- `gt pr list` - PR listing with filtering
-- `gt pr info` - Detailed PR data
-- `gt submit` - Submission with confirmation
-- All verbose gt operations
-
-### Efficiency Metrics
-
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Tokens consumed | 4,108 | 18 | 225x |
-| Context pollution | High | Minimal | 99.6% reduction |
-| Operations possible | 2-3 | 100+ | 50x |
-
-### Reference Files (in `graphite-skill/references/`)
-
-- `quickstart.md` - Quick start guide (5 minutes)
-- `readme.md` - Complete documentation with examples
-- `team-configuration.md` - Team setup and distribution examples
-
-## Critical Design Principles
-
-When modifying or extending skills in this repository:
-
-1. **Never Return Raw Data** - Always return structured JSON with specific fields
-2. **Truncate Everything** - Text: 100-2000 chars, errors: 100 chars
-3. **Keep Responses Compact** - Target < 500 bytes per script response
-4. **Filter at Source** - Extract only essential data in the script
-5. **Use Subagent for Verbosity** - Complex exploration happens in isolated context
-6. **Headless by Default** - All scripts use headless mode for performance
-7. **Timeout Protection** - Reasonable timeouts to avoid hangs
-
-## Context Efficiency: The Core Value Proposition
-
-### Traditional MCP Approach (Playwright)
-```
-Query: "Find login form"
-Response: [30KB HTML tree] = 7,200 tokens
-Result: Context exhausted after 2-3 queries
-```
-
-### MAD Skills Direct Scripts
-```
-Query: "Find login form"
-Response: {found: true, ...} = 150 tokens
-Result: Can make 100+ queries before context issues
-```
-
-### MAD Skills Subagent Pattern
-```
-Parent Query: "Find login form"
-Subagent: 10 script calls = 1,500 tokens (isolated)
-Parent Receives: {type: "element_location", ...} = 80 tokens
-Result: 225x more efficient than MCP
-```
-
-## Key Documentation References
-
-### Repository Documentation
-- `README.md` - Repository overview, design principles, catalog, and comparison with MCP
-- `CHANGELOG.md` - Release history and version notes
-- `.claude-plugin/marketplace.json` - Plugin marketplace metadata
-- `LICENSE` - MIT License
-
-### Play-Tight Skill (Browser Automation)
-- `play-tight/SKILL.md` - Complete Play-Tight skill reference
-- `play-tight/references/patterns.md` - Common usage patterns
-- `play-tight/agents/browser-investigator-subagent.md` - Subagent definition
-
-### Pixel Pusher Skill (UI/UX Design)
-- `pixel-pusher/SKILL.md` - Complete Pixel Pusher skill reference
-- `pixel-pusher/assets/design-system-template.json` - Design system template
-- `pixel-pusher/references/accessibility-guidelines.md` - WCAG compliance
-- `pixel-pusher/references/design-best-practices.md` - Professional design principles
-- `pixel-pusher/references/design-system-layers.md` - Component breakdown
-
-### Cyberarian Skill (Document Lifecycle Management)
-- `cyberarian/SKILL.md` - Complete Cyberarian skill reference
-- `cyberarian/assets/doc_template.md` - Document template with frontmatter
-- `cyberarian/references/metadata-schema.md` - YAML frontmatter specification
-- `cyberarian/references/archiving-criteria.md` - Archiving rules and philosophy
-- `cyberarian/scripts/` - Python automation scripts
-- `cyberarian/agents/doc-librarian-subagent.md` - Subagent template for context-efficient operations
-
-### Start Right Skill (Repository Scaffolding)
-- `start-right/SKILL.md` - Complete Start Right skill reference
-- `start-right/references/project-types.md` - Project type validation and build requirements
-- `start-right/references/release-strategies.md` - Deployment options and strategies
-- `start-right/scripts/` - Python automation scripts for repository initialization
-
-### Graphite Skill (Context-Efficient Git/Graphite Workflows)
-- `graphite-skill/SKILL.md` - Complete Graphite Skill reference
-- `graphite-skill/install.sh` - Automated installation script for per-project setup
-- `graphite-skill/hooks/session-start.sh` - SessionStart hook for automatic pattern injection
-- `graphite-skill/agents/graphite-ops-template.md` - Custom agent template
-- `graphite-skill/references/quickstart.md` - Quick start guide
-- `graphite-skill/references/readme.md` - Complete documentation
-- `graphite-skill/references/team-configuration.md` - Team setup examples
-- `graphite-skill/test/` - Installation verification scripts
-
-## Working with This Repository
-
-### Adding New Skills
-
-When adding new skills to this repository:
-
-**For Debug Skills (MCP alternatives like Tempo telemetry):**
-
-1. Create skill directory at repository root (e.g., `tempo/`)
-2. Follow the three-layer architecture pattern (filtered scripts, direct execution, subagent)
-3. Include:
-   - `SKILL.md` - Complete skill reference
-   - `scripts/` - Filtered scripts with compact JSON output
-   - `assets/` - Subagent definitions
-   - `references/` - Usage patterns and examples
-4. Add skill to `debug-skills` plugin in `.claude-plugin/marketplace.json`
-5. Update this CLAUDE.md with new skill details
-6. Update README.md with skill overview
-
-**For Design Skills (workflow-based tools):**
-
-1. Create skill directory at repository root
-2. Include:
-   - `SKILL.md` - Structured workflow guide
-   - `assets/` - Templates and examples
-   - `references/` - Best practices and guidelines
-3. Add skill to `design-skills` plugin in `.claude-plugin/marketplace.json`
-4. Update this CLAUDE.md and README.md with skill details
-
-**For Dev Flow Skills (development process optimization):**
-
-1. Create skill directory at repository root
-2. Include:
-   - `SKILL.md` - Structured workflow guide
-   - `scripts/` - Automation scripts (Python, Bash, etc.)
-   - `assets/` - Templates and configuration files
-   - `references/` - Guidelines, schemas, and documentation
-3. Add skill to `dev-flow` plugin in `.claude-plugin/marketplace.json`
-4. Update this CLAUDE.md and README.md with skill details
-5. Document any script dependencies and setup requirements
-
-### Testing Changes
-
-To test modifications to Play-Tight scripts:
-
-1. Make changes to the script file in `play-tight/scripts/`
-2. Run directly with node (no build step required)
-3. Verify output is compact JSON
-4. Ensure text truncation limits are respected
-5. Test both direct execution and subagent patterns
-
-### Subagent Development
-
-Subagent definitions are stored in `{skill}/assets/` directories.
-
-To test a subagent during development:
-1. Copy to `.claude/agents/` in your test project
-2. Ensure scripts are accessible from the test project
-3. Test with complex multi-step automation tasks
-4. Verify parent receives concise summaries (< 500 tokens)
+Legacy v1.x skills are preserved in `archive/` for reference: play-tight, pixel-pusher, cyberarian, start-right, graphite-skill.
