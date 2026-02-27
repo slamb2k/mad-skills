@@ -91,15 +91,15 @@ skills/<name>/
 ## CI/CD Pipelines
 
 **ci.yml** — PR validation:
-- Triggers on PRs touching `skills/`, `scripts/`, `src/`, or `package.json`
+- Triggers on all pull requests (required status check)
 - Jobs: validate + lint, then evals (with API key guard)
 - Posts eval results as PR comments
 
-**release.yml** — Tagged releases:
-- Triggers on `v*` tags
+**release.yml** — Release on merge to main:
+- Triggers on push to main
 - Validates, lints, runs evals, builds manifests
-- Publishes to npm with provenance
-- Builds `.skill` packages for GitHub Release
+- Creates version tag, publishes to npm, creates GitHub Release
+- Skips publish if the version tag already exists
 
 ## Adding New Skills
 

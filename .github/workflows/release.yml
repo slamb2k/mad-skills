@@ -2,8 +2,7 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
 
 permissions:
   contents: write
@@ -44,25 +43,39 @@ jobs:
       - name: Build manifests
         run: npm run build:manifests
 
-      - name: Verify version matches tag
+      - name: Get version
+        id: version
+        run: echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag already exists
+        id: tag-check
         run: |
-          PKG_VERSION="v$(node -p "require('./package.json').version")"
-          TAG="${GITHUB_REF#refs/tags/}"
-          if [ "$PKG_VERSION" != "$TAG" ]; then
-            echo "::error::Package version ($PKG_VERSION) does not match tag ($TAG)"
-            exit 1
+          if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Create version tag
+        if: steps.tag-check.outputs.exists == 'false'
+        run: |
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
       - name: Publish to npm
+        if: steps.tag-check.outputs.exists == 'false'
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Build .skill packages (ZIP format for Claude Code marketplace)
+        if: steps.tag-check.outputs.exists == 'false'
         run: npm run build:skills -- --outdir ./dist
 
       - name: Create GitHub Release
+        if: steps.tag-check.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
           generate_release_notes: true
           files: dist/*.skill
