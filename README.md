@@ -103,17 +103,17 @@ npm test                         # validate + lint + eval
 ## CI/CD
 
 **PR pipeline** (`.github/workflows/ci.yml`):
-- Triggers on PRs touching `skills/`, `scripts/`, `src/`, or `package.json`
+- Triggers on all pull requests (required status check)
 - Runs validate and lint
 - Runs evals when API key is available (skipped for external PRs)
 - Detects which skills changed and posts eval results as PR comments
 
 **Release pipeline** (`.github/workflows/release.yml`):
-- Triggers on `v*` tags
-- Validates, lints, runs evals
-- Verifies package.json version matches the tag
-- Publishes to npm with provenance
+- Triggers on push to main
+- Validates, lints, runs evals, builds manifests
+- Creates version tag from package.json, publishes to npm with provenance
 - Builds `.skill` packages and creates a GitHub Release
+- Skips publish if the version tag already exists
 
 ## Archive
 
