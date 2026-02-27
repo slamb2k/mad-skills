@@ -1,0 +1,38 @@
+{
+  "name": "@slamb2k/mad-skills",
+  "version": "2.0.0",
+  "description": "Claude Code skills collection with CI/CD and npx installer",
+  "type": "module",
+  "bin": {
+    "claude-skills": "./src/cli.js"
+  },
+  "files": [
+    "src/",
+    "skills/"
+  ],
+  "scripts": {
+    "validate": "node scripts/validate-skills.js",
+    "lint": "node scripts/lint-skills.js",
+    "eval": "node scripts/run-evals.js",
+    "eval:update": "node scripts/run-evals.js --update-snapshots",
+    "build:manifests": "node scripts/build-manifests.js",
+    "build:skills": "node scripts/package-skills.js",
+    "build": "npm run build:manifests && npm run build:skills",
+    "prepublishOnly": "npm run validate && npm run build:manifests",
+    "test": "npm run validate && npm run lint && npm run eval"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skills",
+    "mcp",
+    "ai"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  }
+}

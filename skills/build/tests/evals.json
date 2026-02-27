@@ -1,0 +1,28 @@
+[
+  {
+    "name": "banner-and-tagline",
+    "prompt": "Build this: Add a dark mode toggle to the settings page",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(Compiling hopes|Bob the Builder|Voltron of code|Feature factory|Hold my coffee|Some assembly|mortar, and semicolons|see what this baby)" },
+      { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
+    ]
+  },
+  {
+    "name": "lifecycle-stages",
+    "prompt": "Build: Implement user authentication with JWT tokens",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(explore|architect|implement|review)", "flags": "i" },
+      { "type": "semantic", "value": "Describes a multi-stage development lifecycle that includes exploration, architecture design, implementation, code review, and shipping, with stages running in isolated subagents" }
+    ]
+  },
+  {
+    "name": "flag-handling",
+    "prompt": "Build --skip-questions --no-ship: Refactor the auth module to use middleware pattern",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "semantic", "value": "Acknowledges the --skip-questions flag (skipping clarifying questions) and the --no-ship flag (stopping before committing/pushing/creating PR)" }
+    ]
+  }
+]

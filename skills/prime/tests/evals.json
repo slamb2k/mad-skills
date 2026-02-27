@@ -1,0 +1,28 @@
+[
+  {
+    "name": "banner-and-tagline",
+    "prompt": "Load project context",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(Loading the arsenal|Knowledge is power|sacred texts|please stand by|knowledge cannon|do my homework|Downloading the lore|Brain cells)" },
+      { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
+    ]
+  },
+  {
+    "name": "context-loading",
+    "prompt": "Prime me for working on the security module",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(context|load)", "flags": "i" },
+      { "type": "semantic", "value": "Describes loading project context including domain-specific files, and mentions producing a structured summary or report rather than dumping raw file contents" }
+    ]
+  },
+  {
+    "name": "domain-awareness",
+    "prompt": "Load context for the dashboard and routing domains",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "semantic", "value": "Recognizes 'dashboard' and 'routing' as valid domain-specific contexts and describes loading files relevant to those domains" }
+    ]
+  }
+]

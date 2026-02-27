@@ -1,0 +1,131 @@
+name: Skills CI
+
+on:
+  pull_request:
+    paths:
+      - "skills/**"
+      - "scripts/**"
+      - "src/**"
+      - "package.json"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Validate skill structure
+        run: npm run validate
+
+      - name: Lint SKILL.md files
+        run: npm run lint
+
+  eval:
+    name: Run Evals
+    needs: validate
+    runs-on: ubuntu-latest
+    # Only run evals if we have the API key (skip for external PRs)
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run skill evals
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENROUTER_API_KEY" ]; then
+            echo "::warning::No API key configured — skipping evals"
+            exit 0
+          fi
+          npm run eval -- --verbose
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results-${{ github.sha }}
+          path: tests/results/
+          retention-days: 30
+
+      - name: Comment eval results on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const resultsDir = 'tests/results';
+
+            try {
+              const latest = JSON.parse(fs.readFileSync(path.join(resultsDir, 'latest.json'), 'utf8'));
+              const results = JSON.parse(fs.readFileSync(latest.file, 'utf8'));
+
+              const { pass, fail, error } = results.summary;
+              const total = pass + fail + error;
+              const icon = fail + error > 0 ? '❌' : '✅';
+
+              let body = `## ${icon} Skill Eval Results\n\n`;
+              body += `**${pass}/${total}** passed | Model: \`${results.model}\`\n\n`;
+
+              for (const skill of results.skills) {
+                body += `### 📦 ${skill.skill}\n`;
+                for (const r of skill.results) {
+                  const ri = r.status === 'pass' ? '✅' : r.status === 'fail' ? '❌' : '💥';
+                  body += `- ${ri} ${r.name} (${r.duration_ms}ms)\n`;
+                  if (r.status !== 'pass') {
+                    for (const a of r.assertions) {
+                      if (!a.pass) body += `  - ✗ [${a.type}] ${a.detail}\n`;
+                    }
+                  }
+                }
+                body += '\n';
+              }
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            } catch (e) {
+              console.log('Could not post eval results:', e.message);
+            }
+
+  diff-check:
+    name: Detect Changed Skills
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    outputs:
+      changed_skills: ${{ steps.changes.outputs.skills }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed skills
+        id: changes
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- skills/ | \
+            sed 's|skills/||' | cut -d'/' -f1 | sort -u | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "skills=$CHANGED" >> "$GITHUB_OUTPUT"
+          echo "Changed skills: $CHANGED"

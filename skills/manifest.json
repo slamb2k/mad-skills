@@ -1,0 +1,76 @@
+{
+  "generated": "2026-02-27T15:16:17.996Z",
+  "count": 7,
+  "skills": [
+    {
+      "name": "build",
+      "directory": "build",
+      "description": "> Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.",
+      "lines": 49,
+      "hasScripts": false,
+      "hasReferences": true,
+      "hasAssets": false,
+      "hasTests": true
+    },
+    {
+      "name": "forge",
+      "directory": "forge",
+      "description": "> Initialize any project directory with the GOTCHA/FORGE framework for agentic AI systems. Creates the 6-layer structure (Goals, Orchestration, Tools, Context, Hard prompts, Args), FORGE build methodology, and a project CLAUDE.md. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: \"init gotcha\", \"setup forge\", \"forge\", \"initialize framework\", \"bootstrap gotcha\".",
+      "lines": 52,
+      "hasScripts": false,
+      "hasReferences": true,
+      "hasAssets": true,
+      "hasTests": true
+    },
+    {
+      "name": "polish",
+      "directory": "polish",
+      "description": "> Idempotently bootstrap any repository with standard development tools, hooks, and workflows. Use when starting work on a new repo, onboarding to an existing project, or ensuring a repo has proper CI/CD setup. Configures: git hooks (lefthook), commit message templates, PR templates, and GitHub Actions for lint/format/type-check/build. Prompts for user confirmation before changes. Triggers: \"bootstrap repo\", \"setup hooks\", \"configure CI\", \"polish\", \"standardize repo\".",
+      "lines": 39,
+      "hasScripts": false,
+      "hasReferences": true,
+      "hasAssets": true,
+      "hasTests": true
+    },
+    {
+      "name": "prime",
+      "directory": "prime",
+      "description": "> Load project context before implementing features or making architectural decisions. Invoke proactively when starting significant work on DexAI. Supports domain-specific context loading: security (vault, RBAC, audit), routing (OpenRouter, model selection), adhd (design principles, RSD-safe), dashboard (frontend, backend, API), office (OAuth, email, calendar), memory (context capture, commitments), tasks (decomposition, friction-solving), channels (Telegram, Discord, Slack).",
+      "lines": 40,
+      "hasScripts": false,
+      "hasReferences": true,
+      "hasAssets": false,
+      "hasTests": true
+    },
+    {
+      "name": "refinery",
+      "directory": "refinery",
+      "description": "> Generate multiple unique web design variations for any website or web application. Accepts site specifications from a file (--spec path) or pasted text block. Creates a Vite + React + TypeScript + Tailwind project with Bun and produces N different creative designs accessible at /1, /2, /3, etc. Use when prototyping or exploring design directions for any web interface.",
+      "lines": 39,
+      "hasScripts": false,
+      "hasReferences": true,
+      "hasAssets": true,
+      "hasTests": true
+    },
+    {
+      "name": "ship",
+      "directory": "ship",
+      "description": "> Ship changes through the full PR lifecycle. Use after completing feature work to commit, push, create PR, wait for checks, and merge. Handles the entire workflow: syncs with main, creates feature branch if needed, groups commits logically with semantic messages, creates detailed PR, monitors CI, fixes issues, squash merges, and cleans up. Invoke when work is ready to ship.",
+      "lines": 56,
+      "hasScripts": false,
+      "hasReferences": true,
+      "hasAssets": false,
+      "hasTests": true
+    },
+    {
+      "name": "sync",
+      "directory": "sync",
+      "description": "> Sync local repository with origin/main. Use before starting new work, after completing a PR, or when needing latest upstream changes. Safely stashes uncommitted changes, fetches and pulls origin/main, restores stash, and cleans up stale local branches (merged or with deleted remotes). Invoke when switching contexts or preparing for new feature work.",
+      "lines": 55,
+      "hasScripts": false,
+      "hasReferences": false,
+      "hasAssets": false,
+      "hasTests": true
+    }
+  ]
+}

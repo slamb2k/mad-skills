@@ -1,0 +1,38 @@
+# <type>(<scope>): <subject>
+#
+# <body>
+#
+# <footer>
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# Type must be one of the following:
+#
+#   feat:     A new feature
+#   fix:      A bug fix
+#   docs:     Documentation only changes
+#   style:    Changes that do not affect the meaning of the code
+#   refactor: A code change that neither fixes a bug nor adds a feature
+#   perf:     A code change that improves performance
+#   test:     Adding missing tests or correcting existing tests
+#   chore:    Changes to the build process or auxiliary tools
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# Scope (optional): Component or area affected
+#   Examples: auth, api, ui, db, config
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# Subject: Imperative, present tense, no period, max 50 chars
+#   Good:   "add user authentication"
+#   Bad:    "Added user authentication."
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# Body (optional): Explain WHAT and WHY, not HOW
+#   - Wrap at 72 characters
+#   - Use bullet points for multiple items
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# Footer (optional):
+#   - Breaking changes: BREAKING CHANGE: <description>
+#   - Issue references: Closes #123, Fixes #456
+#   - Co-authors: Co-Authored-By: Name <email>
+#

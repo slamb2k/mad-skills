@@ -1,0 +1,29 @@
+[
+  {
+    "name": "banner-and-tagline",
+    "prompt": "Sync my repository",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(Pulling the latest|All aboard the sync|same page|plot twists|steal everyone|Catching up|rinse, repeat|Previously on main)" },
+      { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
+    ]
+  },
+  {
+    "name": "workflow-awareness",
+    "prompt": "I need to get my local repo up to date with the remote",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(stash|uncommitted)", "flags": "i" },
+      { "type": "regex", "value": "(fetch|pull)", "flags": "i" },
+      { "type": "semantic", "value": "Describes a git sync workflow that handles uncommitted changes, fetches from remote, and cleans up stale branches" }
+    ]
+  },
+  {
+    "name": "flag-handling",
+    "prompt": "Sync my repo --no-stash --no-cleanup",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "semantic", "value": "Acknowledges the --no-stash flag (will skip stashing uncommitted changes) and the --no-cleanup flag (will skip deleting stale branches)" }
+    ]
+  }
+]

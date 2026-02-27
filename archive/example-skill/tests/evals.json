@@ -1,0 +1,20 @@
+[
+  {
+    "name": "understands-skill-structure",
+    "prompt": "I want to create a new skill for this repo. What's the expected structure?",
+    "assertions": [
+      { "type": "contains", "value": "SKILL.md" },
+      { "type": "contains", "value": "frontmatter" },
+      { "type": "semantic", "value": "explains the directory structure including SKILL.md, scripts, references, and tests directories" }
+    ]
+  },
+  {
+    "name": "mentions-testing",
+    "prompt": "How do I add tests for my new skill?",
+    "assertions": [
+      { "type": "contains", "value": "evals.json" },
+      { "type": "regex", "value": "assertions?" },
+      { "type": "semantic", "value": "describes how to write test cases with prompts and assertions" }
+    ]
+  }
+]

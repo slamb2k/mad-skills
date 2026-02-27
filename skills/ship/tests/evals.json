@@ -1,0 +1,30 @@
+[
+  {
+    "name": "banner-and-tagline",
+    "prompt": "Ship my changes",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(Special delivery|If it compiles|Anchors aweigh|push and pray|faster than Amazon|Yeet the code|merge queue|LGTM)" },
+      { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
+    ]
+  },
+  {
+    "name": "pr-lifecycle",
+    "prompt": "Ship the feature I've been working on",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(commit|push|PR|pull request)", "flags": "i" },
+      { "type": "regex", "value": "(CI|check|merge)", "flags": "i" },
+      { "type": "semantic", "value": "Describes a multi-stage PR lifecycle that includes syncing, committing, pushing, creating a PR, monitoring CI, and merging" }
+    ]
+  },
+  {
+    "name": "subagent-architecture",
+    "prompt": "Ship everything to production",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "ship.analyzer", "flags": "i" },
+      { "type": "semantic", "value": "Mentions using specialized subagents for different stages, including a ship-analyzer agent for code analysis and commit/PR creation" }
+    ]
+  }
+]
