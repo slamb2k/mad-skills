@@ -6,6 +6,10 @@
   "bin": {
     "claude-skills": "./src/cli.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/slamb2k/mad-skills"
+  },
   "files": [
     "src/",
     "skills/"
