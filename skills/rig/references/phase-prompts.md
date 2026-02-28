@@ -1,4 +1,4 @@
-# Polish Phase Prompts
+# Rig Phase Prompts
 
 Subagent prompts for system check, repo analysis, and verification phases.
 
@@ -145,7 +145,7 @@ REPO_REPORT:
 **Agent:** Bash (haiku)
 
 ```
-Verify polish configuration was applied correctly.
+Verify rig configuration was applied correctly.
 
 Limit VERIFY_REPORT to 10 lines maximum.
 

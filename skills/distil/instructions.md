@@ -1,4 +1,4 @@
-# Refinery Instructions
+# Distil Instructions
 
 Generate multiple unique, creative web interface designs for any website or
 web application. The primary agent acts as a thin orchestrator — all heavy
@@ -16,12 +16,36 @@ Parse the following from the skill invocation:
 
 ### Examples
 ```
-/refinery 5 --spec ./site-spec.md --port 5173
-/refinery 3 --favorites 2,4 --port 5173
+/distil 5 --spec ./site-spec.md --port 5173
+/distil 3 --favorites 2,4 --port 5173
 ```
 
 If `--favorites` is provided, follow `references/iteration-mode.md` instead
 of the steps below.
+
+---
+
+## Pre-flight
+
+Before starting, check all dependencies in this table:
+
+| Dependency | Type | Check | Required | Resolution | Detail |
+|-----------|------|-------|----------|------------|--------|
+| npm | cli | `npm --version` | yes | stop | https://bun.sh or use npm |
+| bencium-innovative-ux-designer | skill | `~/.claude/skills/bencium-innovative-ux-designer/SKILL.md` | no | ask | `npx skills add bencium/bencium-claude-code-design-skill@bencium-innovative-ux-designer -g -y` |
+| web-animation-design | skill | `~/.claude/skills/web-animation-design/SKILL.md` | no | ask | `npx skills add connorads/dotfiles@web-animation-design -g -y` |
+| design-system | skill | `~/.claude/skills/design-system/SKILL.md` | no | ask | `npx skills add lobbi-docs/claude@design-system -g -y` |
+
+For each row, in order:
+1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
+2. If found: continue silently
+3. If missing: apply Resolution strategy
+   - **stop**: notify user with Detail, halt execution
+   - **url**: notify user with Detail (install link), halt execution
+   - **install**: notify user, run the command in Detail, continue if successful
+   - **ask**: notify user, offer to run command in Detail, continue either way (or halt if required)
+   - **fallback**: notify user with Detail, continue with degraded behavior
+4. After all checks: summarize what's available and what's degraded
 
 ---
 
@@ -49,27 +73,10 @@ the primary agent.
 
 ### 2a: Verify Design Skills
 
-```
-Task(
-  subagent_type: "Explore",
-  model: "haiku",
-  description: "Check design skill availability",
-  prompt: "Check if these directories exist and contain a SKILL.md file:
-    1. ~/.claude/skills/bencium-innovative-ux-designer/
-    2. ~/.claude/skills/web-animation-design/
-    3. ~/.claude/skills/design-system/
-    Return SKILL_REPORT (max 5 lines):
-    - For each skill: name, installed (yes/no)
-    Do NOT read the skill file contents — just confirm existence."
-)
-```
-
-If any skill is missing, inform the user and offer to install:
-```
-npx skills add bencium/bencium-claude-code-design-skill@bencium-innovative-ux-designer -g -y
-npx skills add connorads/dotfiles@web-animation-design -g -y
-npx skills add lobbi-docs/claude@design-system -g -y
-```
+Design skill availability is checked in the Pre-flight section above.
+Use the results from pre-flight to populate SKILL_REPORT:
+- For each design skill: name, installed (yes/no)
+- If any skill was missing and the user declined to install, note it as unavailable
 
 ### 2b: Scan Existing Project
 
@@ -110,7 +117,7 @@ Launch **Bash subagent** (haiku) to set up the project:
 Task(
   subagent_type: "Bash",
   model: "haiku",
-  description: "Initialize refinery project",
+  description: "Initialize distil project",
   prompt: "Follow the project setup instructions:
     1. Detect package manager (bun -> pnpm -> yarn -> npm)
     2. Create Vite React-TS project
@@ -137,7 +144,7 @@ Task(
   subagent_type: "general-purpose",
   description: "Create design variations",
   prompt: "
-    You are creating {COUNT} new web design variations for a refinery project.
+    You are creating {COUNT} new web design variations for a distil project.
 
     ## Site Specification
     {SITE_SPEC from Step 1}

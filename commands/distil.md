@@ -6,4 +6,4 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, WebFetch
 
 Arguments: $ARGUMENTS
 
-Follow instructions in: ~/.claude/skills/refinery/instructions.md
+Follow instructions in: ~/.claude/skills/distil/instructions.md

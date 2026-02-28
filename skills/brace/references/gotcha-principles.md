@@ -1,6 +1,6 @@
 # GOTCHA Framework Principles
 
-Embedded into the project CLAUDE.md during forge.
+Embedded into the project CLAUDE.md during brace.
 
 ---
 

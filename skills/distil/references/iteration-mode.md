@@ -1,4 +1,4 @@
-# Refinery Iteration Mode
+# Distil Iteration Mode
 
 When `--favorites` is provided, generate new designs inspired by existing
 favorites. This allows iterative refinement over multiple sessions.

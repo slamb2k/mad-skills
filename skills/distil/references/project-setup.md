@@ -1,4 +1,4 @@
-# Refinery Project Setup
+# Distil Project Setup
 
 Steps 2-4 of initial project creation.
 

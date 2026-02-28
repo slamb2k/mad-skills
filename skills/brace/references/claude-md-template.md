@@ -47,7 +47,7 @@ agentic AI systems. LLMs handle reasoning; deterministic tools handle execution.
 ├── .gitignore          Ignores credentials, data, temp files
 ├── goals/              Process definitions
 │   ├── manifest.md     Index of all goals
-│   └── build_app.md    FORGE build methodology
+│   └── build_app.md    BRACE build methodology
 ├── tools/              Deterministic scripts
 │   └── manifest.md     Index of all tools
 ├── context/            Domain knowledge and references
@@ -68,13 +68,13 @@ MCP tools for search, timeline, and observation management. Claude Code's
 built-in auto memory (`~/.claude/projects/<project>/memory/MEMORY.md`)
 handles curated facts.
 
-## Build Methodology: FORGE
+## Build Methodology: BRACE
 
 See `goals/build_app.md` for the full workflow:
-- **F**rame — Define problem, users, success metrics
-- **O**utline — Data schema, integrations, stack proposal
-- **R**ig — Validate all connections before building
-- **G**enerate — Build DB first, then API, then UI
+- **B**rief — Define problem, users, success metrics
+- **R**esearch — Data schema, integrations, stack proposal
+- **A**rchitect — Design structure, validate all connections
+- **C**onstruct — Build DB first, then API, then UI
 - **E**valuate — Functional, integration, edge case, acceptance testing
 
 {UNIVERSAL_PRINCIPLES}

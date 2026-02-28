@@ -1,4 +1,4 @@
-# Polish Configuration Steps
+# Rig Configuration Steps
 
 Procedural reference for Phase 4 — execute each approved item.
 
@@ -25,7 +25,7 @@ npm install -g lefthook
 
 ## 4c: Configure Lefthook
 
-Read template from: `~/.claude/skills/polish/assets/lefthook.yml`
+Read template from: `~/.claude/skills/rig/assets/lefthook.yml`
 
 Customize based on detected scripts:
 - If `lint` script exists -> use `npm run lint`
@@ -39,7 +39,7 @@ Run: `lefthook install`
 
 ## 4d: Commit Template
 
-Read template from: `~/.claude/skills/polish/assets/gitmessage`
+Read template from: `~/.claude/skills/rig/assets/gitmessage`
 
 Write to `.gitmessage` in repo root.
 
@@ -47,7 +47,7 @@ Configure git: `git config commit.template .gitmessage`
 
 ## 4e: PR Template
 
-Read template from: `~/.claude/skills/polish/assets/pull_request_template.md`
+Read template from: `~/.claude/skills/rig/assets/pull_request_template.md`
 
 Detect platform from remote URL (same pattern as ship skill):
 ```bash
@@ -76,12 +76,12 @@ Customize based on project:
 - Configure test jobs appropriately
 
 **If PLATFORM == github:**
-  Read template from: `~/.claude/skills/polish/assets/ci.yml`
+  Read template from: `~/.claude/skills/rig/assets/ci.yml`
   Create `.github/workflows/` directory if needed.
   Write customized workflow to `.github/workflows/ci.yml`
 
 **If PLATFORM == azdo:**
-  Read template from: `~/.claude/skills/polish/assets/azure-pipelines.yml`
+  Read template from: `~/.claude/skills/rig/assets/azure-pipelines.yml`
   Write customized pipeline to `azure-pipelines.yml` (repo root)
 
 ## 4g: Register Azure Pipelines (azdo only, if approved)

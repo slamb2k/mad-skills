@@ -4,7 +4,7 @@
     "prompt": "Generate 3 design variations for my SaaS landing page",
     "assertions": [
       { "type": "contains", "value": "██" },
-      { "type": "regex", "value": "(design forge|Pixels, assemble|Creative engines|Making it pretty|CSS goes brrr|flavors of awesome|design kraken|make something beautiful)" },
+      { "type": "regex", "value": "(Heating up|Fractioning the|Condensing pure|Separating signal|Extracting the|Refining through|variations of brilliance|crude concept to pure)" },
       { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
     ]
   },
@@ -19,7 +19,7 @@
   },
   {
     "name": "spec-handling",
-    "prompt": "Refinery 4 --spec ./site-brief.md --port 3000",
+    "prompt": "Distil 4 --spec ./site-brief.md --port 3000",
     "assertions": [
       { "type": "contains", "value": "██" },
       { "type": "semantic", "value": "Describes reading a site specification from the provided file path and creating 4 unique design variations, with a dev server running on the specified port" }

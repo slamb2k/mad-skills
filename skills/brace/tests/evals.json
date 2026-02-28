@@ -4,7 +4,7 @@
     "prompt": "Initialize GOTCHA framework for this project",
     "assertions": [
       { "type": "contains", "value": "██" },
-      { "type": "regex", "value": "(Firing up the forge|Hammer meets anvil|forge burns bright|raw ideas into steel|flames of creation|ore to architecture|Heat, hammer|Forging something)" },
+      { "type": "regex", "value": "(Bracing the|Reinforcing before|Locking in the|Preparing for heavy|Cross-bracing|Tightening the load|Structural integrity|Brace for impact)" },
       { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
     ]
   },
@@ -20,10 +20,10 @@
   },
   {
     "name": "flag-handling",
-    "prompt": "Forge --no-forge this project directory",
+    "prompt": "Brace --no-brace this project directory",
     "assertions": [
       { "type": "contains", "value": "██" },
-      { "type": "semantic", "value": "Acknowledges the --no-forge flag, indicating it will skip the FORGE build methodology while still creating the GOTCHA directory structure" }
+      { "type": "semantic", "value": "Acknowledges the --no-brace flag, indicating it will skip the BRACE build methodology while still creating the GOTCHA directory structure" }
     ]
   }
 ]

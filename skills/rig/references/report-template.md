@@ -1,9 +1,9 @@
-# Polish Final Report Template
+# Rig Final Report Template
 
 Present this summary after all configuration is complete:
 
 ```
-Polish Complete!
+Rig Complete!
 
 Repository: {repo_name}
 Branch: {branch}

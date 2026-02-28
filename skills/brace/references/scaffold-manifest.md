@@ -1,6 +1,6 @@
 # Scaffold Manifest
 
-Everything forge creates, grouped by component. Phase 4 uses this as its
+Everything brace creates, grouped by component. Phase 4 uses this as its
 creation checklist. Phase 1 uses it to detect existing structure.
 
 ## Core Files
@@ -17,7 +17,7 @@ creation checklist. Phase 1 uses it to detect existing structure.
 |------|--------|-------------|
 | `goals/` | mkdir | Process definitions directory |
 | `goals/manifest.md` | generated | Index of all goal workflows |
-| `goals/build_app.md` | references/forge-workflow.md | FORGE build methodology |
+| `goals/build_app.md` | references/brace-workflow.md | BRACE build methodology |
 
 ## Tools Layer
 
@@ -50,7 +50,7 @@ Index of all goal workflows in this project.
 
 | Goal | File | Description |
 |------|------|-------------|
-| Build App | build_app.md | FORGE 5-step build methodology |
+| Build App | build_app.md | BRACE 5-step build methodology |
 
 Add new goals here as they are created.
 ```

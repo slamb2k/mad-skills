@@ -1,11 +1,11 @@
-# Forge Report Template
+# Brace Report Template
 
 Present this summary after verification completes.
 
 ---
 
 ```
-Forge Complete!
+Brace Complete!
 
   Project:   {project_name}
   Directory: {cwd}
@@ -32,7 +32,7 @@ Forge Complete!
     1. Review CLAUDE.md and customise for your project
     2. Add domain knowledge to context/
     3. Define your first goal in goals/
-    4. Start building with the FORGE methodology
+    4. Start building with the BRACE methodology
 ```
 
 Status indicators: [created] [exists] [merged] [upgraded] [skipped] [failed]

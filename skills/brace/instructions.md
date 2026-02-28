@@ -1,6 +1,6 @@
-# Forge Instructions
+# Brace Instructions
 
-Initialize any project directory with the GOTCHA/FORGE framework. Idempotent —
+Initialize any project directory with the GOTCHA/BRACE framework. Idempotent —
 safe to re-run on existing projects. Content templates and subagent prompts
 are in `references/`.
 
@@ -15,12 +15,29 @@ Report format: `references/report-template.md`
 ## Flags
 
 Parse optional flags from the request:
-- `--no-forge` — Skip FORGE build methodology (goals/build_app.md)
+- `--no-brace` — Skip BRACE build methodology (goals/build_app.md)
 - `--force` — Overwrite existing files without prompting
 
 ---
 
 ## Pre-flight
+
+Before starting, check all dependencies in this table:
+
+| Dependency | Type | Check | Required | Resolution | Detail |
+|-----------|------|-------|----------|------------|--------|
+| claude-mem | plugin | — | no | ask | `claude plugin install claude-mem` |
+
+For each row, in order:
+1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
+2. If found: continue silently
+3. If missing: apply Resolution strategy
+   - **stop**: notify user with Detail, halt execution
+   - **url**: notify user with Detail (install link), halt execution
+   - **install**: notify user, run the command in Detail, continue if successful
+   - **ask**: notify user, offer to run command in Detail, continue either way (or halt if required)
+   - **fallback**: notify user with Detail, continue with degraded behavior
+4. After all checks: summarize what's available and what's degraded
 
 1. Capture **FLAGS** from the user's request
 2. Create a task list tracking all 5 phases
@@ -46,21 +63,22 @@ Parse SCAN_REPORT. Extract:
 - `existing_files` / `missing_files`
 - `has_claude_md` / `has_gitignore`
 - `has_atlas` (legacy ATLAS naming detected)
+- `has_forge` (legacy FORGE naming detected)
 
 ---
 
-## Phase 1b: ATLAS Upgrade Detection
+## Phase 1b: Legacy Upgrade Detection
 
-**Skip if `has_atlas` is false.**
+**Skip if neither `has_atlas` nor `has_forge` is true.**
 
-If SCAN_REPORT shows `has_atlas: true`, ask the user via AskUserQuestion:
+If SCAN_REPORT shows `has_atlas: true` or `has_forge: true`, ask the user via AskUserQuestion:
 
-   Question: "Legacy ATLAS naming detected. Upgrade to FORGE?"
+   Question: "Legacy naming detected. Upgrade to BRACE?"
    Options:
-   - "Yes, upgrade to FORGE" — Replace ATLAS references with FORGE equivalents
-   - "No, leave as-is" — Keep existing ATLAS naming
+   - "Yes, upgrade to BRACE" — Replace legacy references with BRACE equivalents
+   - "No, leave as-is" — Keep existing naming
 
-Store result as `upgrade_atlas: true|false` in USER_CONFIG.
+Store result as `upgrade_legacy: true|false` in USER_CONFIG.
 
 ---
 
@@ -73,8 +91,8 @@ Store result as `upgrade_atlas: true|false` in USER_CONFIG.
 
    Question: "What to include in GOTCHA setup?"
    Options:
-   - "Full GOTCHA + FORGE (Recommended)"
-   - "GOTCHA structure only (no FORGE methodology)"
+   - "Full GOTCHA + BRACE (Recommended)"
+   - "GOTCHA structure only (no BRACE methodology)"
    - "Cancel"
 
 3. If not cancelled, ask for project description (one sentence) via
@@ -91,7 +109,7 @@ Store result as `upgrade_atlas: true|false` in USER_CONFIG.
 5. Store as USER_CONFIG:
    - project_name: from directory name or user override
    - description: from user input
-   - include_forge: true/false (based on selection and `--no-forge`)
+   - include_brace: true/false (based on selection and `--no-brace`)
    - install_level: "both" | "global" | "project"
 
 **If cancelled, stop here.**
@@ -110,7 +128,7 @@ For each item in `references/scaffold-manifest.md`:
 - If .gitignore exists → status: "merge" (append missing entries)
 - Otherwise → status: "create"
 
-If `upgrade_atlas` is true in USER_CONFIG, set status "upgrade" for:
+If `upgrade_legacy` is true in USER_CONFIG, set status "upgrade" for:
 - CLAUDE.md (replaces "merge" or "skip" — upgrade takes priority)
 - goals/build_app.md (replaces "skip")
 - goals/manifest.md (replaces "skip")
@@ -122,7 +140,7 @@ GOTCHA Framework Setup for: {project_name}
 
 Will create:  {list of items with status "create"}
 Will merge:   {list of items with status "merge"}
-Will upgrade: {list of items with status "upgrade" — ATLAS → FORGE}
+Will upgrade: {list of items with status "upgrade" — legacy → BRACE}
 Will skip:    {count} existing items
 Not selected: {count} items
 Global config: {install_level description}
@@ -160,7 +178,7 @@ Before sending the prompt, substitute these variables:
   (the goals/manifest.md content block)
 - `{TOOLS_MANIFEST}` — read from `references/scaffold-manifest.md`
   (the tools/manifest.md content block)
-- `{FORGE_WORKFLOW}` — read from `references/forge-workflow.md`
+- `{BRACE_WORKFLOW}` — read from `references/brace-workflow.md`
   (the section after the header, used for goals/build_app.md)
 - `{GLOBAL_PREFERENCES_CONTENT}` — read from `assets/global-preferences-template.md`
   (the section between BEGIN TEMPLATE and END TEMPLATE)

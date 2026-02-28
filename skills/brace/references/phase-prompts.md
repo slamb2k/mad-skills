@@ -1,4 +1,4 @@
-# Forge Phase Prompts
+# Brace Phase Prompts
 
 Subagent prompts for each phase. The orchestrator reads the relevant section
 and substitutes `{VARIABLE}` placeholders before sending to the subagent.
@@ -10,7 +10,7 @@ and substitutes `{VARIABLE}` placeholders before sending to the subagent.
 **Agent:** Bash | **Model:** haiku
 
 ```
-Scan the current working directory for existing GOTCHA/FORGE framework structure.
+Scan the current working directory for existing GOTCHA/BRACE framework structure.
 
 Limit your SCAN_REPORT to 20 lines maximum.
 
@@ -38,6 +38,15 @@ Limit your SCAN_REPORT to 20 lines maximum.
      fi
    done
 
+6. Check for legacy FORGE references:
+   forge_found=false
+   for f in CLAUDE.md goals/build_app.md goals/manifest.md; do
+     if [ -f "$f" ] && grep -qi "FORGE" "$f"; then
+       forge_found=true
+       break
+     fi
+   done
+
 ## Output Format
 
 SCAN_REPORT:
@@ -50,6 +59,7 @@ SCAN_REPORT:
   has_claude_md: true|false
   has_gitignore: true|false
   has_atlas: true|false
+  has_forge: true|false
 ```
 
 ---
@@ -59,7 +69,7 @@ SCAN_REPORT:
 **Agent:** general-purpose | **Model:** default
 
 ```
-Create the GOTCHA/FORGE framework structure in the current directory.
+Create the GOTCHA/BRACE framework structure in the current directory.
 
 Limit your SCAFFOLD_REPORT to 15 lines maximum.
 
@@ -83,7 +93,7 @@ Skip items with status "skip" or "not selected".
    {PROJECT_DESCRIPTION}, and {UNIVERSAL_PRINCIPLES}
 4. Write .gitignore from the content below
 5. Write goals/manifest.md and tools/manifest.md from content below
-6. Write goals/build_app.md from the FORGE workflow content below
+6. Write goals/build_app.md from the BRACE workflow content below
 
 ### For "merge" items:
 
@@ -92,17 +102,17 @@ Skip items with status "skip" or "not selected".
 - .gitignore: Read existing file. Append any missing entries from the
   template. Do not duplicate existing entries.
 
-### For "upgrade" items (ATLAS → FORGE migration):
+### For "upgrade" items (legacy → BRACE migration):
 
-These files already exist but contain legacy ATLAS naming. Replace the ATLAS
-methodology references with FORGE equivalents while preserving all other content.
+These files already exist but contain legacy ATLAS or FORGE naming. Replace the
+legacy methodology references with BRACE equivalents while preserving all other content.
 
-- **CLAUDE.md:** Replace the "Build Methodology: ATLAS" section (from that heading
-  through the A/T/L/A/S bullet list) with the FORGE section from the template.
-  Also replace "ATLAS build methodology" with "FORGE build methodology" in the
-  directory tree comment. Preserve all other sections.
-- **goals/build_app.md:** Replace the entire file with the FORGE workflow content below.
-- **goals/manifest.md:** Replace "ATLAS" with "FORGE" in the description column.
+- **CLAUDE.md:** Replace the "Build Methodology: ATLAS" or "Build Methodology: FORGE"
+  section (from that heading through the bullet list) with the BRACE section from
+  the template. Also replace "ATLAS build methodology" or "FORGE build methodology"
+  with "BRACE build methodology" in the directory tree comment. Preserve all other sections.
+- **goals/build_app.md:** Replace the entire file with the BRACE workflow content below.
+- **goals/manifest.md:** Replace "ATLAS" or "FORGE" with "BRACE" in the description column.
 
 ### Global preferences (conditional)
 
@@ -138,7 +148,7 @@ empty string (principles are in the global config instead).
 
 ### goals/build_app.md Content
 
-{FORGE_WORKFLOW}
+{BRACE_WORKFLOW}
 
 ### Global Preferences Content
 
@@ -167,7 +177,7 @@ SCAFFOLD_REPORT:
   status: success|partial|failed
   created: [list of files/dirs created]
   merged: [list of files merged]
-  upgraded: [list of files upgraded from ATLAS to FORGE]
+  upgraded: [list of files upgraded to BRACE]
   skipped: [list of items skipped]
   global_updated: true|false|skipped
   errors: [any errors encountered]
