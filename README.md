@@ -9,10 +9,10 @@ An npm-based skill framework for Claude Code. Ships 7 skills covering the full d
 | Skill | Command | Description |
 |-------|---------|-------------|
 | **build** | `/build` | Context-isolated feature development pipeline. Takes a design/plan and executes explore, question, architect, implement, review, ship inside subagents. |
-| **forge** | `/forge` | Initialize projects with the GOTCHA/FORGE framework. Creates 6-layer structure, FORGE build methodology, and project CLAUDE.md. |
-| **polish** | `/polish` | Bootstrap repos with lefthook hooks, commit templates, PR templates, and GitHub Actions workflows. Idempotent. |
+| **brace** | `/brace` | Initialize projects with the GOTCHA/BRACE framework. Creates 6-layer structure, BRACE build methodology, and project CLAUDE.md. |
+| **distil** | `/distil` | Generate multiple unique web design variations. Creates a Vite + React + TypeScript + Tailwind project with N designs at /1, /2, /3. |
 | **prime** | `/prime` | Load project context before feature work. Supports domain-specific context (security, routing, dashboard, etc.). |
-| **refinery** | `/refinery` | Generate multiple unique web design variations. Creates a Vite + React + TypeScript + Tailwind project with N designs at /1, /2, /3. |
+| **rig** | `/rig` | Bootstrap repos with lefthook hooks, commit templates, PR templates, and GitHub Actions workflows. Idempotent. |
 | **ship** | `/ship` | Full PR lifecycle — sync with main, create branch, commit, push, create PR, wait for CI, fix issues, squash merge, cleanup. |
 | **sync** | `/sync` | Sync local repo with origin/main. Stashes changes, pulls, restores stash, cleans up stale branches. |
 
@@ -36,10 +36,10 @@ Skills are installed as slash commands in your Claude Code environment. After in
 mad-skills/
 ├── skills/                  # Skill definitions (7 skills)
 │   ├── build/
-│   ├── forge/
-│   ├── polish/
+│   ├── brace/
+│   ├── distil/
 │   ├── prime/
-│   ├── refinery/
+│   ├── rig/
 │   ├── ship/
 │   └── sync/
 ├── scripts/                 # Build and CI tooling

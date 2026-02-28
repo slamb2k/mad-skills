@@ -14,10 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **build** — Context-isolated feature development pipeline
-- **forge** — Project initialization with GOTCHA/FORGE framework
-- **polish** — Repository bootstrapping with hooks, templates, CI
+- **brace** — Project initialization with GOTCHA/BRACE framework
+- **rig** — Repository bootstrapping with hooks, templates, CI
 - **prime** — Project context loading for informed decisions
-- **refinery** — Multiple web design variation generator
+- **distil** — Multiple web design variation generator
 - **ship** — Full PR lifecycle (commit, push, PR, CI, merge)
 - **sync** — Repository sync with origin/main
 - Build infrastructure: `scripts/` (validate, lint, eval, build-manifests, package-skills)

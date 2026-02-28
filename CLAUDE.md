@@ -12,10 +12,10 @@ Guidance for Claude Code when working in this repository.
 mad-skills/
 ├── skills/                  # Skill definitions
 │   ├── build/               # Context-isolated feature dev pipeline
-│   ├── forge/               # GOTCHA/FORGE project initialization
-│   ├── polish/              # Repo bootstrapping (hooks, CI, templates)
+│   ├── brace/               # GOTCHA/BRACE project initialization
 │   ├── prime/               # Project context loading
-│   ├── refinery/            # Web design variation generator
+│   ├── rig/                 # Repo bootstrapping (hooks, CI, templates)
+│   ├── distil/              # Web design variation generator
 │   ├── ship/                # Full PR lifecycle
 │   └── sync/                # Repo sync with origin/main
 ├── scripts/                 # Build and CI tooling
@@ -43,10 +43,10 @@ mad-skills/
 | Skill | Status | Description |
 |-------|--------|-------------|
 | build | Complete | Context-isolated feature dev pipeline via subagents |
-| forge | Complete | GOTCHA/FORGE project initialization |
-| polish | Complete | Repo bootstrapping with hooks, templates, CI |
+| brace | Complete | GOTCHA/BRACE project initialization |
+| distil | Complete | Multiple web design variation generator |
 | prime | Complete | Domain-specific project context loading |
-| refinery | Complete | Multiple web design variation generator |
+| rig | Complete | Repo bootstrapping with hooks, templates, CI |
 | ship | Complete | Full PR lifecycle (commit, merge, cleanup) |
 | sync | Complete | Repo sync with origin/main |
 
