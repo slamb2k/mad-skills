@@ -1,6 +1,6 @@
 {
   "name": "@slamb2k/mad-skills",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Claude Code skills collection with CI/CD and npx installer",
   "type": "module",
   "bin": {
