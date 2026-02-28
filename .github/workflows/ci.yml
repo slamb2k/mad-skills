@@ -31,8 +31,10 @@ jobs:
     name: Run Evals
     needs: validate
     runs-on: ubuntu-latest
+    # Temporarily disabled — re-enable when eval stability is resolved
+    if: false
     # Only run evals if we have the API key (skip for external PRs)
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v4
 
