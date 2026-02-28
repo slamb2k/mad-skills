@@ -1,25 +1,25 @@
-# FORGE Build Methodology
+# BRACE Build Methodology
 
-Content for `goals/build_app.md`. Copied during forge Phase 4.
+Content for `goals/build_app.md`. Copied during brace Phase 4.
 
 ---
 
 ## Goal
 
 Build full-stack applications using AI assistance within the GOTCHA framework.
-FORGE is a 5-step process that ensures apps are production-ready.
+BRACE is a 5-step process that ensures apps are production-ready.
 
 | Step | Phase | What You Do |
 |------|-------|-------------|
-| **F** | Frame | Define problem, users, success metrics |
-| **O** | Outline | Data schema, integrations map, stack proposal |
-| **R** | Rig | Validate ALL connections before building |
-| **G** | Generate | Build with layered architecture |
+| **B** | Brief | Define problem, users, success metrics |
+| **R** | Research | Data schema, integrations map, stack proposal |
+| **A** | Architect | Design structure, validate all connections |
+| **C** | Construct | Build with layered architecture |
 | **E** | Evaluate | Test functionality, error handling |
 
 ---
 
-## F — Frame
+## B — Brief
 
 **Purpose:** Know exactly what you are building before touching code.
 
@@ -32,7 +32,7 @@ FORGE is a 5-step process that ensures apps are production-ready.
 
 ---
 
-## O — Outline
+## R — Research
 
 **Purpose:** Design before building. Define the source of truth.
 
@@ -45,9 +45,9 @@ FORGE is a 5-step process that ensures apps are production-ready.
 
 ---
 
-## R — Rig
+## A — Architect
 
-**Purpose:** Validate all connections BEFORE building.
+**Purpose:** Design structure and validate all connections BEFORE building.
 
 Checklist:
 - [ ] Database connection tested
@@ -60,7 +60,7 @@ Checklist:
 
 ---
 
-## G — Generate
+## C — Construct
 
 **Purpose:** Build with proper architecture.
 
@@ -100,10 +100,10 @@ Follow GOTCHA separation: frontend (display), backend (logic), database (truth).
 
 ## GOTCHA Layer Mapping
 
-| FORGE Step | GOTCHA Layer |
+| BRACE Step | GOTCHA Layer |
 |------------|--------------|
-| Frame | Goals (define the process) |
-| Outline | Context (reference patterns) |
-| Rig | Args (environment setup) |
-| Generate | Tools (execution) |
+| Brief | Goals (define the process) |
+| Research | Context (reference patterns) |
+| Architect | Args (environment setup) |
+| Construct | Tools (execution) |
 | Evaluate | Orchestration (AI validates) |
