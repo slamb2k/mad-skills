@@ -12,6 +12,27 @@ Parse optional flags from the request:
 
 ---
 
+## Pre-flight
+
+Before starting, check all dependencies in this table:
+
+| Dependency | Type | Check | Required | Resolution | Detail |
+|-----------|------|-------|----------|------------|--------|
+| git | cli | `git --version` | yes | stop | Install from https://git-scm.com |
+
+For each row, in order:
+1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
+2. If found: continue silently
+3. If missing: apply Resolution strategy
+   - **stop**: notify user with Detail, halt execution
+   - **url**: notify user with Detail (install link), halt execution
+   - **install**: notify user, run the command in Detail, continue if successful
+   - **ask**: notify user, offer to run command in Detail, continue either way (or halt if required)
+   - **fallback**: notify user with Detail, continue with degraded behavior
+4. After all checks: summarize what's available and what's degraded
+
+---
+
 ## Pre-flight Detection
 
 Before launching the subagent, detect the remote and default branch:

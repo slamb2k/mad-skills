@@ -21,6 +21,26 @@ Parse optional flags from the request:
 
 ## Pre-flight
 
+Before starting, check all dependencies in this table:
+
+| Dependency | Type | Check | Required | Resolution | Detail |
+|-----------|------|-------|----------|------------|--------|
+| ship | skill | `.claude/skills/ship/SKILL.md` | yes | stop | Install with: npx @slamb2k/mad-skills --skill ship |
+| feature-dev:code-explorer | agent | — | no | fallback | Uses general-purpose agent |
+| feature-dev:code-architect | agent | — | no | fallback | Uses general-purpose agent |
+| feature-dev:code-reviewer | agent | — | no | fallback | Uses general-purpose agent |
+
+For each row, in order:
+1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
+2. If found: continue silently
+3. If missing: apply Resolution strategy
+   - **stop**: notify user with Detail, halt execution
+   - **url**: notify user with Detail (install link), halt execution
+   - **install**: notify user, run the command in Detail, continue if successful
+   - **ask**: notify user, offer to run command in Detail, continue either way (or halt if required)
+   - **fallback**: notify user with Detail, continue with degraded behavior
+4. After all checks: summarize what's available and what's degraded
+
 1. Capture **PLAN** (the user's argument) and **FLAGS**
 2. Detect project type using `references/project-detection.md` to populate
    **PROJECT_CONFIG** (language, test_runner, test_setup)
