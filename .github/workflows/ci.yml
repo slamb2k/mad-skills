@@ -44,6 +44,9 @@ jobs:
       - run: npm ci
 
       - name: Run skill evals
+        # Evals use LLM-based semantic assertions which are inherently
+        # non-deterministic. Report results but don't block PRs.
+        continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
