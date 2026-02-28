@@ -95,7 +95,7 @@ async function callClaude(systemPrompt, userMessage, model = args.model) {
     },
     body: JSON.stringify({
       model,
-      max_tokens: 4096,
+      max_tokens: 8192,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
     }),
@@ -120,7 +120,7 @@ async function callOpenRouter(systemPrompt, userMessage, model) {
     },
     body: JSON.stringify({
       model: orModel,
-      max_tokens: 4096,
+      max_tokens: 8192,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
