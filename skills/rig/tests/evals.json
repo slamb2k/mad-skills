@@ -1,0 +1,29 @@
+[
+  {
+    "name": "banner-and-tagline",
+    "prompt": "Bootstrap this repo with standard tools",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(Rigging up|Bolting down|Assembling the|Hoisting the|Locking in|Wiring up|Setting up the drill|blueprint to build)" },
+      { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
+    ]
+  },
+  {
+    "name": "tooling-awareness",
+    "prompt": "Set up hooks and CI for this project",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "lefthook", "flags": "i" },
+      { "type": "regex", "value": "(GitHub Actions|CI|workflow)", "flags": "i" },
+      { "type": "semantic", "value": "Describes setting up git hooks (via lefthook), commit templates, PR templates, and GitHub Actions workflows for lint/format/type-check/build" }
+    ]
+  },
+  {
+    "name": "idempotency-and-confirmation",
+    "prompt": "Rig my repository",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "semantic", "value": "Mentions that the process is idempotent (safe to run multiple times) and will prompt the user for confirmation before making changes" }
+    ]
+  }
+]

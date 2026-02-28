@@ -24,6 +24,9 @@ const MAX_SKILL_MD_LINES = 500;
 const MIN_DESCRIPTION_LENGTH = 50;
 const MAX_DESCRIPTION_LENGTH = 800;
 
+const VALID_DEP_TYPES = new Set(["cli", "npm", "agent", "skill", "plugin"]);
+const VALID_DEP_RESOLUTIONS = new Set(["url", "install", "ask", "fallback", "stop"]);
+
 let errors = 0;
 let warnings = 0;
 
@@ -101,6 +104,112 @@ async function extractReferencedPaths(content, skillDir) {
   }
 
   return paths;
+}
+
+async function validateDependencyTable(skillName, skillDir) {
+  const instructionsPath = join(skillDir, "instructions.md");
+  if (!(await fileExists(instructionsPath))) return;
+
+  const content = await readFile(instructionsPath, "utf-8");
+  const lines = content.split("\n");
+
+  const headerIdx = lines.findIndex((l) =>
+    /^\|\s*Dependency\s*\|/i.test(l)
+  );
+  if (headerIdx === -1) return; // No table present — that's OK
+
+  // Validate header columns
+  const headerCells = lines[headerIdx]
+    .split("|")
+    .slice(1, -1)
+    .map((c) => c.trim().toLowerCase());
+
+  const expectedHeaders = [
+    "dependency",
+    "type",
+    "check",
+    "required",
+    "resolution",
+    "detail",
+  ];
+  for (let i = 0; i < expectedHeaders.length; i++) {
+    const actual = headerCells[i] ?? "(missing)";
+    if (actual !== expectedHeaders[i]) {
+      error(
+        skillName,
+        `Dependency table header column ${i + 1}: expected "${expectedHeaders[i]}", got "${actual}"`
+      );
+    }
+  }
+
+  // Validate separator row
+  if (headerIdx + 1 < lines.length) {
+    const sep = lines[headerIdx + 1].trim();
+    if (!/^\|[\s\-:|]+\|$/.test(sep)) {
+      warn(skillName, "Dependency table missing separator row");
+    }
+  }
+
+  // Validate data rows
+  let rowCount = 0;
+  for (let i = headerIdx + 2; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith("|")) break;
+
+    rowCount++;
+    const cells = line
+      .split("|")
+      .slice(1, -1)
+      .map((c) => c.trim());
+
+    if (cells.length < 6) {
+      error(
+        skillName,
+        `Dependency table row ${rowCount}: expected 6 columns, got ${cells.length}`
+      );
+      continue;
+    }
+
+    const [name, type, , required, resolution, detail] = cells;
+
+    if (!name) {
+      error(
+        skillName,
+        `Dependency table row ${rowCount}: missing dependency name`
+      );
+    }
+    if (!VALID_DEP_TYPES.has(type)) {
+      error(
+        skillName,
+        `Dependency table row ${rowCount}: invalid type "${type}" (expected: ${[...VALID_DEP_TYPES].join(", ")})`
+      );
+    }
+    if (!["yes", "no"].includes(required.toLowerCase())) {
+      error(
+        skillName,
+        `Dependency table row ${rowCount}: required must be "yes" or "no", got "${required}"`
+      );
+    }
+    if (!VALID_DEP_RESOLUTIONS.has(resolution)) {
+      error(
+        skillName,
+        `Dependency table row ${rowCount}: invalid resolution "${resolution}" (expected: ${[...VALID_DEP_RESOLUTIONS].join(", ")})`
+      );
+    }
+    if (!detail) {
+      warn(
+        skillName,
+        `Dependency table row ${rowCount}: missing detail for "${name}"`
+      );
+    }
+  }
+
+  if (rowCount > 0) {
+    ok(
+      skillName,
+      `Dependency table valid (${rowCount} ${rowCount === 1 ? "dependency" : "dependencies"})`
+    );
+  }
 }
 
 async function validateSkill(skillName, skillDir) {
@@ -190,6 +299,9 @@ async function validateSkill(skillName, skillDir) {
       }
     }
   }
+
+  // Validate dependency table in instructions.md (if present)
+  await validateDependencyTable(skillName, skillDir);
 
   if (errors === 0) {
     ok(skillName, "Structure valid");

@@ -1,7 +1,17 @@
 {
-  "generated": "2026-02-27T15:16:17.996Z",
+  "generated": "2026-02-27T22:27:49.421Z",
   "count": 7,
   "skills": [
+    {
+      "name": "brace",
+      "directory": "brace",
+      "description": "> Initialize any project directory with the GOTCHA/BRACE framework for agentic AI systems. Creates the 6-layer structure (Goals, Orchestration, Tools, Context, Hard prompts, Args), BRACE build methodology, and a project CLAUDE.md. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: \"init gotcha\", \"setup brace\", \"brace\", \"initialize framework\", \"bootstrap gotcha\".",
+      "lines": 52,
+      "hasScripts": false,
+      "hasReferences": true,
+      "hasAssets": true,
+      "hasTests": true
+    },
     {
       "name": "build",
       "directory": "build",
@@ -13,19 +23,9 @@
       "hasTests": true
     },
     {
-      "name": "forge",
-      "directory": "forge",
-      "description": "> Initialize any project directory with the GOTCHA/FORGE framework for agentic AI systems. Creates the 6-layer structure (Goals, Orchestration, Tools, Context, Hard prompts, Args), FORGE build methodology, and a project CLAUDE.md. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: \"init gotcha\", \"setup forge\", \"forge\", \"initialize framework\", \"bootstrap gotcha\".",
-      "lines": 52,
-      "hasScripts": false,
-      "hasReferences": true,
-      "hasAssets": true,
-      "hasTests": true
-    },
-    {
-      "name": "polish",
-      "directory": "polish",
-      "description": "> Idempotently bootstrap any repository with standard development tools, hooks, and workflows. Use when starting work on a new repo, onboarding to an existing project, or ensuring a repo has proper CI/CD setup. Configures: git hooks (lefthook), commit message templates, PR templates, and GitHub Actions for lint/format/type-check/build. Prompts for user confirmation before changes. Triggers: \"bootstrap repo\", \"setup hooks\", \"configure CI\", \"polish\", \"standardize repo\".",
+      "name": "distil",
+      "directory": "distil",
+      "description": "> Generate multiple unique web design variations for any website or web application. Accepts site specifications from a file (--spec path) or pasted text block. Creates a Vite + React + TypeScript + Tailwind project with Bun and produces N different creative designs accessible at /1, /2, /3, etc. Use when prototyping or exploring design directions for any web interface.",
       "lines": 39,
       "hasScripts": false,
       "hasReferences": true,
@@ -43,9 +43,9 @@
       "hasTests": true
     },
     {
-      "name": "refinery",
-      "directory": "refinery",
-      "description": "> Generate multiple unique web design variations for any website or web application. Accepts site specifications from a file (--spec path) or pasted text block. Creates a Vite + React + TypeScript + Tailwind project with Bun and produces N different creative designs accessible at /1, /2, /3, etc. Use when prototyping or exploring design directions for any web interface.",
+      "name": "rig",
+      "directory": "rig",
+      "description": "> Idempotently bootstrap any repository with standard development tools, hooks, and workflows. Use when starting work on a new repo, onboarding to an existing project, or ensuring a repo has proper CI/CD setup. Configures: git hooks (lefthook), commit message templates, PR templates, and GitHub Actions for lint/format/type-check/build. Prompts for user confirmation before changes. Triggers: \"bootstrap repo\", \"setup hooks\", \"configure CI\", \"rig\", \"standardize repo\".",
       "lines": 39,
       "hasScripts": false,
       "hasReferences": true,

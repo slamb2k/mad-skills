@@ -12,6 +12,8 @@
  */
 
 import { readdir, readFile, mkdir, access, stat } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { execSync } from "node:child_process";
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -127,21 +129,168 @@ async function exists(path) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Dependency management
+// ---------------------------------------------------------------------------
+
+const VALID_DEP_TYPES = new Set(["cli", "npm", "agent", "skill", "plugin"]);
+const VALID_DEP_RESOLUTIONS = new Set(["url", "install", "ask", "fallback", "stop"]);
+
+/**
+ * Parse a markdown dependency table from instructions.md content.
+ * Returns an array of { name, type, check, required, resolution, detail }.
+ */
+function parseDependencyTable(content) {
+  const lines = content.split("\n");
+  const deps = [];
+
+  const headerIdx = lines.findIndex((l) =>
+    /^\|\s*Dependency\s*\|/i.test(l)
+  );
+  if (headerIdx === -1) return deps;
+
+  for (let i = headerIdx + 2; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith("|")) break;
+
+    const cells = line
+      .split("|")
+      .slice(1, -1)
+      .map((c) => c.trim());
+    if (cells.length < 6) continue;
+
+    const check = cells[2].replace(/^`|`$/g, "");
+    deps.push({
+      name: cells[0],
+      type: cells[1],
+      check: check === "—" || check === "-" || check === "" ? null : check,
+      required: cells[3].toLowerCase() === "yes",
+      resolution: cells[4],
+      detail: cells[5].replace(/^`|`$/g, ""),
+    });
+  }
+
+  return deps;
+}
+
+/**
+ * Check whether a single dependency is available.
+ * Returns true if found, false if missing.
+ */
+function checkDependency(dep, targetDir) {
+  if (!dep.check) return true;
+
+  try {
+    switch (dep.type) {
+      case "cli":
+      case "npm":
+        execSync(dep.check, { stdio: "ignore", timeout: 15000 });
+        return true;
+      case "agent":
+      case "skill": {
+        const p = dep.check.replace(/^~/, process.env.HOME ?? "~");
+        if (existsSync(resolve(p))) return true;
+        // For skill deps, also check inside the install target directory
+        if (targetDir && dep.type === "skill") {
+          const parts = dep.check.split("/");
+          const idx = parts.indexOf("skills");
+          if (idx !== -1 && idx + 1 < parts.length) {
+            const targetPath = join(targetDir, parts[idx + 1], "SKILL.md");
+            if (existsSync(targetPath)) return true;
+          }
+        }
+        return false;
+      }
+      case "plugin":
+        return false;
+      default:
+        return true;
+    }
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Apply the resolution strategy for a missing dependency.
+ * Returns "installed" | "warning" | "info".
+ */
+function resolveDependency(dep) {
+  switch (dep.resolution) {
+    case "stop":
+    case "url": {
+      const icon = dep.required ? "⚠" : "ℹ";
+      console.log(`     ${icon}  ${dep.name} not found — ${dep.detail}`);
+      return "warning";
+    }
+    case "install": {
+      try {
+        execSync(dep.detail, { stdio: "pipe", timeout: 60000 });
+        console.log(`     ✅ ${dep.name} installed (ran: ${dep.detail})`);
+        return "installed";
+      } catch {
+        console.log(
+          `     ⚠  ${dep.name} auto-install failed — run manually: ${dep.detail}`
+        );
+        return "warning";
+      }
+    }
+    case "ask": {
+      console.log(
+        `     ℹ  ${dep.name} not found — optional, install with: ${dep.detail}`
+      );
+      return "info";
+    }
+    case "fallback": {
+      console.log(`     ℹ  ${dep.name} not found — ${dep.detail}`);
+      return "info";
+    }
+    default:
+      return "ok";
+  }
+}
+
+/**
+ * Check all dependencies declared in a skill's instructions.md.
+ * Returns { installed, warnings } counts.
+ */
+async function checkSkillDependencies(skillName, targetDir) {
+  const instructionsPath = join(targetDir, skillName, "instructions.md");
+  let content;
+  try {
+    content = await readFile(instructionsPath, "utf-8");
+  } catch {
+    return { installed: 0, warnings: 0 };
+  }
+
+  const deps = parseDependencyTable(content);
+  if (deps.length === 0) return { installed: 0, warnings: 0 };
+
+  let installed = 0;
+  let warnCount = 0;
+
+  for (const dep of deps) {
+    if (checkDependency(dep, targetDir)) continue;
+    const result = resolveDependency(dep);
+    if (result === "installed") installed++;
+    if (result === "warning") warnCount++;
+  }
+
+  return { installed, warnings: warnCount };
+}
+
 async function installSkill(skill, targetDir) {
   const dest = join(targetDir, skill.name);
   const destExists = await exists(dest);
 
   if (destExists && !args.upgrade) {
-    console.log(`  ⏭  ${skill.name} (exists, use --upgrade to overwrite)`);
     return { name: skill.name, status: "skipped" };
   }
 
   // Copy skill, filtering out CI-only directories
   await cpFiltered(skill.path, dest);
 
-  const action = destExists ? "upgraded" : "installed";
-  console.log(`  ✅ ${skill.name} (${action})`);
-  return { name: skill.name, status: action };
+  return { name: skill.name, status: destExists ? "upgraded" : "installed" };
 }
 
 /**
@@ -219,9 +368,25 @@ async function main() {
 
   console.log(`\nInstalling ${toInstall.length} skill(s) to ${targetDir}\n`);
 
+  // Pass 1: Install all skills (file copy)
   const results = [];
   for (const skill of toInstall) {
     results.push(await installSkill(skill, targetDir));
+  }
+
+  // Pass 2: Print results and check dependencies
+  let totalDepsInstalled = 0;
+  let totalDepsWarnings = 0;
+
+  for (const result of results) {
+    if (result.status === "skipped") {
+      console.log(`  ⏭  ${result.name} (exists, use --upgrade to overwrite)`);
+    } else {
+      console.log(`  ✅ ${result.name} (${result.status})`);
+      const depResult = await checkSkillDependencies(result.name, targetDir);
+      totalDepsInstalled += depResult.installed;
+      totalDepsWarnings += depResult.warnings;
+    }
   }
 
   const installed = results.filter((r) => r.status === "installed").length;
@@ -229,8 +394,23 @@ async function main() {
   const skipped = results.filter((r) => r.status === "skipped").length;
 
   console.log(
-    `\nDone: ${installed} installed, ${upgraded} upgraded, ${skipped} skipped\n`
+    `\nDone: ${installed} installed, ${upgraded} upgraded, ${skipped} skipped`
   );
+  if (totalDepsInstalled > 0 || totalDepsWarnings > 0) {
+    const parts = [];
+    if (totalDepsInstalled > 0) {
+      parts.push(
+        `${totalDepsInstalled} ${totalDepsInstalled === 1 ? "dependency" : "dependencies"} installed`
+      );
+    }
+    if (totalDepsWarnings > 0) {
+      parts.push(
+        `${totalDepsWarnings} ${totalDepsWarnings === 1 ? "warning" : "warnings"}`
+      );
+    }
+    console.log(`  ${parts.join(", ")}`);
+  }
+  console.log();
 }
 
 main().catch((err) => {
