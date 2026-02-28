@@ -55,10 +55,13 @@ const { values: args } = parseArgs({
 });
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const USE_OPENROUTER = !ANTHROPIC_API_KEY && !!OPENROUTER_API_KEY;
+const API_KEY = ANTHROPIC_API_KEY || OPENROUTER_API_KEY;
 
-if (!ANTHROPIC_API_KEY) {
+if (!API_KEY) {
   console.error(
-    "ANTHROPIC_API_KEY environment variable required for eval runs"
+    "ANTHROPIC_API_KEY or OPENROUTER_API_KEY environment variable required for eval runs"
   );
   console.error(
     "Set it in your environment or .env file, or in GitHub Actions secrets"
@@ -66,7 +69,23 @@ if (!ANTHROPIC_API_KEY) {
   process.exit(1);
 }
 
+/**
+ * Map Anthropic model IDs to OpenRouter model IDs.
+ * OpenRouter uses "anthropic/<model-name>" format.
+ */
+function toOpenRouterModel(anthropicModel) {
+  const mapping = {
+    "claude-sonnet-4-20250514": "anthropic/claude-sonnet-4",
+    "claude-haiku-3-5-20241022": "anthropic/claude-3.5-haiku",
+  };
+  return mapping[anthropicModel] ?? `anthropic/${anthropicModel}`;
+}
+
 async function callClaude(systemPrompt, userMessage, model = args.model) {
+  if (USE_OPENROUTER) {
+    return callOpenRouter(systemPrompt, userMessage, model);
+  }
+
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -76,7 +95,7 @@ async function callClaude(systemPrompt, userMessage, model = args.model) {
     },
     body: JSON.stringify({
       model,
-      max_tokens: 4096,
+      max_tokens: 8192,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
     }),
@@ -89,6 +108,33 @@ async function callClaude(systemPrompt, userMessage, model = args.model) {
 
   const data = await response.json();
   return data.content.map((b) => (b.type === "text" ? b.text : "")).join("\n");
+}
+
+async function callOpenRouter(systemPrompt, userMessage, model) {
+  const orModel = toOpenRouterModel(model);
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: orModel,
+      max_tokens: 8192,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`OpenRouter API error ${response.status}: ${body}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content ?? "";
 }
 
 async function checkAssertion(assertion, output) {
@@ -276,7 +322,8 @@ async function runSkillEvals(skillName) {
 }
 
 async function main() {
-  console.log("🧪 Running skill evals...");
+  const backend = USE_OPENROUTER ? "OpenRouter" : "Anthropic";
+  console.log(`🧪 Running skill evals (via ${backend})...`);
 
   await mkdir(RESULTS_DIR, { recursive: true });
 

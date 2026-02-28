@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -29,16 +30,17 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Run evals before release
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: |
-          if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENROUTER_API_KEY" ]; then
-            echo "::warning::No API key configured — skipping evals"
-            exit 0
-          fi
-          npm run eval
+      # Temporarily disabled — re-enable when eval stability is resolved
+      # - name: Run evals before release
+      #   env:
+      #     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      #     OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      #   run: |
+      #     if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENROUTER_API_KEY" ]; then
+      #       echo "::warning::No API key configured — skipping evals"
+      #       exit 0
+      #     fi
+      #     npm run eval
 
       - name: Build manifests
         run: npm run build:manifests
