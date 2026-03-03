@@ -47,6 +47,12 @@ Limit your SCAN_REPORT to 20 lines maximum.
      fi
    done
 
+7. Check for legacy memory system:
+   legacy_memory=false
+   if [ -d "tools/memory" ] || [ -f "memory/MEMORY.md" ]; then
+     legacy_memory=true
+   fi
+
 ## Output Format
 
 SCAN_REPORT:
@@ -60,6 +66,7 @@ SCAN_REPORT:
   has_gitignore: true|false
   has_atlas: true|false
   has_forge: true|false
+  has_legacy_memory: true|false
 ```
 
 ---
@@ -113,6 +120,25 @@ legacy methodology references with BRACE equivalents while preserving all other 
   with "BRACE build methodology" in the directory tree comment. Preserve all other sections.
 - **goals/build_app.md:** Replace the entire file with the BRACE workflow content below.
 - **goals/manifest.md:** Replace "ATLAS" or "FORGE" with "BRACE" in the description column.
+
+### For "remove" items (legacy memory cleanup):
+
+1. Before deleting `memory/MEMORY.md`, check if it contains a "## Key Decisions"
+   section. If so, extract that section content into `preserved_content` for the
+   SCAFFOLD_REPORT so the user can relocate it.
+2. Remove `tools/memory/` — use `git rm -r tools/memory` if tracked, otherwise `rm -rf tools/memory`
+3. Remove `memory/` — use `git rm -r memory` if tracked, otherwise `rm -rf memory`
+
+### For "cleanup" items (legacy memory references):
+
+- **tools/manifest.md:** Remove any rows referencing `memory/` tools (e.g. search, embed, store scripts)
+- **.gitignore:** Remove the `memory/*.npy` line and its `# Memory embeddings cache` comment if present
+- **CLAUDE.md:** If a `## Memory System` section exists, replace it with:
+  ```
+  ## Memory
+  This project uses claude-mem for persistent cross-session memory.
+  ```
+  Also remove `tools/memory/` and `memory/` from any directory tree listings in CLAUDE.md.
 
 ### Global preferences (conditional)
 
@@ -178,6 +204,9 @@ SCAFFOLD_REPORT:
   created: [list of files/dirs created]
   merged: [list of files merged]
   upgraded: [list of files upgraded to BRACE]
+  removed: [list of legacy items removed]
+  cleaned: [list of files cleaned of legacy references]
+  preserved_content: [any key decisions extracted from memory/MEMORY.md, or empty]
   skipped: [list of items skipped]
   global_updated: true|false|skipped
   errors: [any errors encountered]
@@ -216,6 +245,13 @@ Limit your VERIFY_REPORT to 15 lines maximum.
    done
    echo "gitignore entries: $entries/2"
 
+5. If legacy memory cleanup was performed, verify removal:
+   if [ -d "tools/memory" ]; then echo "legacy: tools/memory still exists"; fi
+   if [ -d "memory" ]; then echo "legacy: memory/ still exists"; fi
+   if [ -f "CLAUDE.md" ] && grep -q "tools/memory" CLAUDE.md; then
+     echo "legacy: CLAUDE.md still references tools/memory"
+   fi
+
 ## Output Format
 
 VERIFY_REPORT:
@@ -224,5 +260,6 @@ VERIFY_REPORT:
   files_verified: {count}/{expected}
   claude_md_has_gotcha: true|false
   gitignore_entries: {count}/{expected}
+  legacy_memory_cleaned: true|false|not_applicable
   issues: [any problems found]
 ```
