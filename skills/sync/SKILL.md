@@ -11,18 +11,17 @@ description: >
 # Sync - Repository Synchronization
 
 When this skill is invoked, IMMEDIATELY output the banner below before doing anything else.
-Pick ONE tagline at random — vary your choice each time:
+Pick ONE tagline at random — vary your choice each time.
+CRITICAL: Reproduce the banner EXACTLY character-for-character. The first line of the art has 4 leading spaces — you MUST preserve them.
 
 ```
 {tagline}
-
-    ██╗███████╗██╗   ██╗███╗   ██╗ ██████╗
+⠀   ██╗███████╗██╗   ██╗███╗   ██╗ ██████╗
    ██╔╝██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝
   ██╔╝ ███████╗ ╚████╔╝ ██╔██╗ ██║██║
  ██╔╝  ╚════██║  ╚██╔╝  ██║╚██╗██║██║
 ██╔╝   ███████║   ██║   ██║ ╚████║╚██████╗
 ╚═╝    ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝
-
 ```
 
 Taglines:
