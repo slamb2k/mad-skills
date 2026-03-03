@@ -31,21 +31,34 @@ jobs:
     name: Run Evals
     needs: validate
     runs-on: ubuntu-latest
-    # Temporarily disabled — re-enable when eval stability is resolved
-    if: false
-    # Only run evals if we have the API key (skip for external PRs)
-    # if: github.event.pull_request.head.repo.full_name == github.repository
+    # Always runs so the required status check is satisfied.
+    # Set repo variable EVALS_ENABLED=true to run actual evals.
     steps:
+      - name: Check if evals are enabled
+        id: gate
+        run: |
+          if [ "${{ vars.EVALS_ENABLED }}" = "true" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "Evals enabled via repository variable"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Evals disabled — set EVALS_ENABLED=true in repo variables to enable"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.enabled == 'true'
 
       - uses: actions/setup-node@v4
+        if: steps.gate.outputs.enabled == 'true'
         with:
           node-version: 20
           cache: npm
 
       - run: npm ci
+        if: steps.gate.outputs.enabled == 'true'
 
       - name: Run skill evals
+        if: steps.gate.outputs.enabled == 'true'
         # Evals use LLM-based semantic assertions which are inherently
         # non-deterministic. Report results but don't block PRs.
         continue-on-error: true
@@ -60,7 +73,7 @@ jobs:
           npm run eval -- --verbose
 
       - name: Upload eval results
-        if: always()
+        if: steps.gate.outputs.enabled == 'true' && always()
         uses: actions/upload-artifact@v4
         with:
           name: eval-results-${{ github.sha }}
@@ -68,7 +81,7 @@ jobs:
           retention-days: 30
 
       - name: Comment eval results on PR
-        if: always()
+        if: steps.gate.outputs.enabled == 'true' && always()
         uses: actions/github-script@v7
         with:
           script: |
