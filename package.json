@@ -12,7 +12,11 @@
   },
   "files": [
     "src/",
-    "skills/"
+    "skills/",
+    "commands/",
+    "agents/",
+    "hooks/",
+    ".claude-plugin/"
   ],
   "scripts": {
     "validate": "node scripts/validate-skills.js",
