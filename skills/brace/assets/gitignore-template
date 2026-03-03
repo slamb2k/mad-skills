@@ -15,9 +15,6 @@ data/
 # Temp & scratch
 .tmp/
 
-# Memory embeddings cache
-memory/*.npy
-
 # Python
 __pycache__/
 *.pyc

@@ -25,6 +25,10 @@ Brace Complete!
     {status} goals/build_app.md
     {status} tools/manifest.md
 
+  Removed: (only if legacy memory was cleaned up)
+    {status} tools/memory/     Legacy memory scripts
+    {status} memory/           Legacy memory directory
+
   Notes:
     {any warnings or skipped items}
 
@@ -35,4 +39,4 @@ Brace Complete!
     4. Start building with the BRACE methodology
 ```
 
-Status indicators: [created] [exists] [merged] [upgraded] [skipped] [failed]
+Status indicators: [created] [exists] [merged] [upgraded] [removed] [skipped] [failed]

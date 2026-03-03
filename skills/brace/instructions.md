@@ -64,19 +64,24 @@ Parse SCAN_REPORT. Extract:
 - `has_claude_md` / `has_gitignore`
 - `has_atlas` (legacy ATLAS naming detected)
 - `has_forge` (legacy FORGE naming detected)
+- `has_legacy_memory` (old tools/memory system detected)
 
 ---
 
 ## Phase 1b: Legacy Upgrade Detection
 
-**Skip if neither `has_atlas` nor `has_forge` is true.**
+**Skip if none of `has_atlas`, `has_forge`, or `has_legacy_memory` is true.**
 
-If SCAN_REPORT shows `has_atlas: true` or `has_forge: true`, ask the user via AskUserQuestion:
+Build a description of what was found:
+- If `has_atlas` or `has_forge`: "Legacy ATLAS/FORGE naming detected"
+- If `has_legacy_memory`: "Legacy memory system (tools/memory/, memory/) detected"
 
-   Question: "Legacy naming detected. Upgrade to BRACE?"
+Ask the user via AskUserQuestion:
+
+   Question: "Legacy components detected: {description}. Upgrade and clean up?"
    Options:
-   - "Yes, upgrade to BRACE" — Replace legacy references with BRACE equivalents
-   - "No, leave as-is" — Keep existing naming
+   - "Yes, upgrade all" — Replace legacy naming with BRACE and remove old memory system
+   - "No, leave as-is" — Keep existing naming and memory system
 
 Store result as `upgrade_legacy: true|false` in USER_CONFIG.
 
@@ -133,6 +138,13 @@ If `upgrade_legacy` is true in USER_CONFIG, set status "upgrade" for:
 - goals/build_app.md (replaces "skip")
 - goals/manifest.md (replaces "skip")
 
+If `upgrade_legacy` is true AND `has_legacy_memory` is true, additionally:
+- `tools/memory/` → status: "remove"
+- `memory/` → status: "remove"
+- CLAUDE.md also gets memory section replacement (handled alongside upgrade)
+- `tools/manifest.md` → status: "cleanup" (remove memory tool rows)
+- `.gitignore` → status: "cleanup" (remove memory/*.npy entry)
+
 Present plan summary to user via AskUserQuestion:
 
 ```
@@ -141,6 +153,8 @@ GOTCHA Framework Setup for: {project_name}
 Will create:  {list of items with status "create"}
 Will merge:   {list of items with status "merge"}
 Will upgrade: {list of items with status "upgrade" — legacy → BRACE}
+Will remove:  {list of items with status "remove" — legacy memory system}
+Will clean:   {list of items with status "cleanup" — remove legacy references}
 Will skip:    {count} existing items
 Not selected: {count} items
 Global config: {install_level description}
