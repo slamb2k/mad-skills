@@ -11,7 +11,7 @@
  *   npx @your-scope/claude-skills --upgrade          # Upgrade existing skills
  */
 
-import { readdir, readFile, mkdir, access, stat } from "node:fs/promises";
+import { readdir, readFile, mkdir, access, stat, chmod } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { resolve, join, dirname } from "node:path";
@@ -20,6 +20,7 @@ import { parseArgs } from "node:util";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SKILLS_SRC = resolve(__dirname, "..", "skills");
+const SUPPLEMENTARY_DIRS = ["commands", "agents", "hooks"];
 
 const DEFAULT_TARGETS = [
   ".claude/skills", // Project-level (preferred)
@@ -42,21 +43,23 @@ if (args.help) {
   console.log(`
 Claude Skills Installer
 
+Installs skills, slash commands, agents, and hooks to your .claude directory.
+
 Usage:
-  npx @your-scope/claude-skills [options]
+  npx @slamb2k/mad-skills [options]
 
 Options:
   --list              List available skills with descriptions
   --skill <names>     Comma-separated skill names to install (default: all)
   --target <path>     Installation directory (default: .claude/skills)
-  --upgrade           Overwrite existing skills
+  --upgrade           Overwrite existing skills and supplementary files
   --force, -f         Skip confirmation prompts
   --help, -h          Show this help
 
 Examples:
-  npx @your-scope/claude-skills --list
-  npx @your-scope/claude-skills --skill git-workflow,mcp-builder
-  npx @your-scope/claude-skills --target ./my-project/.claude/skills --upgrade
+  npx @slamb2k/mad-skills --list
+  npx @slamb2k/mad-skills --skill build,ship
+  npx @slamb2k/mad-skills --target ./my-project/.claude/skills --upgrade
 `);
   process.exit(0);
 }
@@ -326,6 +329,55 @@ async function cpFiltered(src, dest) {
   }
 }
 
+/**
+ * Install supplementary directories (commands, agents, hooks) alongside skills.
+ * Target dirs are siblings of the skills target dir (e.g. ~/.claude/commands).
+ */
+async function installSupplementary(targetDir) {
+  const baseDir = dirname(targetDir);
+  const results = { installed: 0, upgraded: 0, skipped: 0 };
+
+  for (const dir of SUPPLEMENTARY_DIRS) {
+    const src = resolve(__dirname, "..", dir);
+    const dest = join(baseDir, dir);
+
+    if (!existsSync(src)) continue;
+
+    const entries = await readdir(src, { withFileTypes: true });
+    await mkdir(dest, { recursive: true });
+
+    for (const entry of entries) {
+      if (!entry.isFile()) continue;
+      if (entry.name.startsWith(".")) continue;
+
+      const srcPath = join(src, entry.name);
+      const destPath = join(dest, entry.name);
+      const destExists = await exists(destPath);
+
+      if (destExists && !args.upgrade) {
+        results.skipped++;
+        continue;
+      }
+
+      const { copyFile } = await import("node:fs/promises");
+      await copyFile(srcPath, destPath);
+
+      // Make shell scripts executable
+      if (entry.name.endsWith(".sh")) {
+        await chmod(destPath, 0o755);
+      }
+
+      if (destExists) {
+        results.upgraded++;
+      } else {
+        results.installed++;
+      }
+    }
+  }
+
+  return results;
+}
+
 async function main() {
   const skills = await discoverSkills();
 
@@ -410,6 +462,17 @@ async function main() {
     }
     console.log(`  ${parts.join(", ")}`);
   }
+
+  // Pass 3: Install supplementary files (commands, agents, hooks)
+  const suppResults = await installSupplementary(targetDir);
+  const suppTotal = suppResults.installed + suppResults.upgraded + suppResults.skipped;
+
+  if (suppTotal > 0) {
+    console.log(
+      `\nSupplementary files: ${suppResults.installed} installed, ${suppResults.upgraded} upgraded, ${suppResults.skipped} skipped`
+    );
+  }
+
   console.log();
 }
 
