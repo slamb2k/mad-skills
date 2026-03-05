@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
@@ -45,39 +47,68 @@ jobs:
       - name: Build manifests
         run: npm run build:manifests
 
-      - name: Get version
-        id: version
-        run: echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
-
-      - name: Check if tag already exists
-        id: tag-check
+      - name: Bump patch version
+        id: bump
         run: |
-          if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Bump patch version in package.json
+          NEW_VERSION=$(node -p "
+            const pkg = require('./package.json');
+            const parts = pkg.version.split('.');
+            parts[2] = parseInt(parts[2]) + 1;
+            parts.join('.');
+          ")
+
+          # Update all version references
+          node -e "
+            const fs = require('fs');
+            const files = [
+              'package.json',
+              '.claude-plugin/plugin.json',
+              '.claude-plugin/marketplace.json'
+            ];
+            for (const file of files) {
+              try {
+                const content = JSON.parse(fs.readFileSync(file, 'utf-8'));
+                if (content.version) content.version = '${NEW_VERSION}';
+                if (content.plugins) {
+                  for (const p of content.plugins) {
+                    if (p.version) p.version = '${NEW_VERSION}';
+                  }
+                }
+                fs.writeFileSync(file, JSON.stringify(content, null, 2) + '\n');
+              } catch {}
+            }
+          "
+
+          # Update package-lock.json
+          npm install --package-lock-only
+
+          git add package.json package-lock.json .claude-plugin/plugin.json .claude-plugin/marketplace.json
+          git commit -m "chore(release): bump version to ${NEW_VERSION}"
+          git push
+
+          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${NEW_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Create version tag
-        if: steps.tag-check.outputs.exists == 'false'
         run: |
-          git tag "${{ steps.version.outputs.tag }}"
-          git push origin "${{ steps.version.outputs.tag }}"
+          git tag "${{ steps.bump.outputs.tag }}"
+          git push origin "${{ steps.bump.outputs.tag }}"
 
       - name: Publish to npm
-        if: steps.tag-check.outputs.exists == 'false'
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Build .skill packages (ZIP format for Claude Code marketplace)
-        if: steps.tag-check.outputs.exists == 'false'
         run: npm run build:skills -- --outdir ./dist
 
       - name: Create GitHub Release
-        if: steps.tag-check.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
+          tag_name: ${{ steps.bump.outputs.tag }}
           generate_release_notes: true
           files: dist/*.skill
