@@ -2,7 +2,7 @@
 
 ![Mad Skills](assets/mad-skills.png)
 
-An npm-based skill framework for Claude Code. Ships 7 skills covering the full development lifecycle — from project initialization to shipping PRs.
+A skill framework for Claude Code. Ships 8 skills covering the full development lifecycle — from project initialization to shipping PRs.
 
 ## Skills
 
@@ -14,33 +14,43 @@ An npm-based skill framework for Claude Code. Ships 7 skills covering the full d
 | **prime** | `/prime` | Load project context before feature work. Supports domain-specific context (security, routing, dashboard, etc.). |
 | **rig** | `/rig` | Bootstrap repos with lefthook hooks, commit templates, PR templates, and GitHub Actions workflows. Idempotent. |
 | **ship** | `/ship` | Full PR lifecycle — sync with main, create branch, commit, push, create PR, wait for CI, fix issues, squash merge, cleanup. |
+| **speccy** | `/speccy` | Interview-driven specification builder. Reviews code/docs, interviews through targeted questions, produces structured specs. |
 | **sync** | `/sync` | Sync local repo with origin/main. Stashes changes, pulls, restores stash, cleans up stale branches. |
 
 ## Installation
 
-```bash
-# Install globally
-npm install -g @slamb2k/mad-skills
+### Via skills CLI (recommended)
 
-# Or run directly with npx
-npx @slamb2k/mad-skills --list             # List available skills
-npx @slamb2k/mad-skills                    # Install all skills
-npx @slamb2k/mad-skills --skill ship,sync  # Install specific skills
+```bash
+npx skills add slamb2k/mad-skills              # All skills
+npx skills add slamb2k/mad-skills --skill ship  # Specific skills
+npx skills add slamb2k/mad-skills -g            # Global install
 ```
 
-Skills are installed as slash commands in your Claude Code environment. After installation, invoke them with `/<skill-name>` (e.g., `/ship`, `/sync`).
+### As a Claude Code plugin
+
+```
+/plugin install mad-skills@slamb2k
+```
+
+The plugin method also installs agents and session hooks automatically.
+
+### Invoke skills
+
+After installation, invoke skills with `/<skill-name>` (e.g., `/ship`, `/sync`).
 
 ## Repository Structure
 
 ```
 mad-skills/
-├── skills/                  # Skill definitions (7 skills)
+├── skills/                  # Skill definitions (8 skills)
 │   ├── build/
 │   ├── brace/
 │   ├── distil/
 │   ├── prime/
 │   ├── rig/
 │   ├── ship/
+│   ├── speccy/
 │   └── sync/
 ├── scripts/                 # Build and CI tooling
 │   ├── validate-skills.js   # Structural validation
@@ -48,10 +58,7 @@ mad-skills/
 │   ├── run-evals.js         # Eval runner (Anthropic/OpenRouter)
 │   ├── build-manifests.js   # Generate skills/manifest.json
 │   └── package-skills.js    # Package .skill archives
-├── src/
-│   └── cli.js               # npx installer CLI
-├── commands/                # Slash command stubs
-├── hooks/                   # Session hooks (session-guard)
+├── hooks/                   # Session hooks + plugin hook config
 ├── agents/                  # Agent definitions (ship-analyzer)
 ├── tests/results/           # Eval output
 ├── archive/                 # Legacy skills (v1.x)
@@ -69,8 +76,7 @@ Each skill in `skills/<name>/` follows a standard layout:
 
 ```
 skills/<name>/
-├── SKILL.md              # Frontmatter (name, description) + banner
-├── instructions.md       # Execution logic (max 500 lines)
+├── SKILL.md              # Frontmatter + banner + execution logic (single file)
 ├── references/           # Extracted prompts, contracts, guides
 ├── assets/               # Static files (templates, components)
 └── tests/
@@ -111,9 +117,9 @@ npm test                         # validate + lint + eval
 **Release pipeline** (`.github/workflows/release.yml`):
 - Triggers on push to main
 - Validates, lints, runs evals, builds manifests
-- Creates version tag from package.json, publishes to npm with provenance
+- Auto-bumps patch version across package.json, plugin.json, marketplace.json
+- Creates version tag, publishes to npm with provenance
 - Builds `.skill` packages and creates a GitHub Release
-- Skips publish if the version tag already exists
 
 ## Archive
 

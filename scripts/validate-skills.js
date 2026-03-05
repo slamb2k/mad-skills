@@ -106,11 +106,7 @@ async function extractReferencedPaths(content, skillDir) {
   return paths;
 }
 
-async function validateDependencyTable(skillName, skillDir) {
-  const instructionsPath = join(skillDir, "instructions.md");
-  if (!(await fileExists(instructionsPath))) return;
-
-  const content = await readFile(instructionsPath, "utf-8");
+async function validateDependencyTable(skillName, content) {
   const lines = content.split("\n");
 
   const headerIdx = lines.findIndex((l) =>
@@ -300,8 +296,8 @@ async function validateSkill(skillName, skillDir) {
     }
   }
 
-  // Validate dependency table in instructions.md (if present)
-  await validateDependencyTable(skillName, skillDir);
+  // Validate dependency table (if present in SKILL.md)
+  await validateDependencyTable(skillName, content);
 
   if (errors === 0) {
     ok(skillName, "Structure valid");
