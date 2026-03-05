@@ -4,7 +4,7 @@ Guidance for Claude Code when working in this repository.
 
 ## Repository Overview
 
-**MAD Skills** is an npm-based skill framework for Claude Code. It ships 7 skills covering the full development lifecycle — from project initialization to shipping PRs. Skills are installed via `npx @slamb2k/mad-skills` and invoked as slash commands.
+**MAD Skills** is a skill framework for Claude Code. It ships 8 skills covering the full development lifecycle — from project initialization to shipping PRs. Skills are installed via `npx skills add slamb2k/mad-skills` or as a Claude Code plugin, and invoked as slash commands.
 
 ## Project Structure
 
@@ -17,6 +17,7 @@ mad-skills/
 │   ├── rig/                 # Repo bootstrapping (hooks, CI, templates)
 │   ├── distil/              # Web design variation generator
 │   ├── ship/                # Full PR lifecycle
+│   ├── speccy/              # Interview-driven spec builder
 │   └── sync/                # Repo sync with origin/main
 ├── scripts/                 # Build and CI tooling
 │   ├── validate-skills.js   # Structural validation
@@ -24,9 +25,8 @@ mad-skills/
 │   ├── run-evals.js         # Eval runner (Anthropic/OpenRouter)
 │   ├── build-manifests.js   # Generate skills/manifest.json
 │   └── package-skills.js    # Package .skill archives
-├── src/cli.js               # npx installer CLI
-├── commands/                # Slash command stubs (one per skill)
-├── hooks/                   # Session hooks (session-guard.sh)
+├── hooks/hooks.json         # Plugin hook definitions
+├── hooks/                   # Session hooks (session-guard.sh, session-guard-prompt.sh)
 ├── agents/                  # Agent definitions (ship-analyzer.md)
 ├── tests/results/           # Eval output
 ├── archive/                 # Legacy v1.x skills
@@ -48,6 +48,7 @@ mad-skills/
 | prime | Complete | Domain-specific project context loading |
 | rig | Complete | Repo bootstrapping with hooks, templates, CI |
 | ship | Complete | Full PR lifecycle (commit, merge, cleanup) |
+| speccy | Complete | Interview-driven specification builder |
 | sync | Complete | Repo sync with origin/main |
 
 ## Development Commands
@@ -72,19 +73,16 @@ Each skill follows the standard layout:
 
 ```
 skills/<name>/
-├── SKILL.md              # Frontmatter (name, description) + ASCII banner
-├── instructions.md       # Execution logic (max 500 lines)
+├── SKILL.md              # Frontmatter + banner + full execution logic
 ├── references/           # Extracted prompts, contracts, guides
 ├── assets/               # Static files (templates, components)
 └── tests/
     └── evals.json        # Eval test cases
 ```
 
-**SKILL.md**: Frontmatter with `name`, `description`, and optional `argument-hint`. Must include an ASCII art banner that displays immediately on invocation. Max 30 lines.
+**SKILL.md**: Single entrypoint. YAML frontmatter (`name`, `description`, optional `argument-hint`, `allowed-tools`), ASCII art banner, then full orchestration logic. References content from `references/` for large prompt blocks.
 
-**instructions.md**: The orchestration skeleton. References content from `references/` files for progressive disclosure. Max 500 lines.
-
-**references/**: Large prompt blocks, report schemas, and guides loaded on demand by the orchestrator.
+**references/**: Large prompt blocks, report schemas, and guides loaded on demand.
 
 **tests/evals.json**: Eval cases with prompts and assertions for automated testing.
 
@@ -98,24 +96,23 @@ skills/<name>/
 **release.yml** — Release on merge to main:
 - Triggers on push to main
 - Validates, lints, runs evals, builds manifests
+- Auto-bumps patch version in package.json, plugin.json, and marketplace.json
 - Creates version tag, publishes to npm, creates GitHub Release
-- Skips publish if the version tag already exists
+- No manual version bumping needed — every merge to main creates a release
 
 ## Adding New Skills
 
 1. Create `skills/<name>/` with:
-   - `SKILL.md` — Frontmatter + banner (max 30 lines)
-   - `instructions.md` — Execution logic (max 500 lines)
+   - `SKILL.md` — Frontmatter + banner + execution logic (single file)
    - `references/` — Supporting prompts and guides
    - `tests/evals.json` — Eval test cases
-2. Create `commands/<name>.md` — Slash command stub
-3. Run `npm run validate` and `npm run lint` to verify
-4. Run `npm run eval` to test evals
+2. Run `npm run validate` and `npm run lint` to verify
+3. Run `npm run eval` to test evals
 
 ## Testing
 
 ```bash
-npm run validate          # Structure checks for all 7 skills
+npm run validate          # Structure checks for all 8 skills
 npm run lint              # SKILL.md format checks
 npm run eval              # Eval assertions (requires API key)
 ```
