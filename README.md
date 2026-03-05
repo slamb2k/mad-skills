@@ -19,7 +19,15 @@ A skill framework for Claude Code. Ships 8 skills covering the full development 
 
 ## Installation
 
-### Via skills CLI (recommended)
+### As a Claude Code plugin (recommended)
+
+```
+/plugin install mad-skills@slamb2k
+```
+
+Installs all skills, agents, and session hooks into the plugin directory. Updates are managed automatically by the plugin system.
+
+### Via skills CLI
 
 ```bash
 npx skills add slamb2k/mad-skills              # All skills
@@ -27,13 +35,7 @@ npx skills add slamb2k/mad-skills --skill ship  # Specific skills
 npx skills add slamb2k/mad-skills -g            # Global install
 ```
 
-### As a Claude Code plugin
-
-```
-/plugin install mad-skills@slamb2k
-```
-
-The plugin method also installs agents and session hooks automatically.
+Copies skills into `~/.claude/skills/`. Use this method for cross-agent compatibility (Cursor, Cline, etc.) or selective skill installs.
 
 ### Upgrading from the old CLI (`npx @slamb2k/mad-skills`)
 
