@@ -35,6 +35,21 @@ npx skills add slamb2k/mad-skills -g            # Global install
 
 The plugin method also installs agents and session hooks automatically.
 
+### Upgrading from the old CLI (`npx @slamb2k/mad-skills`)
+
+If you previously installed via the v2.0.x CLI, clean up stale artifacts first:
+
+```bash
+# Remove old command stubs (only mad-skills ones)
+rm -f ~/.claude/commands/{brace,build,distil,prime,rig,ship,sync,speccy}.md
+
+# Remove installer manifest and stale skill files
+rm -f ~/.claude/.mad-skills-manifest.json
+rm -f ~/.claude/skills/*/instructions.md
+```
+
+Then install fresh using either method above.
+
 ### Invoke skills
 
 After installation, invoke skills with `/<skill-name>` (e.g., `/ship`, `/sync`).
