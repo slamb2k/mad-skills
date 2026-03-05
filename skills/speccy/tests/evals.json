@@ -1,0 +1,34 @@
+[
+  {
+    "name": "speccy-invocation-banner",
+    "prompt": "Run the speccy skill with no arguments",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "SPECCY"
+      },
+      {
+        "type": "contains",
+        "value": "██"
+      }
+    ]
+  },
+  {
+    "name": "speccy-interview-categories",
+    "prompt": "What question categories does the speccy skill use?",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "Architecture"
+      },
+      {
+        "type": "contains",
+        "value": "Requirements"
+      },
+      {
+        "type": "contains",
+        "value": "Security"
+      }
+    ]
+  }
+]
