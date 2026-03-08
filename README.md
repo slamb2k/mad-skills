@@ -19,30 +19,73 @@ A skill framework for Claude Code. Ships 8 skills covering the full development 
 
 ## Installation
 
-### As a Claude Code plugin (recommended)
+Three methods are available. The table below shows what each delivers:
+
+| | Plugin | npx skills | npm package |
+|---|---|---|---|
+| Skills (slash commands) | ✅ all 8 | ✅ all 8 | — |
+| Agents (e.g. ship-analyzer) | ✅ | ❌ | — |
+| Session hooks (session-guard) | ✅ | ❌ | — |
+| Cross-agent (Cursor, Cline, etc.) | ❌ Claude Code only | ✅ | — |
+| Selective skill install | ❌ | ✅ | — |
+| Auto-updates | ✅ | ❌ | — |
+
+### Plugin (recommended)
 
 ```
 /plugin install mad-skills@slamb2k
 ```
 
-Installs all skills, agents, and session hooks into the plugin directory. Updates are managed automatically by the plugin system.
+Installs skills, agents, and session hooks from the GitHub repo into `~/.claude/plugins/`. Updates automatically. Claude Code only.
 
-### Via skills CLI
+> **First time setup — add the marketplace (one-time):**
+>
+> **Option A** — CLI (outside Claude Code):
+> ```bash
+> claude plugin marketplace add slamb2k/mad-skills
+> ```
+>
+> **Option B** — Manual (add to `~/.claude/settings.json`):
+> ```json
+> "extraKnownMarketplaces": {
+>   "slamb2k": {
+>     "source": { "source": "github", "repo": "slamb2k/mad-skills" }
+>   }
+> }
+> ```
+>
+> Then install the plugin inside Claude Code with `/plugin install mad-skills@slamb2k`, or from the CLI with `claude plugin install mad-skills@slamb2k`.
+
+### npx skills
 
 ```bash
-npx skills add slamb2k/mad-skills              # All skills
-npx skills add slamb2k/mad-skills --skill ship  # Specific skills
-npx skills add slamb2k/mad-skills -g            # Global install
+npx skills add slamb2k/mad-skills -g -y              # All skills, global
+npx skills add slamb2k/mad-skills --skill ship -g -y  # Specific skill
 ```
 
-Copies skills into `~/.claude/skills/`. Use this method for cross-agent compatibility (Cursor, Cline, etc.) or selective skill installs.
+Installs skills into `~/.claude/skills/` (and `~/.agents/skills/` for other agents). **Does not install agents or hooks.** This means:
+
+- `/build` falls back to `general-purpose` agent for the ship stage instead of the optimised `ship-analyzer` agent
+- The session-guard hook (CLAUDE.md staleness detection, git validation) is not active
+
+Use this method when you need cross-agent compatibility (Cursor, Cline, Amp, etc.) or want to install individual skills.
+
+> **Note for dotfiles users:** If `~/.claude/skills/` is symlinked from a dotfiles repo, `npx skills` will create broken relative symlinks. Replace the skills directory symlink with a real directory before installing. See [dotfiles compatibility](#dotfiles-compatibility) below.
+
+### npm package
+
+The `@slamb2k/mad-skills` npm package is the **release artifact** — it is published on every merge to main and is used internally by the plugin system. It does not provide a CLI and cannot be used to install skills directly.
+
+### Invoke skills
+
+After installation, invoke skills with `/<skill-name>` (e.g., `/ship`, `/sync`).
 
 ### Upgrading from the old CLI (`npx @slamb2k/mad-skills`)
 
 If you previously installed via the v2.0.x CLI, clean up stale artifacts first:
 
 ```bash
-# Remove old command stubs (only mad-skills ones)
+# Remove old command stubs
 rm -f ~/.claude/commands/{brace,build,distil,prime,rig,ship,sync,speccy}.md
 
 # Remove installer manifest and stale skill files
@@ -50,11 +93,19 @@ rm -f ~/.claude/.mad-skills-manifest.json
 rm -f ~/.claude/skills/*/instructions.md
 ```
 
-Then install fresh using either method above.
+Then install fresh using plugin or npx skills above.
 
-### Invoke skills
+### Dotfiles compatibility
 
-After installation, invoke skills with `/<skill-name>` (e.g., `/ship`, `/sync`).
+If you manage `~/.claude` via a dotfiles repo with symlinked subdirectories, `npx skills` creates relative symlinks that break when `~/.claude/skills/` is not physically located at `~/.claude/skills/`.
+
+**Fix:** ensure `~/.claude/skills/` is a real directory (not a symlink), and do not re-symlink it from dotfiles. For custom/local skills you want in dotfiles, use per-skill absolute symlinks in your install script:
+
+```bash
+ln -sfn "$DOTFILES_DIR/skills/my-skill" "$HOME/.claude/skills/my-skill"
+```
+
+`npx skills` will leave entries it did not create untouched.
 
 ## Repository Structure
 
@@ -140,12 +191,16 @@ npm test                         # validate + lint + eval
 
 ## Archive
 
-Legacy skills from v1.x are preserved in `archive/` for reference:
-- play-tight (Browser Automation)
-- pixel-pusher (UI/UX Design)
-- cyberarian (Document Lifecycle Management)
-- start-right (Repository Scaffolding)
-- graphite-skill (Git/Graphite Workflows)
+The `archive/` folder contains **inactive** skills, agents, hooks, and other assets from previous versions. These are kept for historical reference only — they are **not part of the mad-skills release**, not published to npm, not installed by `npx skills`, and not supported.
+
+| Name | Description |
+|------|-------------|
+| play-tight | Browser Automation (v1.x) |
+| pixel-pusher | UI/UX Design (v1.x) |
+| cyberarian | Document Lifecycle Management (v1.x) |
+| start-right | Repository Scaffolding (v1.x) |
+| graphite-skill | Git/Graphite Workflows (v1.x) |
+| example-skill | Scaffold template for new skills |
 
 ## License
 

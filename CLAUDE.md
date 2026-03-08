@@ -121,4 +121,6 @@ Evals support both `ANTHROPIC_API_KEY` and `OPENROUTER_API_KEY` environment vari
 
 ## Archive
 
-Legacy v1.x skills are preserved in `archive/` for reference: play-tight, pixel-pusher, cyberarian, start-right, graphite-skill.
+The `archive/` folder contains **inactive** skills, agents, hooks, and other assets kept for historical reference only. They are **not part of the mad-skills release** — excluded from npm (`package.json` `files`), not installed by `npx skills`, and not supported. Do not treat anything in `archive/` as current or usable.
+
+Contents: play-tight, pixel-pusher, cyberarian, start-right, graphite-skill, example-skill.
