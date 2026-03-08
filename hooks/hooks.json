@@ -2,16 +2,24 @@
   "hooks": {
     "SessionStart": [
       {
-        "type": "command",
-        "command": "./hooks/session-guard.sh",
-        "timeout": 30000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/session-guard.sh",
+            "timeout": 30000
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
       {
-        "type": "command",
-        "command": "./hooks/session-guard-prompt.sh",
-        "timeout": 10000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/session-guard-prompt.sh",
+            "timeout": 10000
+          }
+        ]
       }
     ]
   }
