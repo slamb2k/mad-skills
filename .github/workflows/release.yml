@@ -7,22 +7,20 @@ on:
 
 permissions:
   contents: write
-  id-token: write
+  pull-requests: write
 
 jobs:
-  release:
-    name: Publish to npm
+  version-bump:
+    name: Create version bump PR
     runs-on: ubuntu-latest
+    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          registry-url: "https://registry.npmjs.org"
 
       - run: npm ci
 
@@ -47,8 +45,9 @@ jobs:
       - name: Build manifests
         run: npm run build:manifests
 
-      - name: Bump patch version
-        id: bump
+      - name: Bump patch version and create PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -60,6 +59,8 @@ jobs:
             parts[2] = parseInt(parts[2]) + 1;
             parts.join('.');
           ")
+
+          BRANCH="chore/release-v${NEW_VERSION}"
 
           # Update all version references
           node -e "
@@ -86,17 +87,47 @@ jobs:
           # Update package-lock.json
           npm install --package-lock-only
 
+          git checkout -b "$BRANCH"
           git add package.json package-lock.json .claude-plugin/plugin.json .claude-plugin/marketplace.json
           git commit -m "chore(release): bump version to ${NEW_VERSION}"
-          git push
+          git push -u origin "$BRANCH"
 
-          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "tag=v${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+          gh pr create \
+            --title "chore(release): bump version to ${NEW_VERSION}" \
+            --body "Automated version bump to ${NEW_VERSION}. Auto-merges when checks pass." \
+            --label "release"
+
+          gh pr merge "$BRANCH" --squash --auto --delete-branch
+
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    if: "startsWith(github.event.head_commit.message, 'chore(release):')"
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: "https://registry.npmjs.org"
+
+      - run: npm ci
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Create version tag
         run: |
-          git tag "${{ steps.bump.outputs.tag }}"
-          git push origin "${{ steps.bump.outputs.tag }}"
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
 
       - name: Publish to npm
         run: npm publish --provenance --access public
@@ -109,6 +140,6 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.bump.outputs.tag }}
+          tag_name: ${{ steps.version.outputs.tag }}
           generate_release_notes: true
           files: dist/*.skill

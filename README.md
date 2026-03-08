@@ -183,10 +183,8 @@ npm test                         # validate + lint + eval
 - Detects which skills changed and posts eval results as PR comments
 
 **Release pipeline** (`.github/workflows/release.yml`):
-- Triggers on push to main
-- Validates, lints, runs evals, builds manifests
-- Auto-bumps patch version across package.json, plugin.json, marketplace.json
-- Creates version tag, publishes to npm with provenance
+- Phase 1: Triggers on push to main, validates, bumps patch version, creates auto-merge PR
+- Phase 2: When version bump merges, creates tag, publishes to npm with provenance
 - Builds `.skill` packages and creates a GitHub Release
 
 ## Archive
