@@ -351,6 +351,12 @@ done
 # ---------------------------------------------------------------------------
 OUTPUT_PARTS=()
 
+# --- Welcome banner ---------------------------------------------------------
+SKILL_COUNT=$(find "$PROJECT_DIR/skills" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | wc -l | tr -d ' ') || SKILL_COUNT=0
+if (( SKILL_COUNT > 0 )); then
+  OUTPUT_PARTS+=("[MAD SKILLS] Active — ${SKILL_COUNT} skills loaded")
+fi
+
 for part in "${EARLY_CONTEXT_PARTS[@]+"${EARLY_CONTEXT_PARTS[@]}"}"; do
   OUTPUT_PARTS+=("$part")
 done
