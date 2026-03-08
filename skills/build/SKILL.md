@@ -1,11 +1,6 @@
 ---
 name: build
-description: >
-  Context-isolated feature development pipeline. Takes a detailed design/plan
-  as argument and executes the full feature-dev lifecycle (explore, question,
-  architect, implement, review, ship) inside subagents so the primary
-  conversation stays compact. Use when you have a well-defined plan and want
-  autonomous execution with minimal context window consumption.
+description: Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.
 argument-hint: <detailed design/plan to implement> [--skip-questions] [--skip-review] [--no-ship] [--parallel-impl]
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---

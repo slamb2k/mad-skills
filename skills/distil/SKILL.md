@@ -1,13 +1,8 @@
 ---
 name: distil
-description: >
-  Generate multiple unique web design variations for any website or web application.
-  Accepts site specifications from a file (--spec path) or pasted text block.
-  Creates a Vite + React + TypeScript + Tailwind project with Bun and produces N different
-  creative designs accessible at /1, /2, /3, etc. Use when prototyping or exploring
-  design directions for any web interface.
+description: Generate multiple unique web design variations for any website or web application. Accepts site specifications from a file (--spec path) or pasted text block. Creates a Vite + React + TypeScript + Tailwind project with Bun and produces N different creative designs accessible at /1, /2, /3, etc. Use when prototyping or exploring design directions for any web interface.
 argument-hint: <count> --port <port> [--spec <path>] [--favorites <1,2,3>]
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, WebFetch
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, WebFetch, AskUserQuestion
 ---
 
 # Distil - Design Variation Generator

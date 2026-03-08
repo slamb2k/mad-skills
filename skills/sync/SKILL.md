@@ -1,11 +1,6 @@
 ---
 name: sync
-description: >
-  Sync local repository with origin/main. Use before starting new work, after
-  completing a PR, or when needing latest upstream changes. Safely stashes
-  uncommitted changes, fetches and pulls origin/main, restores stash, and cleans
-  up stale local branches (merged or with deleted remotes). Invoke when switching
-  contexts or preparing for new feature work.
+description: Sync local repository with origin/main. Use before starting new work, after completing a PR, or when needing latest upstream changes. Safely stashes uncommitted changes, fetches and pulls origin/main, restores stash, and cleans up stale local branches (merged or with deleted remotes). Invoke when switching contexts or preparing for new feature work.
 argument-hint: --no-stash, --no-cleanup, --no-rebase (optional flags)
 allowed-tools: Bash
 ---

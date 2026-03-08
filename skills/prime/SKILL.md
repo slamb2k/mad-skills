@@ -1,12 +1,6 @@
 ---
 name: prime
-description: >
-  Load project context before implementing features or making architectural decisions.
-  Invoke proactively when starting significant work on DexAI. Supports domain-specific
-  context loading: security (vault, RBAC, audit), routing (OpenRouter, model selection),
-  adhd (design principles, RSD-safe), dashboard (frontend, backend, API), office (OAuth,
-  email, calendar), memory (context capture, commitments), tasks (decomposition,
-  friction-solving), channels (Telegram, Discord, Slack).
+description: "Load project context before implementing features or making architectural decisions. Invoke proactively when starting significant work on DexAI. Supports domain-specific context loading: security (vault, RBAC, audit), routing (OpenRouter, model selection), adhd (design principles, RSD-safe), dashboard (frontend, backend, API), office (OAuth, email, calendar), memory (context capture, commitments), tasks (decomposition, friction-solving), channels (Telegram, Discord, Slack)."
 argument-hint: security, routing, adhd, dashboard, office, memory, tasks, channels (comma-separated)
 allowed-tools: Read, Glob, Grep, LS
 ---
