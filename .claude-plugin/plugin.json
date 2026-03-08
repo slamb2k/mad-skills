@@ -1,12 +1,18 @@
 {
   "name": "mad-skills",
   "description": "AI-assisted planning, development and governance tools",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "author": {
     "name": "slamb2k",
     "url": "https://github.com/slamb2k"
   },
   "repository": "https://github.com/slamb2k/mad-skills",
   "license": "MIT",
-  "keywords": ["planning", "tdd", "architecture", "llm-review", "implementation"]
+  "keywords": [
+    "planning",
+    "tdd",
+    "architecture",
+    "llm-review",
+    "implementation"
+  ]
 }
