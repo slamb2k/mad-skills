@@ -1,7 +1,7 @@
 {
   "name": "slamb2k",
   "description": "Claude Code plugins by Simon Lamb",
-  "version": "2.0.9",
+  "version": "1.0.0",
   "owner": {
     "name": "Simon Lamb",
     "url": "https://github.com/slamb2k"
@@ -10,7 +10,6 @@
     {
       "name": "mad-skills",
       "description": "AI-assisted planning, development and governance tools",
-      "version": "2.0.9",
       "author": {
         "name": "slamb2k",
         "url": "https://github.com/slamb2k"
@@ -18,13 +17,7 @@
       "source": "./",
       "category": "development",
       "homepage": "https://github.com/slamb2k/mad-skills",
-      "tags": [
-        "planning",
-        "tdd",
-        "architecture",
-        "llm-review",
-        "implementation"
-      ]
+      "tags": ["planning", "tdd", "architecture", "llm-review", "implementation"]
     }
   ]
 }
