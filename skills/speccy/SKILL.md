@@ -1,11 +1,6 @@
 ---
 name: speccy
-description: >
-  Deep-dive interview skill for creating comprehensive specifications.
-  Reviews existing code and docs, then interviews the user through multiple
-  rounds of targeted questions covering technical implementation, UI/UX,
-  concerns, and tradeoffs. Produces a structured spec via create-specification.
-  Use when starting a new feature, system, or major change that needs a spec.
+description: Deep-dive interview skill for creating comprehensive specifications. Reviews existing code and docs, then interviews the user through multiple rounds of targeted questions covering technical implementation, UI/UX, concerns, and tradeoffs. Produces a structured spec via create-specification. Use when starting a new feature, system, or major change that needs a spec.
 argument-hint: Goal, feature, or high-level description to specify
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
@@ -101,8 +96,8 @@ all knowledge gaps are resolved.
    reading the code or docs. The user's time is valuable.
 3. **Recommendations** — where you have an informed opinion based on the
    codebase, project conventions, or industry best practice, mark one option
-   as recommended by appending `(Recommended)` to its label. At least one
-   question per round should have a recommendation where possible.
+   as recommended by listing it first and appending `(Recommended)` to its label.
+   At least one question per round should have a recommendation where possible.
 4. **Concise options** — 2-4 options per question, each with a clear
    description of implications and tradeoffs
 5. **Progressive depth** — start with high-level architecture and scope,
