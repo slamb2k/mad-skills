@@ -93,11 +93,9 @@ skills/<name>/
 - Jobs: validate + lint, then evals (with API key guard)
 - Posts eval results as PR comments
 
-**release.yml** — Release on merge to main:
-- Triggers on push to main
-- Validates, lints, runs evals, builds manifests
-- Auto-bumps patch version in package.json, plugin.json, and marketplace.json
-- Creates version tag, publishes to npm, creates GitHub Release
+**release.yml** — Two-phase release on merge to main:
+- **Phase 1 (version-bump):** Triggers on push to main (skips `chore(release):` commits). Validates, lints, runs evals, builds manifests, bumps patch version, creates a PR, and enables auto-merge.
+- **Phase 2 (publish):** Triggers when the version bump PR merges (detected by `chore(release):` commit prefix). Creates version tag, publishes to npm, builds `.skill` packages, creates GitHub Release.
 - No manual version bumping needed — every merge to main creates a release
 
 ## Adding New Skills
