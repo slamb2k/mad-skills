@@ -188,15 +188,10 @@ SETTINGS_FILE="$PROJECT_DIR/.claude/settings.json"
 [[ -n "${CLAUDE_CODE_TASK_LIST_ID:-}" ]] && TASK_LIST_CONFIGURED=true
 
 if [[ "$TASK_LIST_CONFIGURED" == false ]] && command -v jq &>/dev/null; then
-  for CFG_FILE in "$SETTINGS_FILE" "$HOME/.claude/settings.json"; do
-    if [[ -f "$CFG_FILE" ]]; then
-      TASK_ID=$(jq -r '.env.CLAUDE_CODE_TASK_LIST_ID // empty' "$CFG_FILE" 2>/dev/null) || true
-      if [[ -n "$TASK_ID" ]]; then
-        TASK_LIST_CONFIGURED=true
-        break
-      fi
-    fi
-  done
+  if [[ -f "$SETTINGS_FILE" ]]; then
+    TASK_ID=$(jq -r '.env.CLAUDE_CODE_TASK_LIST_ID // empty' "$SETTINGS_FILE" 2>/dev/null) || true
+    [[ -n "$TASK_ID" ]] && TASK_LIST_CONFIGURED=true
+  fi
 fi
 
 if [[ "$TASK_LIST_CONFIGURED" == false && -n "$GIT_ROOT" ]]; then
