@@ -123,25 +123,6 @@ jobs:
               console.log('Could not post eval results:', e.message);
             }
 
-  diff-check:
-    name: Detect Changed Skills
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    outputs:
-      changed_skills: ${{ steps.changes.outputs.skills }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Detect changed skills
-        id: changes
-        run: |
-          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- skills/ | \
-            sed 's|skills/||' | cut -d'/' -f1 | sort -u | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "skills=$CHANGED" >> "$GITHUB_OUTPUT"
-          echo "Changed skills: $CHANGED"
-
   release:
     name: Release
     needs: [validate, eval]
