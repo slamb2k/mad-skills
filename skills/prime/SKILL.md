@@ -34,6 +34,31 @@ Taglines:
 
 ---
 
+## Output Formatting
+
+After the banner, display parsed input:
+```
+┌─ Input ────────────────────────────────────────
+│  {Field}:  {value}
+│  Flags:    {parsed flags or "none"}
+└────────────────────────────────────────────────
+```
+
+Pre-flight results:
+```
+── Pre-flight ───────────────────────────────────
+  ✅ {dep}           {version or "found"}
+  ⚠️ {dep}           not found → {fallback detail}
+  ❌ {dep}           missing → stopping
+──────────────────────────────────────────────────
+```
+
+Stage/phase headers: `━━ {N} · {Name} ━━━━━━━━━━━━━━━━━━━━━━━━━`
+
+Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️ skipped
+
+---
+
 Load project context to inform agent decisions. Raw file contents stay in a
 subagent — the primary thread only sees a structured PRIME_REPORT.
 
@@ -100,12 +125,22 @@ PRIME_REPORT:
 Parse PRIME_REPORT and present a clean summary to the user:
 
 ```
-Context loaded:
-- Core: {status from core_files_loaded}
-- {Domain}: {summary from per_domain_summary}
-
-Current branch: {branch}
-Ready to assist with: {ready_for}
+┌─ Prime · Report ───────────────────────────────
+│
+│  ✅ Context loaded
+│
+│  📚 Core:   {count}/{total} files loaded
+│  🌐 Branch: {branch}
+│
+│  📝 Domains
+│     {domain}: {2-3 line summary}
+│     {domain}: {2-3 line summary}
+│
+│  ⚠️ Missing: {list or "none"}
+│
+│  🎯 Ready to assist with: {ready_for}
+│
+└─────────────────────────────────────────────────
 ```
 
 If CLAUDE.md was missing, warn the user and note that only domain context

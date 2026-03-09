@@ -34,6 +34,31 @@ Taglines:
 
 ---
 
+## Output Formatting
+
+After the banner, display parsed input:
+```
+┌─ Input ────────────────────────────────────────
+│  {Field}:  {value}
+│  Flags:    {parsed flags or "none"}
+└────────────────────────────────────────────────
+```
+
+Pre-flight results:
+```
+── Pre-flight ───────────────────────────────────
+  ✅ {dep}           {version or "found"}
+  ⚠️ {dep}           not found → {fallback detail}
+  ❌ {dep}           missing → stopping
+──────────────────────────────────────────────────
+```
+
+Stage/phase headers: `━━ {N} · {Name} ━━━━━━━━━━━━━━━━━━━━━━━━━`
+
+Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️ skipped
+
+---
+
 Interview the user through multiple rounds of targeted questions to build
 a comprehensive specification. Then hand off to the `create-specification`
 skill to produce the final structured spec document.
@@ -159,11 +184,26 @@ Once the interview is complete and decisions are confirmed:
 After the spec is created, report to the user:
 
 ```
-Spec complete!
-
-  File:       {spec file path}
-  Sections:   {count of sections written}
-  Decisions:  {count of interview decisions captured}
-  Rounds:     {count of interview rounds conducted}
-  Questions:  {total questions asked}
+┌─ Speccy · Report ──────────────────────────────
+│
+│  ✅ Spec complete
+│
+│  📄 File:       {spec file path}
+│  📋 Sections:   {count}
+│  💬 Rounds:     {interview rounds conducted}
+│  ❓ Questions:  {total questions asked}
+│
+│  📝 Key decisions
+│     • {decision 1}
+│     • {decision 2}
+│     • {decision 3}
+│
+│  🔗 Links
+│     Spec: {spec file path}
+│
+│  ⚡ Next steps
+│     1. Review the spec: {path}
+│     2. Run /build {spec path} to implement
+│
+└─────────────────────────────────────────────────
 ```

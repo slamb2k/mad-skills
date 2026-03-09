@@ -34,6 +34,31 @@ Taglines:
 
 ---
 
+## Output Formatting
+
+After the banner, display parsed input:
+```
+┌─ Input ────────────────────────────────────────
+│  {Field}:  {value}
+│  Flags:    {parsed flags or "none"}
+└────────────────────────────────────────────────
+```
+
+Pre-flight results:
+```
+── Pre-flight ───────────────────────────────────
+  ✅ {dep}           {version or "found"}
+  ⚠️ {dep}           not found → {fallback detail}
+  ❌ {dep}           missing → stopping
+──────────────────────────────────────────────────
+```
+
+Stage/phase headers: `━━ {N} · {Name} ━━━━━━━━━━━━━━━━━━━━━━━━━`
+
+Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️ skipped
+
+---
+
 Execute a detailed design/plan through the full feature-dev lifecycle with
 maximum context isolation. Every heavy stage runs in a subagent so the primary
 conversation only accumulates structured reports.
@@ -295,27 +320,33 @@ Invoke the `/ship` skill:
 ## Final Report
 
 ```
-Build complete
-
-  Plan:     {first line of PLAN}
-  Approach: {approach_summary}
-
-  Files modified: {count}
-  Files created:  {count}
-  Tests:          {passed}/{total}
-
-  Docs updated: {count or "none"}
-
-  PR: {pr_url} (merged at {merge_commit})
-
-  Key decisions:
-  - {decision 1}
-  - {decision 2}
-
-  Review findings addressed: {count fixed} / {count found}
-
-  Debrief: {count resolved} / {count surfaced} items addressed
-    {list of items created as goals or tasks, if any}
+┌─ Build · Report ───────────────────────────────
+│
+│  ✅ Build complete
+│
+│  📋 Plan:      {first line of plan}
+│  🏗️ Approach:  {approach_summary}
+│
+│  📝 Changes
+│     Files modified:  {count}
+│     Files created:   {count}
+│     Tests:           {passed}/{total} ✅
+│     Docs updated:    {count or "none"}
+│
+│  🔍 Review
+│     Findings addressed: {count fixed} / {count found}
+│
+│  📊 Debrief: {count resolved} / {count surfaced}
+│     {list of created goals/tasks}
+│
+│  🔗 Links
+│     PR:  {pr_url}
+│     CI:  {merge_commit}
+│
+│  ⚡ Next steps
+│     {debrief items or "none — all clear"}
+│
+└─────────────────────────────────────────────────
 ```
 
 If any stage failed, report the failure point and what was accomplished.

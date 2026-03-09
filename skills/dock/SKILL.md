@@ -56,6 +56,31 @@ Parse optional flags from the request:
 
 ---
 
+## Output Formatting
+
+After the banner, display parsed input:
+```
+┌─ Input ────────────────────────────────────────
+│  {Field}:  {value}
+│  Flags:    {parsed flags or "none"}
+└────────────────────────────────────────────────
+```
+
+Pre-flight results:
+```
+── Pre-flight ───────────────────────────────────
+  ✅ {dep}           {version or "found"}
+  ⚠️ {dep}           not found → {fallback detail}
+  ❌ {dep}           missing → stopping
+──────────────────────────────────────────────────
+```
+
+Stage/phase headers: `━━ {N} · {Name} ━━━━━━━━━━━━━━━━━━━━━━━━━`
+
+Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️ skipped
+
+---
+
 ## Pre-flight
 
 Before starting, check dependencies:
@@ -315,24 +340,35 @@ Present the user with a summary of all generated files before writing.
 After all files are generated and verified, present:
 
 ```
-Dock complete
-
-  Stack:     {language} / {framework}
-  Registry:  {registry}
-  Stages:    {env1} → {env2} → {env3}
-
-  Generated files:
-    {file list with brief descriptions}
-
-  Pipeline flow:
-    PR → build + test → [push to registry]
-    Merge → build + test → push → deploy dev → smoke tests
-    Tag  → retag (no rebuild) → deploy staging → e2e → deploy prod → smoke
-
-  Next steps:
-    1. Review generated files
-    2. Configure secrets: {list of required secrets}
-    3. Push to trigger first pipeline run
+┌─ Dock · Report ────────────────────────────────
+│
+│  ✅ Dock complete
+│
+│  🔧 Stack:      {language} / {framework}
+│  📦 Registry:   {registry}
+│  🌍 Stages:     {env1} → {env2} → {env3}
+│
+│  📝 Generated files
+│     • {file} — {brief description}
+│     • {file} — {brief description}
+│     • ...
+│
+│  📊 Pipeline flow
+│     PR    → build + test
+│     Merge → build + test → push → deploy dev → smoke
+│     Tag   → retag (no rebuild) → staging → e2e → prod
+│
+│  🔗 Links
+│     Dockerfile:  {path}
+│     Workflow:    {path}
+│     Compose:     {path}
+│
+│  ⚡ Next steps
+│     1. Review generated files
+│     2. Configure secrets: {list}
+│     3. Push to trigger first pipeline run
+│
+└─────────────────────────────────────────────────
 ```
 
 ---

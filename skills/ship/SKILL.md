@@ -34,6 +34,31 @@ Taglines:
 
 ---
 
+## Output Formatting
+
+After the banner, display parsed input:
+```
+┌─ Input ────────────────────────────────────────
+│  {Field}:  {value}
+│  Flags:    {parsed flags or "none"}
+└────────────────────────────────────────────────
+```
+
+Pre-flight results:
+```
+── Pre-flight ───────────────────────────────────
+  ✅ {dep}           {version or "found"}
+  ⚠️ {dep}           not found → {fallback detail}
+  ❌ {dep}           missing → stopping
+──────────────────────────────────────────────────
+```
+
+Stage/phase headers: `━━ {N} · {Name} ━━━━━━━━━━━━━━━━━━━━━━━━━`
+
+Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️ skipped
+
+---
+
 Ship changes through the complete PR lifecycle. Every stage runs in a subagent
 to isolate context from the primary conversation. Prompts for each stage are
 in `references/stage-prompts.md`.
@@ -211,16 +236,26 @@ Parse LAND_REPORT.
 Compile all stage reports into a summary:
 
 ```
-Ship complete
-
-  Branch:  {branch}
-  PR:      {pr_url}
-  Merged:  {merge_commit} ({merge_type})
-
-  Commits:
-  {list of commit messages, indented}
-
-  Files:   {count} files changed ({diff_summary})
+┌─ Ship · Report ────────────────────────────────
+│
+│  ✅ Ship complete
+│
+│  🌿 Branch:  {branch}
+│  🔗 PR:      {pr_url}
+│  🔀 Merged:  {merge_commit} ({merge_type})
+│
+│  📝 Commits
+│     • {commit message 1}
+│     • {commit message 2}
+│
+│  📊 {count} files changed ({diff_summary})
+│
+└─────────────────────────────────────────────────
 ```
 
-If any stage failed, report the failure point and suggested resolution.
+If any stage failed, add:
+```
+│  ❌ Failed at: {stage name}
+│     {error description}
+│     {suggested resolution}
+```

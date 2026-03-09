@@ -23,14 +23,39 @@ CRITICAL: Reproduce the banner EXACTLY character-for-character. The first line o
 ```
 
 Taglines:
-- Heating up the column...
-- Fractioning the design space!
-- Condensing pure creativity!
-- Separating signal from noise!
-- Extracting the essence!
-- Refining through iteration!
-- Distilling N variations of brilliance!
-- From crude concept to pure design!
+- 🔥 Heating up the column...
+- 🧪 Fractioning the design space!
+- 💎 Condensing pure creativity!
+- 🔬 Separating signal from noise!
+- ⚗️ Extracting the essence!
+- 🔄 Refining through iteration!
+- ✨ Distilling N variations of brilliance!
+- 🎨 From crude concept to pure design!
+
+---
+
+## Output Formatting
+
+After the banner, display parsed input:
+```
+┌─ Input ────────────────────────────────────────
+│  {Field}:  {value}
+│  Flags:    {parsed flags or "none"}
+└────────────────────────────────────────────────
+```
+
+Pre-flight results:
+```
+── Pre-flight ───────────────────────────────────
+  ✅ {dep}           {version or "found"}
+  ⚠️ {dep}           not found → {fallback detail}
+  ❌ {dep}           missing → stopping
+──────────────────────────────────────────────────
+```
+
+Stage/phase headers: `━━ {N} · {Name} ━━━━━━━━━━━━━━━━━━━━━━━━━`
+
+Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️ skipped
 
 ---
 
@@ -260,12 +285,29 @@ automatically — skip this step.
 
 ## Step 6: Present Designs
 
-Inform the user:
-- Dev server is running at `http://localhost:{PORT}`
-- Each design is available at `/1`, `/2`, `/3`, etc.
-- Briefly describe each design's unique approach (from DESIGN_REPORT)
-- Note which designs are new vs existing (if appending)
-- Remind they can iterate with `--favorites` to refine preferred designs
+Present the final summary:
+
+```
+┌─ Distil · Report ──────────────────────────────
+│
+│  ✅ Distil complete — {N} designs generated
+│
+│  🌐 Server: http://localhost:{PORT}
+│
+│  🎨 Designs
+│     /1  {style name} — {key visual traits}
+│     /2  {style name} — {key visual traits}
+│     /3  {style name} — {key visual traits}
+│     {mark new vs existing}
+│
+│  📊 Total: {total designs} ({new} new + {existing} existing)
+│
+│  ⚡ Next steps
+│     1. Browse designs at http://localhost:{PORT}/1
+│     2. Use --favorites 1,3 to iterate on selected designs
+│
+└─────────────────────────────────────────────────
+```
 
 ## Context Protection Summary
 
