@@ -58,6 +58,57 @@ Skills call each other where it makes sense:
 - `/keel` outputs feed into `/dock` pipelines (registry URLs, compute endpoints)
 - `/build` invokes `/ship` at the end to merge the completed feature
 
+### Output Formatting
+
+All skills follow these visual conventions for user-facing output.
+
+**Input display** — immediately after the banner, show parsed arguments:
+```
+┌─ Input ────────────────────────────────────────
+│  {Field}:  {value}
+│  Flags:    {parsed flags or "none"}
+└────────────────────────────────────────────────
+```
+
+**Pre-flight** — show dependency check results:
+```
+── Pre-flight ───────────────────────────────────
+  ✅ {dep}           {version or "found"}
+  ⚠️ {dep}           not found → {fallback detail}
+  ❌ {dep}           missing → {resolution}
+──────────────────────────────────────────────────
+```
+
+**Stage headers** — for each major phase/stage:
+```
+━━ {N} · {Stage Name} ━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Status icons:** ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️ skipped
+
+**Final report** — box format with emoji section headers and clickable links:
+```
+┌─ {Skill} · Report ─────────────────────────────
+│
+│  ✅ {Skill} complete
+│
+│  {key metrics}
+│
+│  📝 {Details}
+│     • item 1
+│     • item 2
+│
+│  📊 {Stats}
+│
+│  🔗 Links
+│     {clickable URLs to PRs, runs, files}
+│
+│  ⚡ Next steps
+│     1. {actionable step}
+│
+└─────────────────────────────────────────────────
+```
+
 ### Custom Agents
 
 The `ship-analyzer` agent specializes in reading code diffs to produce
