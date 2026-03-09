@@ -3,8 +3,8 @@
 const { existsSync } = require('fs');
 const { join, basename } = require('path');
 const { homedir } = require('os');
-const config = require('./config');
-const { readJson, git } = require('./utils');
+const config = require('./config.cjs');
+const { readJson, git } = require('./utils.cjs');
 
 /**
  * Check if a persistent Task List ID is configured.

@@ -1,6 +1,6 @@
 'use strict';
 
-const config = require('./config');
+const config = require('./config.cjs');
 
 // prettier-ignore
 const BANNER_LINES = [

@@ -2,8 +2,8 @@
 
 const { existsSync } = require('fs');
 const { join } = require('path');
-const config = require('./config');
-const { fileMtime, git, readJson, readText, getDirectories } = require('./utils');
+const config = require('./config.cjs');
+const { fileMtime, git, readJson, readText, getDirectories } = require('./utils.cjs');
 
 /**
  * Evaluate all staleness signals for CLAUDE.md.

@@ -1,7 +1,24 @@
 'use strict';
 
+const { readFileSync } = require('fs');
+const { join, dirname } = require('path');
+
+function getVersion() {
+  // Walk up from lib/ to find package.json (mad-skills plugin root)
+  const hooksDir = dirname(__dirname);
+  for (const candidate of [
+    join(hooksDir, '..', 'package.json'),
+    join(hooksDir, '..', '.claude-plugin', 'plugin.json'),
+  ]) {
+    try {
+      return JSON.parse(readFileSync(candidate, 'utf8')).version;
+    } catch {}
+  }
+  return '0.0.0-dev';
+}
+
 module.exports = {
-  version: '1.0.0',
+  version: getVersion(),
 
   staleness: {
     threshold: 3,

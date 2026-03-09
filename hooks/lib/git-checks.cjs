@@ -2,8 +2,8 @@
 
 const { existsSync } = require('fs');
 const { join, dirname, basename } = require('path');
-const config = require('./config');
-const { git, readJson, countFiles } = require('./utils');
+const config = require('./config.cjs');
+const { git, readJson, countFiles } = require('./utils.cjs');
 
 /**
  * Validate git repository state.

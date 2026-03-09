@@ -20,13 +20,13 @@
 const { existsSync } = require('fs');
 const { join } = require('path');
 
-const config = require('./lib/config');
-const state = require('./lib/state');
-const { OutputBuilder } = require('./lib/output');
-const { getBanner, BANNER_MARKER } = require('./lib/banner');
-const { checkGit } = require('./lib/git-checks');
-const { checkTaskList } = require('./lib/task-checks');
-const { checkStaleness } = require('./lib/staleness');
+const config = require('./lib/config.cjs');
+const state = require('./lib/state.cjs');
+const { OutputBuilder } = require('./lib/output.cjs');
+const { getBanner, BANNER_MARKER } = require('./lib/banner.cjs');
+const { checkGit } = require('./lib/git-checks.cjs');
+const { checkTaskList } = require('./lib/task-checks.cjs');
+const { checkStaleness } = require('./lib/staleness.cjs');
 
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const CLAUDE_MD = join(PROJECT_DIR, 'CLAUDE.md');

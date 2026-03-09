@@ -2,10 +2,10 @@
   "hooks": {
     "SessionStart": [{
       "matcher": "startup|clear|compact",
-      "hooks": [{ "type": "command", "command": "node \"$HOME/.claude/hooks/session-guard.js\" check", "timeout": 30 }]
+      "hooks": [{ "type": "command", "command": "node ./hooks/session-guard.cjs check", "timeout": 30 }]
     }],
     "UserPromptSubmit": [{
-      "hooks": [{ "type": "command", "command": "node \"$HOME/.claude/hooks/session-guard.js\" remind", "timeout": 10 }]
+      "hooks": [{ "type": "command", "command": "node ./hooks/session-guard.cjs remind", "timeout": 10 }]
     }]
   }
 }
