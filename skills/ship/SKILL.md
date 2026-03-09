@@ -2,7 +2,7 @@
 name: ship
 description: "Ship changes through the full PR lifecycle. Use after completing feature work to commit, push, create PR, wait for checks, and merge. Handles the entire workflow: syncs with main, creates feature branch if needed, groups commits logically with semantic messages, creates detailed PR, monitors CI, fixes issues, squash merges, and cleans up. Invoke when work is ready to ship."
 argument-hint: --pr-only, --no-squash, --keep-branch (optional flags)
-allowed-tools: Bash, Read, Glob, Grep, Skill
+allowed-tools: Bash, Read, Glob, Grep, Agent, Skill
 ---
 
 # Ship - Full PR Lifecycle

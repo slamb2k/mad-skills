@@ -2,7 +2,7 @@
 name: rig
 description: 'Idempotently bootstrap any repository with standard development tools, hooks, and workflows. Use when starting work on a new repo, onboarding to an existing project, or ensuring a repo has proper CI/CD setup. Configures: git hooks (lefthook), commit message templates, PR templates, and GitHub Actions for lint/format/type-check/build. Prompts for user confirmation before changes. Triggers: "bootstrap repo", "setup hooks", "configure CI", "rig", "standardize repo".'
 argument-hint: --skip-system-check (optional)
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ---
 
 # Rig - Repository Bootstrap
@@ -50,6 +50,7 @@ Before starting, check all dependencies in this table:
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | git | cli | `git --version` | yes | stop | Install from https://git-scm.com |
+| sync | skill | `.claude/skills/sync/SKILL.md` | no | fallback | Repo sync; falls back to manual git pull |
 | lefthook | npm | `npx lefthook --help` | yes | install | `npm install -g lefthook` |
 | gh | cli | `gh --version` | yes | url | https://cli.github.com |
 
@@ -63,6 +64,14 @@ For each row, in order:
    - **ask**: notify user, offer to run command in Detail, continue either way (or halt if required)
    - **fallback**: notify user with Detail, continue with degraded behavior
 4. After all checks: summarize what's available and what's degraded
+
+---
+
+## Phase 0: Sync
+
+Invoke `/sync` to ensure the working tree is up to date with origin/main before
+bootstrapping. If /sync is unavailable, run `git pull` manually. This prevents
+rigging against stale repo state.
 
 ---
 

@@ -68,6 +68,7 @@ Before starting, check dependencies:
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | git | cli | `git --version` | yes | stop | Install from https://git-scm.com |
+| sync | skill | `.claude/skills/sync/SKILL.md` | no | fallback | Repo sync; falls back to manual git pull |
 | terraform | cli | `terraform --version` | no | fallback | Detected if user wants Terraform; suggest install from https://terraform.io |
 | az | cli | `az --version` | no | fallback | Needed for Bicep; suggest install from https://aka.ms/install-azure-cli |
 | pulumi | cli | `pulumi version` | no | fallback | Detected if user wants Pulumi; suggest install from https://pulumi.com |
@@ -75,6 +76,13 @@ Before starting, check dependencies:
 
 Only check the tool that matches the user's choice (or detected default).
 Skip checks for tools not being used.
+
+---
+
+## Phase 0: Sync
+
+Invoke `/sync` to ensure the working tree is up to date with origin/main.
+Falls back to `git pull` if /sync is unavailable.
 
 ---
 
@@ -484,11 +492,7 @@ If /keel detects it has been run before (existing `infra/` directory):
 
 ## Integration Points
 
-- **/dock**: /keel provisions what /dock deploys to. After /keel applies, /dock's
-  pipelines use the outputs (registry URL, compute endpoints) as deployment targets.
-  If /dock has already run, /keel reads `deploy/environments.json` to know what
-  platforms to provision.
-- **/rig**: When /rig runs after /keel, it can detect `infra/` and ensure the
-  IaC pipeline is wired into the CI workflow.
-- **/ship**: /ship's merge triggers the IaC apply pipeline, which then triggers
-  /dock's deployment pipeline. The chain: merge → apply infra → deploy containers.
+- **/dock**: /keel provisions what /dock deploys to. /dock pipelines consume
+  the outputs (registry URL, compute endpoints) as deployment targets.
+- **/rig**: Detects `infra/` and wires IaC pipeline into CI workflow.
+- **/ship**: Merge triggers IaC apply → /dock deploy chain.

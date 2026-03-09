@@ -2,7 +2,7 @@
 name: brace
 description: 'Initialize any project directory with the GOTCHA/BRACE framework for agentic AI systems. Creates the 6-layer structure (Goals, Orchestration, Tools, Context, Hard prompts, Args), BRACE build methodology, and a project CLAUDE.md. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: "init gotcha", "setup brace", "brace", "initialize framework", "bootstrap gotcha".'
 argument-hint: "[--no-brace] [--force]"
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ---
 
 # Brace - GOTCHA/BRACE Framework Bootstrap

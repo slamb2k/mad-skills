@@ -1,8 +1,8 @@
 ---
 name: prime
-description: "Load project context before implementing features or making architectural decisions. Invoke proactively when starting significant work on DexAI. Supports domain-specific context loading: security (vault, RBAC, audit), routing (OpenRouter, model selection), adhd (design principles, RSD-safe), dashboard (frontend, backend, API), office (OAuth, email, calendar), memory (context capture, commitments), tasks (decomposition, friction-solving), channels (Telegram, Discord, Slack)."
-argument-hint: security, routing, adhd, dashboard, office, memory, tasks, channels (comma-separated)
-allowed-tools: Read, Glob, Grep, LS
+description: "Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans CLAUDE.md, README, goals/, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding."
+argument-hint: "[domain hints: comma-separated directory or topic names to focus on]"
+allowed-tools: Read, Glob, Grep, LS, Agent
 ---
 
 # Prime - Project Context Loader
@@ -39,8 +39,9 @@ subagent — the primary thread only sees a structured PRIME_REPORT.
 
 ## Step 1: Parse Arguments
 
-Extract domain hints from the request (comma-separated). Valid domains are
-listed in `references/domains.md`. If no domain specified, load core context only.
+Extract domain hints from the request (comma-separated). These are directory
+names or topic keywords to focus the context scan on. If no domain specified,
+load core context only (CLAUDE.md, README, goals/, specs/).
 
 ## Step 2: Load Context via Subagent
 
@@ -64,15 +65,19 @@ Limit PRIME_REPORT to 30 lines maximum.
 
 ## Core Files (always load)
 
-1. CLAUDE.md — System handbook, operating procedures
-2. goals/manifest.md — Phase status, available goals, project roadmap
-3. tools/manifest.md — Available tools and their locations
+1. CLAUDE.md — Project conventions, architecture, instructions
+2. README.md — Project overview, setup, usage
+3. goals/ or specs/ — Project goals, specs, roadmap (scan directory if present)
+4. docs/ — Documentation directory (scan if present)
 
-If CLAUDE.md is missing, record as NOT FOUND and continue.
+If a file is missing, record as NOT FOUND and continue.
 
 ## Domain Files
 
-{For each requested domain, list files from references/domains.md}
+{For each requested domain hint, use Glob to find relevant files:}
+- Search for directories matching the hint name (e.g., "auth" → src/auth/, lib/auth/)
+- Search for files matching *{hint}*.md, *{hint}*.yaml, *{hint}*.json
+- Read the most relevant matches (max 5 files per domain)
 
 For each file:
 - If it exists: read and summarise (2-3 lines max per domain)
