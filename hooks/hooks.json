@@ -1,26 +1,11 @@
 {
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./hooks/session-guard.sh",
-            "timeout": 30000
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./hooks/session-guard-prompt.sh",
-            "timeout": 10000
-          }
-        ]
-      }
-    ]
+    "SessionStart": [{
+      "matcher": "startup|clear|compact",
+      "hooks": [{ "type": "command", "command": "node \"$HOME/.claude/hooks/session-guard.js\" check", "timeout": 30 }]
+    }],
+    "UserPromptSubmit": [{
+      "hooks": [{ "type": "command", "command": "node \"$HOME/.claude/hooks/session-guard.js\" remind", "timeout": 10 }]
+    }]
   }
 }
