@@ -2,7 +2,7 @@
 name: build
 description: Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.
 argument-hint: <detailed design/plan to implement> [--skip-questions] [--skip-review] [--no-ship] [--parallel-impl]
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ---
 
 # Build - Context-Isolated Feature Development
@@ -60,6 +60,7 @@ Before starting, check all dependencies in this table:
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | ship | skill | `.claude/skills/ship/SKILL.md` | yes | stop | Install with: npx skills add slamb2k/mad-skills --skill ship |
+| prime | skill | `.claude/skills/prime/SKILL.md` | no | fallback | Context loading; falls back to manual CLAUDE.md/goals scan |
 | feature-dev:code-explorer | agent | — | no | fallback | Uses general-purpose agent |
 | feature-dev:code-architect | agent | — | no | fallback | Uses general-purpose agent |
 | feature-dev:code-reviewer | agent | — | no | fallback | Uses general-purpose agent |
@@ -76,7 +77,10 @@ For each row, in order:
 4. After all checks: summarize what's available and what's degraded
 
 1. Capture **PLAN** (the user's argument) and **FLAGS**
-2. Detect project type using `references/project-detection.md` to populate
+2. **Load project context** — invoke `/prime` to load domain-specific context
+   (CLAUDE.md, goals, specs, memory). If /prime is unavailable, fall back to
+   manually scanning CLAUDE.md and goals/ directory.
+3. Detect project type using `references/project-detection.md` to populate
    **PROJECT_CONFIG** (language, test_runner, test_setup)
 3. Check for outstanding questions from previous work:
    - Search CLAUDE.md for a "Known Issues" or "Open Questions" section

@@ -294,20 +294,12 @@ BRANCH_FLAGS: {--delete-branch (default) | omit if --keep-branch}
          --delete-source-branch $DELETE_BRANCH
      fi
 
-2. **Sync local {DEFAULT_BRANCH}**
-   git checkout {DEFAULT_BRANCH}
-   git pull {REMOTE} {DEFAULT_BRANCH}
+2. **Sync local repository**
+   Invoke `/sync` to checkout {DEFAULT_BRANCH}, pull latest changes, restore
+   any stashed work, and clean up merged branches. This replaces manual git
+   checkout/pull/fetch/prune — /sync handles all of it including stash restore.
 
-3. **Restore working state** (if there were stashed changes)
-   git stash pop (only if stash exists from Stage 1)
-
-4. **Cleanup stale branches**
-   git fetch --prune
-   for branch in $(git branch -vv | grep ': gone]' | awk '{print $1}'); do
-     git branch -d "$branch" 2>/dev/null
-   done
-
-5. **Report**
+3. **Report**
    MERGE_COMMIT=$(git rev-parse --short HEAD)
 
 ## Output Format

@@ -2,7 +2,7 @@
 name: speccy
 description: Deep-dive interview skill for creating comprehensive specifications. Reviews existing code and docs, then interviews the user through multiple rounds of targeted questions covering technical implementation, UI/UX, concerns, and tradeoffs. Produces a structured spec via create-specification. Use when starting a new feature, system, or major change that needs a spec.
 argument-hint: Goal, feature, or high-level description to specify
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ---
 
 # Speccy - Interview-Driven Specification Builder
@@ -47,6 +47,7 @@ Before starting, check all dependencies in this table:
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | create-specification | skill | `~/.claude/skills/create-specification/SKILL.md` or `~/.agents/skills/create-specification/SKILL.md` | yes | ask | This skill is needed to format the final spec. Install with: `npx skills add slamb2k/mad-skills --skill create-specification` |
+| prime | skill | `.claude/skills/prime/SKILL.md` | no | fallback | Context loading; falls back to manual project scan |
 
 For each row, in order:
 1. Test file existence (check both paths for symlinked skills)
@@ -63,7 +64,10 @@ For each row, in order:
 Before asking any questions, build a thorough understanding of the project:
 
 1. **Capture GOAL** — the user's argument describing what needs to be specified
-2. **Scan the project**:
+2. **Load project context** — invoke `/prime` to load domain-specific context
+   (CLAUDE.md, goals, specs, memory). If /prime is unavailable, fall back to
+   the manual scan below.
+3. **Scan the project** (skip items already loaded by /prime):
    - Read `CLAUDE.md` if present (project conventions, structure, domain)
    - Read goal/spec manifests: `goals/manifest.md`, `spec/` directory
    - Scan existing specs and design docs for context
