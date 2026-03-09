@@ -57,7 +57,8 @@ function check() {
       'No CLAUDE.md found. Want me to set up this project for Claude Code?',
       'single_select',
       [
-        '"Initialise" \u2014 run `/init` to scaffold CLAUDE.md',
+        '"Set up with BRACE" \u2014 run `/brace` to scaffold CLAUDE.md + GOTCHA framework (goals, tools, context)',
+        '"Basic init" \u2014 run `/init` to scaffold CLAUDE.md only',
         '"Skip" \u2014 continue without one',
       ],
     );
@@ -66,6 +67,12 @@ function check() {
   }
 
   output.add(`[SESSION GUARD] \u2705 CLAUDE.md found in: ${PROJECT_DIR}`);
+
+  // 1b) BRACE framework check
+  checkBrace(PROJECT_DIR, output);
+
+  // 1c) Rig (dev tooling) check
+  checkRig(PROJECT_DIR, output);
 
   // 2) Task List ID
   checkTaskList(PROJECT_DIR, gitRoot, output);
@@ -111,31 +118,117 @@ function remind() {
 
   state.clear(PROJECT_DIR);
 
-  // Skip re-emit if no warnings were found
-  if (!pending.context.includes('\u26A0\uFE0F') && !pending.context.includes('\u2139\uFE0F')) {
+  // Split into banner and SESSION GUARD body
+  const lines = pending.context.split('\n');
+  const guardIdx = lines.findIndex(l => l.startsWith('[SESSION GUARD]'));
+  const banner = guardIdx >= 0 ? lines.slice(0, guardIdx).join('\n').trim() : '';
+  const body = guardIdx >= 0 ? lines.slice(guardIdx).join('\n') : pending.context;
+
+  const hasWarnings = pending.context.includes('\u26A0\uFE0F') || pending.context.includes('\u2139\uFE0F');
+  const parts = [];
+
+  // Always include banner with display directive
+  if (banner) {
+    parts.push(
+      '[SESSION GUARD] DISPLAY: Render the banner below in a fenced code block before any other response.',
+      '',
+      banner,
+      '',
+    );
+  }
+
+  // Include warnings/signals if present
+  if (hasWarnings) {
+    parts.push(
+      '[SESSION GUARD \u2014 FIRST PROMPT REMINDER]',
+      'The following was detected at session start. Act on these items NOW using',
+      'AskUserQuestion BEFORE proceeding with the user\'s request.',
+      '',
+      body,
+    );
+  }
+
+  // Nothing to emit (no banner, no warnings)
+  if (parts.length === 0) {
     console.log(JSON.stringify({}));
     return;
   }
 
-  // Strip banner from re-emission (already shown at SessionStart)
-  const lines = pending.context.split('\n');
-  const guardIdx = lines.findIndex(l => l.startsWith('[SESSION GUARD]'));
-  const body = guardIdx >= 0 ? lines.slice(guardIdx).join('\n') : pending.context;
-
-  const wrapped = [
-    '[SESSION GUARD \u2014 FIRST PROMPT REMINDER]',
-    'The following was detected at session start. Act on these items NOW using',
-    'AskUserQuestion BEFORE proceeding with the user\'s request.',
-    '',
-    body,
-  ].join('\n');
-
   console.log(JSON.stringify({
     hookSpecificOutput: {
       hookEventName: 'UserPromptSubmit',
-      additionalContext: wrapped,
+      additionalContext: parts.join('\n'),
     },
   }));
+}
+
+// ─── brace check ──────────────────────────────────────────────────
+
+function checkBrace(projectDir, output) {
+  const manifest = join(projectDir, 'goals', 'manifest.md');
+  if (existsSync(manifest)) return; // BRACE already set up
+
+  const prefs = state.loadPrefs(projectDir);
+  if (prefs.braceDismissed) return; // User said don't ask again
+
+  output.add('[SESSION GUARD] \u2139\uFE0F  CLAUDE.md exists but no GOTCHA/BRACE framework detected.');
+  output.add('[SESSION GUARD] BRACE_DISMISS: If the user selects "Don\'t ask again", run: node <path-to-session-guard.cjs> dismiss-brace');
+  output.addQuestion(
+    'This project has a CLAUDE.md but no GOTCHA/BRACE framework (goals/, tools/, context/). Want to set it up?',
+    'single_select',
+    [
+      '"Set up BRACE" \u2014 run `/brace` to add the GOTCHA framework structure',
+      '"Not now" \u2014 skip for this session',
+      '"Don\'t ask again" \u2014 dismiss permanently for this project',
+    ],
+    'low',
+  );
+}
+
+// ─── rig check ────────────────────────────────────────────────────
+
+const PLATFORM_MARKERS = [
+  'package.json', 'pyproject.toml', 'requirements.txt', 'setup.py',
+  'go.mod', 'Cargo.toml', 'Gemfile', 'pom.xml', 'build.gradle',
+];
+
+const INFRA_MARKERS = [
+  'lefthook.yml', '.lefthook.yml',                                    // git hooks
+  '.husky',                                                           // git hooks (alt)
+  '.gitmessage',                                                      // commit template
+  '.github/pull_request_template.md',                                 // PR template (GitHub)
+  '.azuredevops/pull_request_template.md',                            // PR template (Azure)
+  '.github/workflows',                                                // CI (GitHub Actions)
+  'azure-pipelines.yml',                                              // CI (Azure DevOps)
+  '.gitlab-ci.yml',                                                   // CI (GitLab)
+  'Jenkinsfile',                                                      // CI (Jenkins)
+  '.circleci',                                                        // CI (CircleCI)
+];
+
+function checkRig(projectDir, output) {
+  const prefs = state.loadPrefs(projectDir);
+  if (prefs.rigDismissed) return;
+
+  // Need at least one platform
+  const hasPlatform = PLATFORM_MARKERS.some(f => existsSync(join(projectDir, f)));
+  if (!hasPlatform) return;
+
+  // If any infra marker exists, rig is (at least partially) set up
+  const hasInfra = INFRA_MARKERS.some(f => existsSync(join(projectDir, f)));
+  if (hasInfra) return;
+
+  output.add('[SESSION GUARD] \u2139\uFE0F  Project has code but no dev tooling (hooks, CI, PR templates) detected.');
+  output.add('[SESSION GUARD] RIG_DISMISS: If the user selects "Don\'t ask again", run: node <path-to-session-guard.cjs> dismiss-rig');
+  output.addQuestion(
+    'No dev tooling detected (git hooks, CI, PR templates, commit templates). Want to set it up?',
+    'single_select',
+    [
+      '"Set up with /rig" \u2014 configure lefthook, CI workflow, PR template, commit template',
+      '"Not now" \u2014 skip for this session',
+      '"Don\'t ask again" \u2014 dismiss permanently for this project',
+    ],
+    'low',
+  );
 }
 
 // ─── helpers ───────────────────────────────────────────────────────────
@@ -160,8 +253,22 @@ switch (command) {
   case 'remind':
     remind();
     break;
+  case 'dismiss-brace': {
+    const prefs = state.loadPrefs(PROJECT_DIR);
+    prefs.braceDismissed = true;
+    state.savePrefs(PROJECT_DIR, prefs);
+    console.log(`BRACE prompt dismissed for ${PROJECT_DIR}`);
+    break;
+  }
+  case 'dismiss-rig': {
+    const prefs = state.loadPrefs(PROJECT_DIR);
+    prefs.rigDismissed = true;
+    state.savePrefs(PROJECT_DIR, prefs);
+    console.log(`Rig prompt dismissed for ${PROJECT_DIR}`);
+    break;
+  }
   default:
     console.error(`Session Guard v${config.version}`);
-    console.error('Usage: node session-guard.js <check|remind>');
+    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig>');
     process.exit(1);
 }
