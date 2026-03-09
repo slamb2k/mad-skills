@@ -412,29 +412,36 @@ Three methods are available. The table below shows what each delivers:
 
 ### Plugin (recommended)
 
+Installs skills, agents, and session hooks from the GitHub repo into
+`~/.claude/plugins/`. Updates automatically. Claude Code only.
+
+**Step 1 — Register the marketplace (one-time):**
+
+From the CLI:
+```bash
+claude plugin marketplace add slamb2k/mad-skills
+```
+
+Or add manually to `~/.claude/settings.json`:
+```json
+"extraKnownMarketplaces": {
+  "slamb2k": {
+    "source": { "source": "github", "repo": "slamb2k/mad-skills" }
+  }
+}
+```
+
+**Step 2 — Install the plugin:**
+
+From the CLI:
+```bash
+claude plugin install mad-skills@slamb2k
+```
+
+Or inside Claude Code:
 ```
 /plugin install mad-skills@slamb2k
 ```
-
-Installs skills, agents, and session hooks from the GitHub repo into `~/.claude/plugins/`. Updates automatically. Claude Code only.
-
-> **First time setup — add the marketplace (one-time):**
->
-> **Option A** — CLI (outside Claude Code):
-> ```bash
-> claude plugin marketplace add slamb2k/mad-skills
-> ```
->
-> **Option B** — Manual (add to `~/.claude/settings.json`):
-> ```json
-> "extraKnownMarketplaces": {
->   "slamb2k": {
->     "source": { "source": "github", "repo": "slamb2k/mad-skills" }
->   }
-> }
-> ```
->
-> Then install the plugin inside Claude Code with `/plugin install mad-skills@slamb2k`, or from the CLI with `claude plugin install mad-skills@slamb2k`.
 
 ### npx skills
 
