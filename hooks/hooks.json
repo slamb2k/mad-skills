@@ -2,10 +2,10 @@
   "hooks": {
     "SessionStart": [{
       "matcher": "startup|clear|compact",
-      "hooks": [{ "type": "command", "command": "node ./hooks/session-guard.cjs check", "timeout": 30 }]
+      "hooks": [{ "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; node \"$_R/hooks/session-guard.cjs\" check", "timeout": 30 }]
     }],
     "UserPromptSubmit": [{
-      "hooks": [{ "type": "command", "command": "node ./hooks/session-guard.cjs remind", "timeout": 10 }]
+      "hooks": [{ "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; node \"$_R/hooks/session-guard.cjs\" remind", "timeout": 10 }]
     }]
   }
 }

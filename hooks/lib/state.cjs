@@ -49,4 +49,25 @@ function isRecentlyChecked(projectDir, seconds = 5) {
   return (Date.now() - data.timestamp) < seconds * 1000;
 }
 
-module.exports = { save, load, clear, isRecentlyChecked };
+// ─── persistent per-project preferences ───────────────────────────────
+
+function prefsPath(projectDir) {
+  return join(STATE_DIR, `${projectKey(projectDir)}-prefs.json`);
+}
+
+function loadPrefs(projectDir) {
+  const path = prefsPath(projectDir);
+  if (!existsSync(path)) return {};
+  try {
+    return JSON.parse(readFileSync(path, 'utf-8'));
+  } catch {
+    return {};
+  }
+}
+
+function savePrefs(projectDir, prefs) {
+  ensureDir();
+  writeFileSync(prefsPath(projectDir), JSON.stringify(prefs, null, 2));
+}
+
+module.exports = { save, load, clear, isRecentlyChecked, loadPrefs, savePrefs };
