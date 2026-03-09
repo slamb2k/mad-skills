@@ -1,0 +1,35 @@
+[
+  {
+    "name": "banner-display",
+    "prompt": "/keel",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "⚓|🏗️|🌍|🔩|☁️|🧱|📐|🗺️" },
+      { "type": "semantic", "value": "Displays an ASCII art banner for the keel skill before doing anything else" }
+    ]
+  },
+  {
+    "name": "iac-tool-selection",
+    "prompt": "/keel for an Azure-hosted Node.js app",
+    "assertions": [
+      { "type": "semantic", "value": "Suggests or asks about IaC tool choice, mentioning at least Terraform and Bicep as options" },
+      { "type": "semantic", "value": "Detects or mentions Azure as the cloud provider" }
+    ]
+  },
+  {
+    "name": "skill-ordering",
+    "prompt": "/keel",
+    "assertions": [
+      { "type": "semantic", "value": "Describes the recommended skill ordering where /keel runs before /dock to provision infrastructure" },
+      { "type": "regex", "value": "(?i)(keel.*dock|infrastructure.*deploy|provision.*before)" }
+    ]
+  },
+  {
+    "name": "plan-apply-pattern",
+    "prompt": "/keel --skip-interview for a Terraform project on AWS",
+    "assertions": [
+      { "type": "semantic", "value": "Describes or generates a CI/CD pipeline that plans on pull requests and applies on merge" },
+      { "type": "semantic", "value": "Mentions state management for Terraform such as S3 backend or remote state" }
+    ]
+  }
+]
