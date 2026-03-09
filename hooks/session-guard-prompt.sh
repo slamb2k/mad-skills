@@ -40,15 +40,20 @@ if [[ $(echo "$CONTEXT" | grep -c '⚠️\|ℹ️') -eq 0 ]]; then
   exit 0
 fi
 
-# Output context as plain stdout to avoid the cosmetic "error" label
-# that Claude Code renders when additionalContext is in the JSON output.
-# Plain stdout is picked up as hook output without the error severity.
-cat <<EOF
+WRAPPED=$(cat <<EOF
 [SESSION GUARD — FIRST PROMPT REMINDER]
 The following was detected at session start. Act on these items NOW using
 AskUserQuestion BEFORE proceeding with the user's request.
 
 $CONTEXT
 EOF
+)
+
+jq -n --arg ctx "$WRAPPED" '{
+  hookSpecificOutput: {
+    hookEventName: "UserPromptSubmit",
+    additionalContext: $ctx
+  }
+}'
 
 exit 0
