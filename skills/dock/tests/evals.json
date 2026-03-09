@@ -1,0 +1,36 @@
+[
+  {
+    "name": "banner-display",
+    "prompt": "/dock",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "🐳|📦|🚀|⚓|🏗️|🔒|🌊|🎯" },
+      { "type": "semantic", "value": "Displays an ASCII art banner for the dock skill before doing anything else" }
+    ]
+  },
+  {
+    "name": "detection-awareness",
+    "prompt": "/dock for a Node.js Express app with an existing GitHub Actions workflow",
+    "assertions": [
+      { "type": "semantic", "value": "Describes detecting or scanning the codebase for language, framework, existing CI configuration" },
+      { "type": "semantic", "value": "Mentions Node.js or Express as the detected stack" },
+      { "type": "semantic", "value": "Acknowledges existing GitHub Actions workflow" }
+    ]
+  },
+  {
+    "name": "build-once-philosophy",
+    "prompt": "/dock --skip-interview",
+    "assertions": [
+      { "type": "semantic", "value": "Explains or implements the build-once-promote-everywhere philosophy where images are built once and promoted through environments without rebuilding" },
+      { "type": "semantic", "value": "Mentions tagging images with git SHA or version for immutability" }
+    ]
+  },
+  {
+    "name": "multi-platform-support",
+    "prompt": "/dock I want to deploy to Azure Container Apps for prod and Dokku for dev",
+    "assertions": [
+      { "type": "semantic", "value": "Supports different deployment targets per environment" },
+      { "type": "semantic", "value": "References both Azure Container Apps and Dokku as deployment platforms" }
+    ]
+  }
+]
