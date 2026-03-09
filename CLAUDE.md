@@ -4,7 +4,7 @@ Guidance for Claude Code when working in this repository.
 
 ## Repository Overview
 
-**MAD Skills** is a skill framework for Claude Code. It ships 8 skills covering the full development lifecycle — from project initialization to shipping PRs. Skills are installed via `npx skills add slamb2k/mad-skills` or as a Claude Code plugin, and invoked as slash commands.
+**MAD Skills** is a skill framework for Claude Code. It ships 10 skills covering the full development lifecycle — from project initialization to shipping PRs. Skills are installed via `npx skills add slamb2k/mad-skills` or as a Claude Code plugin, and invoked as slash commands.
 
 ## Project Structure
 
@@ -16,6 +16,8 @@ mad-skills/
 │   ├── prime/               # Project context loading
 │   ├── rig/                 # Repo bootstrapping (hooks, CI, templates)
 │   ├── distil/              # Web design variation generator
+│   ├── dock/                # Container release pipelines
+│   ├── keel/                # Infrastructure as Code pipelines
 │   ├── ship/                # Full PR lifecycle
 │   ├── speccy/              # Interview-driven spec builder
 │   └── sync/                # Repo sync with origin/main
@@ -26,7 +28,9 @@ mad-skills/
 │   ├── build-manifests.js   # Generate skills/manifest.json
 │   └── package-skills.js    # Package .skill archives
 ├── hooks/hooks.json         # Plugin hook definitions
-├── hooks/                   # Session hooks (session-guard.sh, session-guard-prompt.sh)
+├── hooks/                   # Session guard (Node.js)
+│   ├── session-guard.cjs    # Entry point (check/remind subcommands)
+│   └── lib/                 # Modular components (banner, config, git-checks, etc.)
 ├── agents/                  # Agent definitions (ship-analyzer.md)
 ├── tests/results/           # Eval output
 ├── archive/                 # Legacy v1.x skills
@@ -34,8 +38,7 @@ mad-skills/
 │   ├── marketplace.json
 │   └── plugin.json
 └── .github/workflows/
-    ├── ci.yml               # PR validation + evals
-    └── release.yml          # Tagged release → npm + GitHub
+    └── ci.yml               # PR validation, evals, release (unified)
 ```
 
 ## Current Skills
@@ -45,11 +48,34 @@ mad-skills/
 | build | Complete | Context-isolated feature dev pipeline via subagents |
 | brace | Complete | GOTCHA/BRACE project initialization |
 | distil | Complete | Multiple web design variation generator |
+| dock | Complete | Container release pipelines (build once, promote everywhere) |
+| keel | Complete | Infrastructure as Code pipelines (Terraform, Bicep, Pulumi) |
 | prime | Complete | Domain-specific project context loading |
 | rig | Complete | Repo bootstrapping with hooks, templates, CI |
 | ship | Complete | Full PR lifecycle (commit, merge, cleanup) |
 | speccy | Complete | Interview-driven specification builder |
 | sync | Complete | Repo sync with origin/main |
+
+## Skill Lifecycle
+
+Skills are designed to run in a specific order. Each skill produces artifacts that downstream skills consume.
+
+```
+/brace → /rig → /speccy → /build → /ship → /keel → /dock
+ init    tools   spec      code    merge   infra   deploy
+```
+
+| Phase | Skills | Produces |
+|-------|--------|----------|
+| Setup | `/brace` → `/rig` | CLAUDE.md, project skeleton, CI workflows, hooks |
+| Develop | `/speccy` → `/build` → `/ship` | Specs, feature code, merged PRs |
+| Deploy | `/keel` → `/dock` | IaC files + pipeline, Dockerfile + deploy pipeline |
+
+Key integration points:
+- `/keel` outputs (registry URL, endpoints) feed into `/dock` pipelines as CI/CD variables
+- `/rig` detects `/keel` and `/dock` artifacts and wires CI triggers
+- `/ship` merge triggers both IaC apply (`/keel`) and container deploy (`/dock`)
+- `/dock` never rebuilds on promotion — it retags the tested image from `main`
 
 ## Development Commands
 
@@ -86,16 +112,12 @@ skills/<name>/
 
 **tests/evals.json**: Eval cases with prompts and assertions for automated testing.
 
-## CI/CD Pipelines
+## CI/CD Pipeline
 
-**ci.yml** — PR validation:
-- Triggers on all pull requests (required status check)
-- Jobs: validate + lint, then evals (with API key guard)
-- Posts eval results as PR comments
-
-**release.yml** — Two-phase release on merge to main:
-- **Phase 1 (version-bump):** Triggers on push to main (skips `chore(release):` commits). Validates, lints, runs evals, builds manifests, bumps patch version, creates a PR, and enables auto-merge.
-- **Phase 2 (publish):** Triggers when the version bump PR merges (detected by `chore(release):` commit prefix). Creates version tag, publishes to npm, builds `.skill` packages, creates GitHub Release.
+**ci.yml** — Unified CI and release workflow:
+- **On pull requests:** validate + lint, then evals (with API key guard), posts eval results as PR comments
+- **On push to main (non-release commits):** validates, bumps patch version, creates auto-merge PR
+- **On push to main (release commits):** creates version tag, publishes to npm with provenance, builds `.skill` packages, creates GitHub Release
 - No manual version bumping needed — every merge to main creates a release
 
 ## Adding New Skills
@@ -110,7 +132,7 @@ skills/<name>/
 ## Testing
 
 ```bash
-npm run validate          # Structure checks for all 8 skills
+npm run validate          # Structure checks for all 10 skills
 npm run lint              # SKILL.md format checks
 npm run eval              # Eval assertions (requires API key)
 ```
