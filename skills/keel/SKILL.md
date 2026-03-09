@@ -61,6 +61,13 @@ Parse optional flags from the request:
 
 ---
 
+## Output Formatting
+
+Input display: `┌─ Input │ {fields} └─`. Pre-flight: `── Pre-flight ── ✅/⚠️/❌ ──`.
+Stage headers: `━━ {N} · {Name} ━━━━━━━━━━━━━`. Icons: ✅ done · ❌ fail · ⚠️ warn · ⏳ work · ⏭️ skip.
+
+---
+
 ## Pre-flight
 
 Before starting, check dependencies:
@@ -446,35 +453,27 @@ Present the user with a summary of all generated files before writing.
 After all files are generated and verified, present:
 
 ```
-Keel complete
-
-  Provider:  {cloud_provider}
-  IaC Tool:  {tool}
-  Envs:      {env1} → {env2} → {env3}
-  State:     {state_backend}
-
-  Components provisioned:
-    {checklist of selected components}
-
-  Generated files:
-    {file list with brief descriptions}
-
-  Pipeline flow:
-    PR  → terraform plan → comment on PR
-    Merge → terraform apply (dev) → sync outputs
-    Tag   → terraform apply (staging) → terraform apply (prod)
-
-  /dock integration:
-    Registry URL:  output from infra/outputs.tf
-    Compute:       {platform} provisioned per environment
-    Secrets:       synced via infra/sync-outputs.sh
-
-  Next steps:
-    1. Run bootstrap script: ./infra/bootstrap.sh
-    2. Review generated IaC files
-    3. Configure CI/CD secrets: {list}
-    4. Push to trigger first plan
-    5. After apply succeeds, run /dock to set up deployment pipelines
+┌─ Keel · Report ────────────────────────────────
+│
+│  ✅ Keel complete
+│
+│  ☁️ Provider:  {cloud_provider}
+│  🔧 IaC Tool:  {tool}
+│  🌍 Envs:      {env1} → {env2} → {env3}
+│  💾 State:     {state_backend}
+│
+│  📝 Components: {checklist of selected}
+│
+│  📊 Pipeline: PR → plan → Merge → apply dev → Tag → apply prod
+│
+│  🔗 Links
+│     Infra:     {infra/ path}
+│     Pipeline:  {workflow path}
+│     Bootstrap: ./infra/bootstrap.sh
+│
+│  ⚡ Next: 1. Run bootstrap  2. Configure secrets  3. Push  4. /dock
+│
+└─────────────────────────────────────────────────
 ```
 
 ---
@@ -492,7 +491,5 @@ If /keel detects it has been run before (existing `infra/` directory):
 
 ## Integration Points
 
-- **/dock**: /keel provisions what /dock deploys to. /dock pipelines consume
-  the outputs (registry URL, compute endpoints) as deployment targets.
-- **/rig**: Detects `infra/` and wires IaC pipeline into CI workflow.
-- **/ship**: Merge triggers IaC apply → /dock deploy chain.
+- **/dock**: /keel provisions what /dock deploys to. /dock consumes outputs (registry URL, compute endpoints).
+- **/rig**: Detects `infra/` and wires IaC pipeline into CI. **/ship**: Merge triggers IaC apply → /dock deploy.

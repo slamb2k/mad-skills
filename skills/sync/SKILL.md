@@ -34,6 +34,31 @@ Taglines:
 
 ---
 
+## Output Formatting
+
+After the banner, display parsed input:
+```
+┌─ Input ────────────────────────────────────────
+│  {Field}:  {value}
+│  Flags:    {parsed flags or "none"}
+└────────────────────────────────────────────────
+```
+
+Pre-flight results:
+```
+── Pre-flight ───────────────────────────────────
+  ✅ {dep}           {version or "found"}
+  ⚠️ {dep}           not found → {fallback detail}
+  ❌ {dep}           missing → stopping
+──────────────────────────────────────────────────
+```
+
+Stage/phase headers: `━━ {N} · {Name} ━━━━━━━━━━━━━━━━━━━━━━━━━`
+
+Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️ skipped
+
+---
+
 Synchronize local repository with the remote default branch using a single
 Bash subagent to isolate all git operations from the primary conversation.
 
@@ -199,14 +224,20 @@ SYNC_REPORT:
 Parse the subagent's SYNC_REPORT and present a clean summary:
 
 ```
-Sync complete
-  Main:    {commit} - {message}
-  Branch:  {current_branch}
-  Stash:   {status}
-  Cleaned: {branches or "none"}
+┌─ Sync · Report ────────────────────────────────
+│
+│  ✅ Sync complete
+│
+│  🌿 Main:     {commit} — {message}
+│  🔀 Branch:   {current_branch}
+│  📦 Stash:    {restored|none|conflict}
+│  🧹 Cleaned:  {branches or "none"}
+│
+└─────────────────────────────────────────────────
 ```
 
-If errors occurred, report them clearly with suggested resolution:
-- Detached HEAD → suggest `git checkout <branch>`
-- Rebase conflict → suggest `git rebase {DEFAULT_BRANCH}` manually and resolve
-- Stash conflict → suggest `git stash show` and `git stash pop` manually
+If errors occurred:
+```
+│  ❌ {error description}
+│     {suggested resolution}
+```

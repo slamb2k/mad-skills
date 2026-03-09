@@ -23,14 +23,39 @@ CRITICAL: Reproduce the banner EXACTLY character-for-character. The first line o
 ```
 
 Taglines:
-- Rigging up the production line...
-- Bolting down the framework!
-- Assembling the scaffolding!
-- Hoisting the infrastructure!
-- Locking in the safety harness!
-- Wiring up the control panel!
-- Setting up the drill floor!
-- From blueprint to build-ready!
+- 🏗️ Rigging up the production line...
+- 🔩 Bolting down the framework!
+- 🪜 Assembling the scaffolding!
+- 🏗️ Hoisting the infrastructure!
+- 🦺 Locking in the safety harness!
+- ⚡ Wiring up the control panel!
+- 🛠️ Setting up the drill floor!
+- 📐 From blueprint to build-ready!
+
+---
+
+## Output Formatting
+
+After the banner, display parsed input:
+```
+┌─ Input ────────────────────────────────────────
+│  {Field}:  {value}
+│  Flags:    {parsed flags or "none"}
+└────────────────────────────────────────────────
+```
+
+Pre-flight results:
+```
+── Pre-flight ───────────────────────────────────
+  ✅ {dep}           {version or "found"}
+  ⚠️ {dep}           not found → {fallback detail}
+  ❌ {dep}           missing → stopping
+──────────────────────────────────────────────────
+```
+
+Stage/phase headers: `━━ {N} · {Name} ━━━━━━━━━━━━━━━━━━━━━━━━━`
+
+Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️ skipped
 
 ---
 

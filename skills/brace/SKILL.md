@@ -23,14 +23,39 @@ CRITICAL: Reproduce the banner EXACTLY character-for-character. The first line o
 ```
 
 Taglines:
-- Bracing the structure...
-- Reinforcing before load!
-- Locking in the framework!
-- Preparing for heavy lifting!
-- Cross-bracing the foundation!
-- Tightening the load path!
-- Structural integrity confirmed!
-- Brace for impact!
+- 🏗️ Bracing the structure...
+- 💪 Reinforcing before load!
+- 🔒 Locking in the framework!
+- 🏋️ Preparing for heavy lifting!
+- 🧱 Cross-bracing the foundation!
+- 🔧 Tightening the load path!
+- ✅ Structural integrity confirmed!
+- 💥 Brace for impact!
+
+---
+
+## Output Formatting
+
+After the banner, display parsed input:
+```
+┌─ Input ────────────────────────────────────────
+│  {Field}:  {value}
+│  Flags:    {parsed flags or "none"}
+└────────────────────────────────────────────────
+```
+
+Pre-flight results:
+```
+── Pre-flight ───────────────────────────────────
+  ✅ {dep}           {version or "found"}
+  ⚠️ {dep}           not found → {fallback detail}
+  ❌ {dep}           missing → stopping
+──────────────────────────────────────────────────
+```
+
+Stage/phase headers: `━━ {N} · {Name} ━━━━━━━━━━━━━━━━━━━━━━━━━`
+
+Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️ skipped
 
 ---
 
