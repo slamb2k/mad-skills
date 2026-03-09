@@ -1,38 +1,35 @@
-# Domain-to-File Mapping
+# Domain Context Resolution
 
-Each domain lists the files/directories to load for that context area.
-Paths are relative to the project root.
+When domain hints are provided, resolve them to files using these strategies
+(in priority order). Stop at the first strategy that produces results.
 
-## security
-- `args/security.yaml`
-- `tools/security/` (list directory)
+## Resolution Strategy
 
-## routing
-- `args/routing.yaml`
-- `tools/agent/model_router/ROUTING_ARCHITECTURE.md`
+1. **Exact directory match** — Look for a directory named `{hint}/` in common
+   locations: `src/`, `lib/`, `app/`, `packages/`, `services/`, project root
+2. **File pattern match** — Glob for `**/*{hint}*.md`, `**/*{hint}*.yaml`,
+   `**/*{hint}*.json` (exclude node_modules, .git, dist, build)
+3. **Config/docs match** — Check `docs/{hint}.md`, `docs/{hint}/`,
+   `config/{hint}.*`, `.{hint}rc`, `{hint}.config.*`
 
-## adhd
-- `context/adhd_design_principles.md`
-- `args/adhd_mode.yaml`
+## Common Domain Hints
 
-## dashboard
-- `args/dashboard.yaml`
-- `tools/dashboard/backend/routes/` (list directory)
-- `tools/dashboard/frontend/app/` (list directory)
+These are examples — any directory or topic name works as a hint:
 
-## office
-- `args/office_integration.yaml`
-- `tools/office/` (list directory)
+| Hint | Likely Locations |
+|------|-----------------|
+| auth | src/auth/, lib/auth/, middleware/auth.* |
+| api | src/api/, routes/, controllers/ |
+| db, database | src/db/, prisma/, migrations/, models/ |
+| infra | infra/, terraform/, bicep/, deploy/ |
+| frontend | src/components/, src/pages/, app/ |
+| backend | src/server/, src/services/, api/ |
+| config | config/, .env.example, settings/ |
+| test | tests/, __tests__/, spec/, cypress/ |
 
-## memory
-- `args/memory.yaml`
-- `args/working_memory.yaml`
-- `tools/memory/` (list directory)
+## Output
 
-## tasks
-- `args/task_engine.yaml`
-- `tools/tasks/` (list directory)
-
-## channels
-- `args/channels.yaml`
-- `tools/channels/` (list directory)
+For each resolved domain, include in PRIME_REPORT:
+- Directory/file paths found
+- 2-3 line summary of what was found
+- Key patterns or conventions observed
