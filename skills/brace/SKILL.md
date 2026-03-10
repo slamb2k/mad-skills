@@ -244,8 +244,6 @@ Before sending the prompt, substitute these variables:
 - `{CLAUDE_MD_TEMPLATE}` — read from `references/claude-md-template.md`
   (the section between BEGIN TEMPLATE and END TEMPLATE)
 - `{GITIGNORE_CONTENT}` — read from `assets/gitignore-template`
-- `{TOOLS_MANIFEST}` — read from `references/scaffold-manifest.md`
-  (the tools/manifest.md content block)
 - `{GLOBAL_PREFERENCES_CONTENT}` — read from `assets/global-preferences-template.md`
   (the section between BEGIN TEMPLATE and END TEMPLATE)
 

@@ -165,8 +165,8 @@ function remind() {
 // ─── brace check ──────────────────────────────────────────────────
 
 function checkBrace(projectDir, output) {
-  const manifest = join(projectDir, 'tools', 'manifest.md');
-  if (existsSync(manifest)) return; // scaffold already set up
+  const specsDir = join(projectDir, 'specs');
+  if (existsSync(specsDir)) return; // scaffold already set up
 
   const prefs = state.loadPrefs(projectDir);
   if (prefs.braceDismissed) return; // User said don't ask again

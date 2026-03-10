@@ -17,10 +17,10 @@ Limit your SCAN_REPORT to 20 lines maximum.
 ## Checks
 
 1. Check for each scaffold directory:
-   specs/ tools/ context/ hardprompts/ args/ .tmp/
+   specs/ context/ hardprompts/ args/ .tmp/
 
 2. Check for each key file:
-   CLAUDE.md .gitignore tools/manifest.md
+   CLAUDE.md .gitignore
 
 3. Check if directory is a git repo:
    [ -d .git ] && echo "git: true" || echo "git: false"
@@ -105,7 +105,6 @@ Skip items with status "skip" or "not selected".
 3. Write CLAUDE.md using the template below, substituting {PROJECT_NAME},
    {PROJECT_DESCRIPTION}, and {UNIVERSAL_PRINCIPLES}
 4. Write .gitignore from the content below
-5. Write tools/manifest.md from content below
 
 ### For "merge" items:
 
@@ -171,10 +170,6 @@ empty string (principles are in the global config instead).
 
 {GITIGNORE_CONTENT}
 
-### tools/manifest.md Content
-
-{TOOLS_MANIFEST}
-
 ### Global Preferences Content
 
 {GLOBAL_PREFERENCES_CONTENT}
@@ -225,12 +220,12 @@ Limit your VERIFY_REPORT to 15 lines maximum.
 ## Checks
 
 1. Verify expected directories exist:
-   for d in specs tools context hardprompts args .tmp; do
+   for d in specs context hardprompts args .tmp; do
      [ -d "$d" ] && echo "dir ok: $d" || echo "dir MISSING: $d"
    done
 
 2. Verify key files exist and are non-empty:
-   for f in CLAUDE.md .gitignore tools/manifest.md; do
+   for f in CLAUDE.md .gitignore; do
      [ -s "$f" ] && echo "file ok: $f" || echo "file MISSING: $f"
    done
 

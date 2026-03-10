@@ -23,8 +23,6 @@ BEGIN TEMPLATE
 ├── CLAUDE.md           This file
 ├── .gitignore          Ignores credentials, data, temp files
 ├── specs/              Specifications (/speccy output, /build input)
-├── tools/              Deterministic scripts
-│   └── manifest.md     Index of all tools
 ├── context/            Domain knowledge and references
 ├── hardprompts/        Reusable LLM instruction templates
 ├── args/               Behaviour settings (YAML/JSON)
@@ -57,7 +55,6 @@ handles curated facts.
 
 ## Guardrails
 
-- Check `tools/manifest.md` before creating new scripts
 - Verify tool output format before chaining into another tool
 - Do not assume APIs support batch operations — check first
 - Preserve intermediate outputs when workflows fail mid-execution

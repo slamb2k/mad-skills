@@ -14,7 +14,6 @@ Present this summary after verification completes.
 │
 │  📝 Structure
 │     {✅|⏭️} specs/         Specifications
-│     {✅|⏭️} tools/         Deterministic scripts
 │     {✅|⏭️} context/       Domain knowledge
 │     {✅|⏭️} hardprompts/   Instruction templates
 │     {✅|⏭️} args/          Behaviour settings
@@ -23,7 +22,6 @@ Present this summary after verification completes.
 │  📄 Files
 │     {✅|⏭️} CLAUDE.md
 │     {✅|⏭️} .gitignore
-│     {✅|⏭️} tools/manifest.md
 │
 │  🗑️ Removed (only if legacy items were cleaned up)
 │     {✅} goals/            Legacy goals directory

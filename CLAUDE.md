@@ -179,7 +179,6 @@ mad-skills/
 ├── assets/                  # Project-level static assets
 │   └── mad-skills.png       # Logo/branding
 ├── specs/                   # Specifications (/speccy → /build handoff)
-├── tools/                   # Deterministic scripts
 ├── context/                 # Domain knowledge
 ├── hardprompts/             # Reusable instruction templates
 ├── args/                    # Behaviour settings
@@ -292,7 +291,6 @@ handles curated facts.
 
 ## Guardrails
 
-- Check `tools/manifest.md` before creating new scripts
 - Verify tool output format before chaining into another tool
 - Do not assume APIs support batch operations — check first
 - Preserve intermediate outputs when workflows fail mid-execution
