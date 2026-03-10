@@ -50,6 +50,7 @@ agentic AI systems. LLMs handle reasoning; deterministic tools handle execution.
 │   └── build_app.md    BRACE build methodology
 ├── tools/              Deterministic scripts
 │   └── manifest.md     Index of all tools
+├── specs/              Specifications (/speccy output, /build input)
 ├── context/            Domain knowledge and references
 ├── hardprompts/        Reusable LLM instruction templates
 ├── args/               Behaviour settings (YAML/JSON)
@@ -70,12 +71,15 @@ handles curated facts.
 
 ## Build Methodology: BRACE
 
-See `goals/build_app.md` for the full workflow:
-- **B**rief — Define problem, users, success metrics
-- **R**esearch — Data schema, integrations, stack proposal
-- **A**rchitect — Design structure, validate all connections
-- **C**onstruct — Build DB first, then API, then UI
-- **E**valuate — Functional, integration, edge case, acceptance testing
+BRACE maps to the MAD Skills pipeline. See `goals/build_app.md` for details.
+
+```
+/speccy → specs/{name}.md → /build specs/{name}.md → /ship
+```
+
+- **B**rief + **R**esearch → `/speccy` interviews and writes spec to `specs/`
+- **A**rchitect + **C**onstruct → `/build` reads spec, designs, implements
+- **E**valuate → `/build` reviews, tests, then `/ship` merges
 
 {UNIVERSAL_PRINCIPLES}
 

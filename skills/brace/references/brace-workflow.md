@@ -7,84 +7,32 @@ Content for `goals/build_app.md`. Copied during brace Phase 4.
 ## Goal
 
 Build full-stack applications using AI assistance within the GOTCHA framework.
-BRACE is a 5-step process that ensures apps are production-ready.
+BRACE maps to the MAD Skills pipeline — each step is automated by a skill.
 
-| Step | Phase | What You Do |
-|------|-------|-------------|
-| **B** | Brief | Define problem, users, success metrics |
-| **R** | Research | Data schema, integrations map, stack proposal |
-| **A** | Architect | Design structure, validate all connections |
-| **C** | Construct | Build with layered architecture |
-| **E** | Evaluate | Test functionality, error handling |
+| Step | Phase | Skill | What Happens |
+|------|-------|-------|--------------|
+| **B** | Brief | `/speccy` | Interview-driven spec: problem, users, success metrics |
+| **R** | Research | `/speccy` + `/prime` | Context gathering, data schema, integrations, stack |
+| **A** | Architect | `/build` Stage 3 | Design structure, validate connections |
+| **C** | Construct | `/build` Stage 4 | Implementation with layered architecture |
+| **E** | Evaluate | `/build` Stages 5-7 | Code review, fix findings, run tests |
 
----
+## Workflow
 
-## B — Brief
+```
+/speccy → specs/{name}.md → /build specs/{name}.md → /ship
+ Brief     Spec artifact      Arch+Build+Test        Merge PR
+ Research
+```
 
-**Purpose:** Know exactly what you are building before touching code.
+1. **`/speccy`** interviews the user (Brief + Research) and writes a structured
+   spec to `specs/{name}.md`
+2. **`/build specs/{name}.md`** reads the spec file, explores the codebase,
+   designs architecture, implements, reviews, tests, and ships
+3. **`/ship`** commits, creates PR, waits for CI, and merges
 
-1. **What problem does this solve?** — One sentence.
-2. **Who is this for?** — Specific user, not "everyone".
-3. **What does success look like?** — Measurable outcome.
-4. **What are the constraints?** — Budget, time, technical limits.
-
-**Output:** App Brief (problem, user, success criteria, constraints)
-
----
-
-## R — Research
-
-**Purpose:** Design before building. Define the source of truth.
-
-1. **Data schema** — Tables, fields, relationships
-2. **Integrations map** — External services, auth types, API availability
-3. **Technology stack proposal** — Database, backend, frontend (user approves)
-4. **Edge cases** — Rate limits, auth expiry, timeouts, invalid input
-
-**Output:** Schema, approved stack, integrations checklist, edge cases
-
----
-
-## A — Architect
-
-**Purpose:** Design structure and validate all connections BEFORE building.
-
-Checklist:
-- [ ] Database connection tested
-- [ ] All API keys verified
-- [ ] OAuth flows working
-- [ ] Environment variables set
-- [ ] Rate limits understood
-
-**Output:** All green. Fix anything that fails before proceeding.
-
----
-
-## C — Construct
-
-**Purpose:** Build with proper architecture.
-
-Build order:
-1. Database schema first
-2. Backend API routes second
-3. Frontend UI last
-
-Follow GOTCHA separation: frontend (display), backend (logic), database (truth).
-
-**Output:** Working application with functional DB, API, and UI.
-
----
-
-## E — Evaluate
-
-**Purpose:** Test before shipping.
-
-- **Functional:** All buttons work, data saves/retrieves, navigation works
-- **Integration:** API calls succeed, auth persists, rate limits respected
-- **Edge cases:** Invalid input handled, empty states display, errors show feedback
-- **User acceptance:** Solves the original problem, no major friction
-
-**Output:** Test report (passed, failed, needs fixing)
+The `specs/` directory is the handoff point — `/prime` and `/build` both scan
+it automatically.
 
 ---
 

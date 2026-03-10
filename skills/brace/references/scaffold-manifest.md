@@ -26,6 +26,12 @@ creation checklist. Phase 1 uses it to detect existing structure.
 | `tools/` | mkdir | Deterministic scripts directory |
 | `tools/manifest.md` | generated | Index of all tools |
 
+## Specs Layer
+
+| Path | Description |
+|------|-------------|
+| `specs/` | Specification files produced by `/speccy`, consumed by `/build` |
+
 ## Context, Hard Prompts, Args Layers
 
 | Path | Description |

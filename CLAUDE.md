@@ -14,7 +14,7 @@ invoke them by name if the situation clearly calls for one.
 | Bootstrapping repo tooling (hooks, CI, templates) | `/rig` | `/rig` or `/rig --skip-system-check` |
 | Need project context before significant work | `/prime` | `/prime` or `/prime auth,api` |
 | Designing a feature or system that needs a spec | `/speccy` | `/speccy user authentication with OAuth` |
-| Implementing a feature from a plan or spec | `/build` | `/build <detailed plan>` |
+| Implementing a feature from a plan or spec | `/build` | `/build specs/auth.md` or `/build <detailed plan>` |
 | Shipping completed work (commit, PR, merge) | `/ship` | `/ship` or `/ship --pr-only` |
 | Syncing with origin/main or cleaning up branches | `/sync` | `/sync` or `/sync --no-cleanup` |
 | Provisioning cloud infrastructure (IaC) | `/keel` | `/keel` or `/keel --tool terraform` |
@@ -26,8 +26,8 @@ invoke them by name if the situation clearly calls for one.
 Skills produce artifacts that downstream skills consume. The recommended order:
 
 ```
-/brace → /rig → /speccy → /build → /ship → /keel → /dock
- init    tools   spec      code    merge   infra   deploy
+/brace → /rig → /speccy → specs/ → /build → /ship → /keel → /dock
+ init    tools   spec    artifact   code    merge   infra   deploy
 ```
 
 - **Setup:** `/brace` creates project structure, `/rig` adds hooks + CI
@@ -57,6 +57,8 @@ Skills call each other where it makes sense:
 - `/dock`, `/keel`, and `/rig` invoke `/sync` before scanning to avoid stale state
 - `/keel` outputs feed into `/dock` pipelines (registry URLs, compute endpoints)
 - `/build` invokes `/ship` at the end to merge the completed feature
+- `/speccy` writes specs to `specs/`, `/build` reads them via file path detection
+  (e.g., `/build specs/user-auth.md` reads the file as its plan)
 
 ### Output Formatting
 
@@ -155,8 +157,34 @@ mad-skills/
 │   ├── hooks.json           # Plugin hook definitions
 │   ├── session-guard.cjs    # Entry point (check/remind subcommands)
 │   └── lib/                 # Modular components
+│       ├── banner.cjs       # ASCII banner rendering
+│       ├── config.cjs       # Configuration constants
+│       ├── git-checks.cjs   # Git status checks
+│       ├── output.cjs       # Output formatting
+│       ├── staleness.cjs    # CLAUDE.md staleness detection
+│       ├── state.cjs        # Persistent state (dismissals)
+│       ├── task-checks.cjs  # Task list checks
+│       └── utils.cjs        # Shared utilities
 ├── agents/                  # Custom agent definitions
 │   └── ship-analyzer.md     # Semantic commit + PR agent for /ship
+├── tests/                   # Eval test results
+│   └── results/             # JSON eval output (latest.json symlink)
+├── archive/                 # Inactive skills (historical reference)
+│   ├── cyberarian/          # Archived skill
+│   ├── example-skill/       # Archived skill
+│   ├── graphite-skill/      # Archived skill
+│   ├── pixel-pusher/        # Archived skill
+│   ├── play-tight/          # Archived skill
+│   └── start-right/         # Archived skill
+├── assets/                  # Project-level static assets
+│   └── mad-skills.png       # Logo/branding
+├── specs/                   # Specifications (/speccy → /build handoff)
+├── goals/                   # GOTCHA: Process definitions
+├── tools/                   # GOTCHA: Deterministic scripts
+├── context/                 # GOTCHA: Domain knowledge
+├── hardprompts/             # GOTCHA: Reusable instruction templates
+├── args/                    # GOTCHA: Behaviour settings
+├── .tmp/                    # Scratch work (gitignored)
 ├── .claude-plugin/          # Plugin metadata
 │   ├── marketplace.json
 │   └── plugin.json
@@ -235,3 +263,74 @@ Evals support both `ANTHROPIC_API_KEY` and `OPENROUTER_API_KEY`.
 
 The `archive/` folder contains inactive skills kept for historical reference.
 Not part of the release — excluded from npm and not supported.
+
+## Operating Framework: GOTCHA
+
+This project uses the **GOTCHA Framework** — a 6-layer architecture for
+agentic AI systems. LLMs handle reasoning; deterministic tools handle execution.
+
+**GOT** (The Engine):
+- **Goals** (`goals/`) — Process definitions. Check `goals/manifest.md` first.
+- **Orchestration** — You (the AI). Read goals, delegate to tools, handle errors.
+- **Tools** (`tools/`) — Deterministic scripts. Check `tools/manifest.md` first.
+
+**CHA** (The Context):
+- **Context** (`context/`) — Domain knowledge, reference material
+- **Hard Prompts** (`hardprompts/`) — Reusable instruction templates
+- **Args** (`args/`) — Behaviour settings (YAML/JSON)
+
+### Operating Rules
+
+1. **Check goals first** — Before any task, read `goals/manifest.md`
+2. **Check tools first** — Before writing code, read `tools/manifest.md`
+3. **Fix and document** — When tools fail, fix them and update the goal
+4. **Never modify goals without permission** — Goals are living documentation
+5. **Communicate when stuck** — Explain what is missing, do not guess
+
+## Build Methodology: BRACE
+
+BRACE maps to the MAD Skills pipeline. See `goals/build_app.md` for details.
+
+```
+/speccy → specs/{name}.md → /build specs/{name}.md → /ship
+```
+
+- **B**rief + **R**esearch → `/speccy` interviews and writes spec to `specs/`
+- **A**rchitect + **C**onstruct → `/build` reads spec, designs, implements
+- **E**valuate → `/build` reviews, tests, then `/ship` merges
+
+## Question & Assumption Accountability
+
+Nothing gets silently dropped. Every open question, assumption, and deferred
+decision must be explicitly recorded and revisited.
+
+- When you make an assumption, **state it explicitly** and record it
+- When a question cannot be answered immediately, log it as an open item
+- When you defer a fix or skip an edge case, document why and what triggers it
+- At the end of each task, review all assumptions and open questions
+- Present unresolved items to the user with context and suggested actions
+- Unresolved items go to `goals/` as follow-ups, to CLAUDE.md as "Known Issues",
+  or to memory for future session awareness
+- At the start of new work, check for outstanding items from previous sessions
+- Never close a task with unacknowledged open questions
+
+## Memory
+
+For persistent memory across sessions, install the **claude-mem** plugin:
+```
+claude plugin install claude-mem
+```
+
+claude-mem automatically captures context via lifecycle hooks and provides
+MCP tools for search, timeline, and observation management. Claude Code's
+built-in auto memory (`~/.claude/projects/<project>/memory/MEMORY.md`)
+handles curated facts.
+
+## Guardrails
+
+- Always check manifests before creating new goals or tools
+- Verify tool output format before chaining into another tool
+- Do not assume APIs support batch operations — check first
+- Preserve intermediate outputs when workflows fail mid-execution
+- Read the full goal before starting — do not skim
+- Temporary files go in `.tmp/` — never store important data there
