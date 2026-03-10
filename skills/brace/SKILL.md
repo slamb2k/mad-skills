@@ -99,7 +99,6 @@ For each row, in order:
 4. After all checks: summarize what's available and what's degraded
 
 1. Capture **FLAGS** from the user's request
-2. Create a task list tracking all 5 phases
 
 ---
 

@@ -22,9 +22,9 @@ This project uses the **GOTCHA Framework** — a 6-layer architecture for
 agentic AI systems. LLMs handle reasoning; deterministic tools handle execution.
 
 **GOT** (The Engine):
-- **Goals** (`goals/`) — Process definitions. Check `goals/manifest.md` first.
-- **Orchestration** — You (the AI). Read goals, delegate to tools, handle errors.
-- **Tools** (`tools/`) — Python scripts. Check `tools/manifest.md` first.
+- **Goals** (`goals/`) — Process definitions and methodology reference
+- **Orchestration** — You (the AI). Delegate to tools, handle errors.
+- **Tools** (`tools/`) — Deterministic scripts. Check `tools/manifest.md` first.
 
 **CHA** (The Context):
 - **Context** (`context/`) — Domain knowledge, reference material
@@ -33,11 +33,11 @@ agentic AI systems. LLMs handle reasoning; deterministic tools handle execution.
 
 ### Operating Rules
 
-1. **Check goals first** — Before any task, read `goals/manifest.md`
-2. **Check tools first** — Before writing code, read `tools/manifest.md`
-3. **Fix and document** — When tools fail, fix them and update the goal
-4. **Never modify goals without permission** — Goals are living documentation
-5. **Communicate when stuck** — Explain what is missing, do not guess
+1. **Check tools first** — Before writing code, read `tools/manifest.md`
+2. **Fix and document** — When tools fail, fix them and update docs
+3. **Track work via tasks** — Use persistent tasks (`TaskCreate`/`TaskUpdate`)
+   for cross-session tracking, not goal files
+4. **Communicate when stuck** — Explain what is missing, do not guess
 
 ## Directory Structure
 
@@ -85,11 +85,10 @@ BRACE maps to the MAD Skills pipeline. See `goals/build_app.md` for details.
 
 ## Guardrails
 
-- Always check manifests before creating new goals or tools
+- Always check manifests before creating new tools
 - Verify tool output format before chaining into another tool
 - Do not assume APIs support batch operations — check first
 - Preserve intermediate outputs when workflows fail mid-execution
-- Read the full goal before starting — do not skim
 - Temporary files go in `.tmp/` — never store important data there
 
 END TEMPLATE

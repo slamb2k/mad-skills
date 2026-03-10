@@ -270,8 +270,8 @@ This project uses the **GOTCHA Framework** — a 6-layer architecture for
 agentic AI systems. LLMs handle reasoning; deterministic tools handle execution.
 
 **GOT** (The Engine):
-- **Goals** (`goals/`) — Process definitions. Check `goals/manifest.md` first.
-- **Orchestration** — You (the AI). Read goals, delegate to tools, handle errors.
+- **Goals** (`goals/`) — Process definitions and methodology reference
+- **Orchestration** — You (the AI). Delegate to tools, handle errors.
 - **Tools** (`tools/`) — Deterministic scripts. Check `tools/manifest.md` first.
 
 **CHA** (The Context):
@@ -281,11 +281,11 @@ agentic AI systems. LLMs handle reasoning; deterministic tools handle execution.
 
 ### Operating Rules
 
-1. **Check goals first** — Before any task, read `goals/manifest.md`
-2. **Check tools first** — Before writing code, read `tools/manifest.md`
-3. **Fix and document** — When tools fail, fix them and update the goal
-4. **Never modify goals without permission** — Goals are living documentation
-5. **Communicate when stuck** — Explain what is missing, do not guess
+1. **Check tools first** — Before writing code, read `tools/manifest.md`
+2. **Fix and document** — When tools fail, fix them and update docs
+3. **Track work via tasks** — Use persistent tasks (`TaskCreate`/`TaskUpdate`)
+   for cross-session tracking, not goal files
+4. **Communicate when stuck** — Explain what is missing, do not guess
 
 ## Build Methodology: BRACE
 
@@ -309,8 +309,8 @@ decision must be explicitly recorded and revisited.
 - When you defer a fix or skip an edge case, document why and what triggers it
 - At the end of each task, review all assumptions and open questions
 - Present unresolved items to the user with context and suggested actions
-- Unresolved items go to `goals/` as follow-ups, to CLAUDE.md as "Known Issues",
-  or to memory for future session awareness
+- Unresolved items go to persistent tasks (`TaskCreate`), to CLAUDE.md as
+  "Known Issues", or to memory for future session awareness
 - At the start of new work, check for outstanding items from previous sessions
 - Never close a task with unacknowledged open questions
 
@@ -328,7 +328,7 @@ handles curated facts.
 
 ## Guardrails
 
-- Always check manifests before creating new goals or tools
+- Always check manifests before creating new tools
 - Verify tool output format before chaining into another tool
 - Do not assume APIs support batch operations — check first
 - Preserve intermediate outputs when workflows fail mid-execution
