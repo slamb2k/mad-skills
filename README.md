@@ -91,11 +91,10 @@ Start in an empty folder. `/brace` creates the project scaffold.
 ```
 my-webapp/
 ├── CLAUDE.md              # AI-readable project instructions
+├── .gitignore             # Ignores credentials, data, temp files
 ├── specs/                 # Specifications (/speccy → /build)
-├── tools/                 # Deterministic scripts
-├── context/               # Domain knowledge
-├── hardprompts/           # Reusable instruction templates
-└── args/                  # Behaviour settings
+├── context/               # Domain knowledge and references
+└── .tmp/                  # Scratch work (gitignored)
 ```
 
 The CLAUDE.md it creates becomes the foundation — every subsequent skill reads it for project context.

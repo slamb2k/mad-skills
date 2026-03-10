@@ -180,8 +180,6 @@ mad-skills/
 │   └── mad-skills.png       # Logo/branding
 ├── specs/                   # Specifications (/speccy → /build handoff)
 ├── context/                 # Domain knowledge
-├── hardprompts/             # Reusable instruction templates
-├── args/                    # Behaviour settings
 ├── .tmp/                    # Scratch work (gitignored)
 ├── .claude-plugin/          # Plugin metadata
 │   ├── marketplace.json

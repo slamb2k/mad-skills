@@ -1,6 +1,6 @@
 ---
 name: brace
-description: 'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/, tools/, context/, hardprompts/, args/ directories, a project CLAUDE.md with development workflow and guardrails, and .gitignore. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: "init project", "setup brace", "brace", "initialize", "bootstrap", "scaffold".'
+description: 'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project CLAUDE.md with development workflow and guardrails, .gitignore, and branch protection. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: "init project", "setup brace", "brace", "initialize", "bootstrap", "scaffold".'
 argument-hint: "[--force]"
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ---

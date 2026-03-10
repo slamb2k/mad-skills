@@ -17,6 +17,4 @@ creation checklist. Phase 1 uses it to detect existing structure.
 |------|-------------|
 | `specs/` | Specifications produced by `/speccy`, consumed by `/build` |
 | `context/` | Reference material and domain knowledge |
-| `hardprompts/` | Reusable instruction templates |
-| `args/` | Behaviour settings (YAML/JSON) |
 | `.tmp/` | Scratch work (gitignored) |

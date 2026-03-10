@@ -15,8 +15,6 @@ Present this summary after verification completes.
 │  📝 Structure
 │     {✅|⏭️} specs/         Specifications
 │     {✅|⏭️} context/       Domain knowledge
-│     {✅|⏭️} hardprompts/   Instruction templates
-│     {✅|⏭️} args/          Behaviour settings
 │     {✅|⏭️} .tmp/          Temp directory
 │
 │  📄 Files

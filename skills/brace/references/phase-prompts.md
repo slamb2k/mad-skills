@@ -17,7 +17,7 @@ Limit your SCAN_REPORT to 20 lines maximum.
 ## Checks
 
 1. Check for each scaffold directory:
-   specs/ context/ hardprompts/ args/ .tmp/
+   specs/ context/ .tmp/
 
 2. Check for each key file:
    CLAUDE.md .gitignore
@@ -101,7 +101,7 @@ Skip items with status "skip" or "not selected".
 ### For "create" items:
 
 1. Create directories with mkdir -p
-2. Create .gitkeep in empty directories (specs/, context/, hardprompts/, args/, .tmp/)
+2. Create .gitkeep in empty directories (specs/, context/, .tmp/)
 3. Write CLAUDE.md using the template below, substituting {PROJECT_NAME},
    {PROJECT_DESCRIPTION}, and {UNIVERSAL_PRINCIPLES}
 4. Write .gitignore from the content below
@@ -220,7 +220,7 @@ Limit your VERIFY_REPORT to 15 lines maximum.
 ## Checks
 
 1. Verify expected directories exist:
-   for d in specs context hardprompts args .tmp; do
+   for d in specs context .tmp; do
      [ -d "$d" ] && echo "dir ok: $d" || echo "dir MISSING: $d"
    done
 

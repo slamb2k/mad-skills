@@ -24,8 +24,6 @@ BEGIN TEMPLATE
 ├── .gitignore          Ignores credentials, data, temp files
 ├── specs/              Specifications (/speccy output, /build input)
 ├── context/            Domain knowledge and references
-├── hardprompts/        Reusable LLM instruction templates
-├── args/               Behaviour settings (YAML/JSON)
 └── .tmp/               Scratch work (gitignored)
 ```
 
