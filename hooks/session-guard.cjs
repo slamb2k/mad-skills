@@ -57,7 +57,7 @@ function check() {
       'No CLAUDE.md found. Want me to set up this project for Claude Code?',
       'single_select',
       [
-        '"Set up with BRACE" \u2014 run `/brace` to scaffold CLAUDE.md + GOTCHA framework (goals, tools, context)',
+        '"Set up with /brace" \u2014 scaffold CLAUDE.md + project structure (specs, tools, context)',
         '"Basic init" \u2014 run `/init` to scaffold CLAUDE.md only',
         '"Skip" \u2014 continue without one',
       ],
@@ -68,7 +68,7 @@ function check() {
 
   output.add(`[SESSION GUARD] \u2705 CLAUDE.md found in: ${PROJECT_DIR}`);
 
-  // 1b) BRACE framework check
+  // 1b) Project scaffold check
   checkBrace(PROJECT_DIR, output);
 
   // 1c) Rig (dev tooling) check
@@ -165,19 +165,19 @@ function remind() {
 // ─── brace check ──────────────────────────────────────────────────
 
 function checkBrace(projectDir, output) {
-  const manifest = join(projectDir, 'goals', 'manifest.md');
-  if (existsSync(manifest)) return; // BRACE already set up
+  const manifest = join(projectDir, 'tools', 'manifest.md');
+  if (existsSync(manifest)) return; // scaffold already set up
 
   const prefs = state.loadPrefs(projectDir);
   if (prefs.braceDismissed) return; // User said don't ask again
 
-  output.add('[SESSION GUARD] \u2139\uFE0F  CLAUDE.md exists but no GOTCHA/BRACE framework detected.');
+  output.add('[SESSION GUARD] \u2139\uFE0F  CLAUDE.md exists but no project scaffold detected.');
   output.add('[SESSION GUARD] BRACE_DISMISS: If the user selects "Don\'t ask again", run: node <path-to-session-guard.cjs> dismiss-brace');
   output.addQuestion(
-    'This project has a CLAUDE.md but no GOTCHA/BRACE framework (goals/, tools/, context/). Want to set it up?',
+    'This project has a CLAUDE.md but no project scaffold (specs/, tools/, context/). Want to set it up?',
     'single_select',
     [
-      '"Set up BRACE" \u2014 run `/brace` to add the GOTCHA framework structure',
+      '"Set up with /brace" \u2014 add project scaffold structure',
       '"Not now" \u2014 skip for this session',
       '"Don\'t ask again" \u2014 dismiss permanently for this project',
     ],

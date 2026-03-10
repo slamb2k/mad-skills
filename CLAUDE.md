@@ -137,7 +137,7 @@ as slash commands.
 ```
 mad-skills/
 ├── skills/                  # Skill definitions (10 skills)
-│   ├── brace/               # GOTCHA/BRACE project initialization
+│   ├── brace/               # Project scaffold initialization
 │   ├── build/               # Context-isolated feature dev pipeline
 │   ├── distil/              # Web design variation generator
 │   ├── dock/                # Container release pipelines
@@ -179,11 +179,10 @@ mad-skills/
 ├── assets/                  # Project-level static assets
 │   └── mad-skills.png       # Logo/branding
 ├── specs/                   # Specifications (/speccy → /build handoff)
-├── goals/                   # GOTCHA: Process definitions
-├── tools/                   # GOTCHA: Deterministic scripts
-├── context/                 # GOTCHA: Domain knowledge
-├── hardprompts/             # GOTCHA: Reusable instruction templates
-├── args/                    # GOTCHA: Behaviour settings
+├── tools/                   # Deterministic scripts
+├── context/                 # Domain knowledge
+├── hardprompts/             # Reusable instruction templates
+├── args/                    # Behaviour settings
 ├── .tmp/                    # Scratch work (gitignored)
 ├── .claude-plugin/          # Plugin metadata
 │   ├── marketplace.json
@@ -264,41 +263,6 @@ Evals support both `ANTHROPIC_API_KEY` and `OPENROUTER_API_KEY`.
 The `archive/` folder contains inactive skills kept for historical reference.
 Not part of the release — excluded from npm and not supported.
 
-## Operating Framework: GOTCHA
-
-This project uses the **GOTCHA Framework** — a 6-layer architecture for
-agentic AI systems. LLMs handle reasoning; deterministic tools handle execution.
-
-**GOT** (The Engine):
-- **Goals** (`goals/`) — Process definitions and methodology reference
-- **Orchestration** — You (the AI). Delegate to tools, handle errors.
-- **Tools** (`tools/`) — Deterministic scripts. Check `tools/manifest.md` first.
-
-**CHA** (The Context):
-- **Context** (`context/`) — Domain knowledge, reference material
-- **Hard Prompts** (`hardprompts/`) — Reusable instruction templates
-- **Args** (`args/`) — Behaviour settings (YAML/JSON)
-
-### Operating Rules
-
-1. **Check tools first** — Before writing code, read `tools/manifest.md`
-2. **Fix and document** — When tools fail, fix them and update docs
-3. **Track work via tasks** — Use persistent tasks (`TaskCreate`/`TaskUpdate`)
-   for cross-session tracking, not goal files
-4. **Communicate when stuck** — Explain what is missing, do not guess
-
-## Build Methodology: BRACE
-
-BRACE maps to the MAD Skills pipeline. See `goals/build_app.md` for details.
-
-```
-/speccy → specs/{name}.md → /build specs/{name}.md → /ship
-```
-
-- **B**rief + **R**esearch → `/speccy` interviews and writes spec to `specs/`
-- **A**rchitect + **C**onstruct → `/build` reads spec, designs, implements
-- **E**valuate → `/build` reviews, tests, then `/ship` merges
-
 ## Question & Assumption Accountability
 
 Nothing gets silently dropped. Every open question, assumption, and deferred
@@ -328,9 +292,9 @@ handles curated facts.
 
 ## Guardrails
 
-- Always check manifests before creating new tools
+- Check `tools/manifest.md` before creating new scripts
 - Verify tool output format before chaining into another tool
 - Do not assume APIs support batch operations — check first
 - Preserve intermediate outputs when workflows fail mid-execution
-- Read the full goal before starting — do not skim
+- Use persistent tasks (`TaskCreate`/`TaskUpdate`) for cross-session tracking
 - Temporary files go in `.tmp/` — never store important data there

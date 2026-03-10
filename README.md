@@ -9,7 +9,7 @@ A skill framework for Claude Code. Ships 10 skills covering the full development
 | Skill | Command | Description |
 |-------|---------|-------------|
 | **build** | `/build` | Context-isolated feature development pipeline. Takes a design/plan and executes explore, question, architect, implement, review, ship inside subagents. |
-| **brace** | `/brace` | Initialize projects with the GOTCHA/BRACE framework. Creates 6-layer structure, BRACE build methodology, and project CLAUDE.md. |
+| **brace** | `/brace` | Initialize projects with a standard scaffold. Creates specs/, tools/, context/ directories, project CLAUDE.md, and branch protection. |
 | **distil** | `/distil` | Generate multiple unique web design variations. Creates a Vite + React + TypeScript + Tailwind project with N designs at /1, /2, /3. |
 | **dock** | `/dock` | Generate container release pipelines. Builds once, promotes immutable images through dev → staging → prod. Supports Azure Container Apps, AWS Fargate, Cloud Run, Kubernetes, Dokku, Coolify, CapRover. |
 | **keel** | `/keel` | Generate IaC pipelines (Terraform, Bicep, Pulumi, CDK) to provision cloud infrastructure. Plans on PR, applies on merge. Provisions what /dock deploys to. |
@@ -80,7 +80,7 @@ The session guard checks: git status, CLAUDE.md presence and freshness, task lis
 
 ### Step 1: `/brace` — Initialize the Project
 
-Start in an empty folder. `/brace` creates the project skeleton using the GOTCHA/BRACE framework.
+Start in an empty folder. `/brace` creates the project scaffold.
 
 ```
 > /brace my-webapp
@@ -91,12 +91,11 @@ Start in an empty folder. `/brace` creates the project skeleton using the GOTCHA
 ```
 my-webapp/
 ├── CLAUDE.md              # AI-readable project instructions
-├── goals/                 # Project goals and success criteria
-├── orchestration/         # Workflow definitions
-├── tools/                 # Tool configurations
+├── specs/                 # Specifications (/speccy → /build)
+├── tools/                 # Deterministic scripts
 ├── context/               # Domain knowledge
-├── hard_prompts/          # Reusable prompt templates
-└── args/                  # Runtime parameters
+├── hardprompts/           # Reusable instruction templates
+└── args/                  # Behaviour settings
 ```
 
 The CLAUDE.md it creates becomes the foundation — every subsequent skill reads it for project context.

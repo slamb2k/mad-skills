@@ -10,18 +10,17 @@ and substitutes `{VARIABLE}` placeholders before sending to the subagent.
 **Agent:** Bash | **Model:** haiku
 
 ```
-Scan the current working directory for existing GOTCHA/BRACE framework structure.
+Scan the current working directory for existing project scaffold structure.
 
 Limit your SCAN_REPORT to 20 lines maximum.
 
 ## Checks
 
-1. Check for each GOTCHA directory:
-   goals/ tools/ context/ hardprompts/ args/ .tmp/
+1. Check for each scaffold directory:
+   specs/ tools/ context/ hardprompts/ args/ .tmp/
 
 2. Check for each key file:
-   CLAUDE.md .gitignore goals/manifest.md goals/build_app.md
-   tools/manifest.md
+   CLAUDE.md .gitignore tools/manifest.md
 
 3. Check if directory is a git repo:
    [ -d .git ] && echo "git: true" || echo "git: false"
@@ -31,7 +30,7 @@ Limit your SCAN_REPORT to 20 lines maximum.
 
 5. Check for legacy ATLAS references:
    atlas_found=false
-   for f in CLAUDE.md goals/build_app.md goals/manifest.md; do
+   for f in CLAUDE.md; do
      if [ -f "$f" ] && grep -qi "ATLAS" "$f"; then
        atlas_found=true
        break
@@ -40,14 +39,20 @@ Limit your SCAN_REPORT to 20 lines maximum.
 
 6. Check for legacy FORGE references:
    forge_found=false
-   for f in CLAUDE.md goals/build_app.md goals/manifest.md; do
+   for f in CLAUDE.md; do
      if [ -f "$f" ] && grep -qi "FORGE" "$f"; then
        forge_found=true
        break
      fi
    done
 
-7. Check for legacy memory system:
+7. Check for legacy GOTCHA/goals structure:
+   legacy_gotcha=false
+   if [ -d "goals" ] || ([ -f "CLAUDE.md" ] && grep -q "GOTCHA" CLAUDE.md); then
+     legacy_gotcha=true
+   fi
+
+8. Check for legacy memory system:
    legacy_memory=false
    if [ -d "tools/memory" ] || [ -f "memory/MEMORY.md" ]; then
      legacy_memory=true
@@ -66,6 +71,7 @@ SCAN_REPORT:
   has_gitignore: true|false
   has_atlas: true|false
   has_forge: true|false
+  has_legacy_gotcha: true|false
   has_legacy_memory: true|false
 ```
 
@@ -76,7 +82,7 @@ SCAN_REPORT:
 **Agent:** general-purpose | **Model:** default
 
 ```
-Create the GOTCHA/BRACE framework structure in the current directory.
+Create the project scaffold structure in the current directory.
 
 Limit your SCAFFOLD_REPORT to 15 lines maximum.
 
@@ -95,50 +101,51 @@ Skip items with status "skip" or "not selected".
 ### For "create" items:
 
 1. Create directories with mkdir -p
-2. Create .gitkeep in empty directories (context/, hardprompts/, args/, .tmp/)
+2. Create .gitkeep in empty directories (specs/, context/, hardprompts/, args/, .tmp/)
 3. Write CLAUDE.md using the template below, substituting {PROJECT_NAME},
    {PROJECT_DESCRIPTION}, and {UNIVERSAL_PRINCIPLES}
 4. Write .gitignore from the content below
-5. Write goals/manifest.md and tools/manifest.md from content below
-6. Write goals/build_app.md from the BRACE workflow content below
+5. Write tools/manifest.md from content below
 
 ### For "merge" items:
 
-- CLAUDE.md: Read existing file. If it does not contain "GOTCHA", append
-  the GOTCHA section from the template. If it does, skip.
+- CLAUDE.md: Read existing file. If it does not contain "## Project Structure"
+  or "## Development Workflow", append those sections from the template. If it
+  does, skip.
 - .gitignore: Read existing file. Append any missing entries from the
   template. Do not duplicate existing entries.
 
-### For "upgrade" items (legacy → BRACE migration):
+### For "upgrade" items (legacy migration):
 
-These files already exist but contain legacy ATLAS or FORGE naming. Replace the
-legacy methodology references with BRACE equivalents while preserving all other content.
+These files already exist but contain legacy naming (ATLAS, FORGE, or
+GOTCHA/BRACE). Replace legacy methodology references with the current
+skills-based workflow while preserving all other content.
 
-- **CLAUDE.md:** Replace the "Build Methodology: ATLAS" or "Build Methodology: FORGE"
-  section (from that heading through the bullet list) with the BRACE section from
-  the template. Also replace "ATLAS build methodology" or "FORGE build methodology"
-  with "BRACE build methodology" in the directory tree comment. Preserve all other sections.
-- **goals/build_app.md:** Replace the entire file with the BRACE workflow content below.
-- **goals/manifest.md:** Replace "ATLAS" or "FORGE" with "BRACE" in the description column.
+- **CLAUDE.md:** Replace any "Operating Framework: GOTCHA", "Build Methodology:
+  BRACE/ATLAS/FORGE" sections with the "Project Structure" and "Development
+  Workflow" sections from the template. Remove references to goals/manifest.md
+  and goals/build_app.md. Preserve all other sections.
 
-### For "remove" items (legacy memory cleanup):
+### For "remove" items (legacy cleanup):
 
 1. Before deleting `memory/MEMORY.md`, check if it contains a "## Key Decisions"
    section. If so, extract that section content into `preserved_content` for the
    SCAFFOLD_REPORT so the user can relocate it.
 2. Remove `tools/memory/` — use `git rm -r tools/memory` if tracked, otherwise `rm -rf tools/memory`
 3. Remove `memory/` — use `git rm -r memory` if tracked, otherwise `rm -rf memory`
+4. Remove `goals/` — use `git rm -r goals` if tracked, otherwise `rm -rf goals`
+   (only if empty or contains only manifest.md and build_app.md)
 
-### For "cleanup" items (legacy memory references):
+### For "cleanup" items (legacy references):
 
-- **tools/manifest.md:** Remove any rows referencing `memory/` tools (e.g. search, embed, store scripts)
-- **.gitignore:** Remove the `memory/*.npy` line and its `# Memory embeddings cache` comment if present
-- **CLAUDE.md:** If a `## Memory System` section exists, replace it with:
+- **tools/manifest.md:** Remove any rows referencing `memory/` tools
+- **.gitignore:** Remove the `memory/*.npy` line and its comment if present
+- **CLAUDE.md:** Remove references to goals/, GOTCHA, BRACE. Replace any
+  `## Memory System` section with:
   ```
   ## Memory
   This project uses claude-mem for persistent cross-session memory.
   ```
-  Also remove `tools/memory/` and `memory/` from any directory tree listings in CLAUDE.md.
 
 ### Global preferences (conditional)
 
@@ -164,17 +171,9 @@ empty string (principles are in the global config instead).
 
 {GITIGNORE_CONTENT}
 
-### goals/manifest.md Content
-
-{GOALS_MANIFEST}
-
 ### tools/manifest.md Content
 
 {TOOLS_MANIFEST}
-
-### goals/build_app.md Content
-
-{BRACE_WORKFLOW}
 
 ### Global Preferences Content
 
@@ -192,8 +191,8 @@ decision must be explicitly recorded and revisited.
 - When you defer a fix or skip an edge case, document why and what triggers it
 - At the end of each task, review all assumptions and open questions
 - Present unresolved items to the user with context and suggested actions
-- Unresolved items go to `goals/` as follow-ups, to CLAUDE.md as "Known Issues",
-  or to memory for future session awareness
+- Track unresolved items via persistent tasks (`TaskCreate`) or CLAUDE.md
+  "Known Issues" for future session awareness
 - At the start of new work, check for outstanding items from previous sessions
 - Never close a task with unacknowledged open questions
 
@@ -203,7 +202,7 @@ SCAFFOLD_REPORT:
   status: success|partial|failed
   created: [list of files/dirs created]
   merged: [list of files merged]
-  upgraded: [list of files upgraded to BRACE]
+  upgraded: [list of files upgraded]
   removed: [list of legacy items removed]
   cleaned: [list of files cleaned of legacy references]
   preserved_content: [any key decisions extracted from memory/MEMORY.md, or empty]
@@ -219,24 +218,24 @@ SCAFFOLD_REPORT:
 **Agent:** Bash | **Model:** haiku
 
 ```
-Verify the GOTCHA framework was initialised correctly.
+Verify the project scaffold was initialised correctly.
 
 Limit your VERIFY_REPORT to 15 lines maximum.
 
 ## Checks
 
 1. Verify expected directories exist:
-   for d in goals tools context hardprompts args .tmp; do
+   for d in specs tools context hardprompts args .tmp; do
      [ -d "$d" ] && echo "dir ok: $d" || echo "dir MISSING: $d"
    done
 
 2. Verify key files exist and are non-empty:
-   for f in CLAUDE.md .gitignore goals/manifest.md tools/manifest.md; do
+   for f in CLAUDE.md .gitignore tools/manifest.md; do
      [ -s "$f" ] && echo "file ok: $f" || echo "file MISSING: $f"
    done
 
-3. Check CLAUDE.md contains GOTCHA reference:
-   grep -q "GOTCHA" CLAUDE.md && echo "claude_md: has GOTCHA" || echo "claude_md: no GOTCHA"
+3. Check CLAUDE.md contains project structure:
+   grep -q "Project Structure" CLAUDE.md && echo "claude_md: has structure" || echo "claude_md: no structure"
 
 4. Check .gitignore has key entries:
    entries=0
@@ -245,12 +244,9 @@ Limit your VERIFY_REPORT to 15 lines maximum.
    done
    echo "gitignore entries: $entries/2"
 
-5. If legacy memory cleanup was performed, verify removal:
+5. If legacy cleanup was performed, verify removal:
    if [ -d "tools/memory" ]; then echo "legacy: tools/memory still exists"; fi
    if [ -d "memory" ]; then echo "legacy: memory/ still exists"; fi
-   if [ -f "CLAUDE.md" ] && grep -q "tools/memory" CLAUDE.md; then
-     echo "legacy: CLAUDE.md still references tools/memory"
-   fi
 
 ## Output Format
 
@@ -258,8 +254,8 @@ VERIFY_REPORT:
   status: complete|partial|failed
   dirs_verified: {count}/{expected}
   files_verified: {count}/{expected}
-  claude_md_has_gotcha: true|false
+  claude_md_valid: true|false
   gitignore_entries: {count}/{expected}
-  legacy_memory_cleaned: true|false|not_applicable
+  legacy_cleaned: true|false|not_applicable
   issues: [any problems found]
 ```

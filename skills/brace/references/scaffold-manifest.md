@@ -11,13 +11,11 @@ creation checklist. Phase 1 uses it to detect existing structure.
 | `.gitignore` | assets/gitignore-template | Standard ignores |
 | `~/.claude/CLAUDE.md` | assets/global-preferences-template.md | Global preferences (conditional on install_level) |
 
-## Goals Layer
+## Specs Layer
 
-| Path | Source | Description |
-|------|--------|-------------|
-| `goals/` | mkdir | Process definitions directory |
-| `goals/manifest.md` | generated | Index of all goal workflows |
-| `goals/build_app.md` | references/brace-workflow.md | BRACE build methodology |
+| Path | Description |
+|------|-------------|
+| `specs/` | Specifications produced by `/speccy`, consumed by `/build` |
 
 ## Tools Layer
 
@@ -25,12 +23,6 @@ creation checklist. Phase 1 uses it to detect existing structure.
 |------|--------|-------------|
 | `tools/` | mkdir | Deterministic scripts directory |
 | `tools/manifest.md` | generated | Index of all tools |
-
-## Specs Layer
-
-| Path | Description |
-|------|-------------|
-| `specs/` | Specification files produced by `/speccy`, consumed by `/build` |
 
 ## Context, Hard Prompts, Args Layers
 
@@ -47,19 +39,6 @@ creation checklist. Phase 1 uses it to detect existing structure.
 | `.tmp/` | Scratch work (gitignored) |
 
 ## Generated Manifest Content
-
-### goals/manifest.md
-```
-# Goals Manifest
-
-Index of all goal workflows in this project.
-
-| Goal | File | Description |
-|------|------|-------------|
-| Build App | build_app.md | BRACE 5-step build methodology |
-
-Add new goals here as they are created.
-```
 
 ### tools/manifest.md
 ```

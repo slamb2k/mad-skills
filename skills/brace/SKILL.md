@@ -1,11 +1,11 @@
 ---
 name: brace
-description: 'Initialize any project directory with the GOTCHA/BRACE framework for agentic AI systems. Creates the 6-layer structure (Goals, Orchestration, Tools, Context, Hard prompts, Args), BRACE build methodology, and a project CLAUDE.md. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: "init gotcha", "setup brace", "brace", "initialize framework", "bootstrap gotcha".'
-argument-hint: "[--no-brace] [--force]"
+description: 'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/, tools/, context/, hardprompts/, args/ directories, a project CLAUDE.md with development workflow and guardrails, and .gitignore. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: "init project", "setup brace", "brace", "initialize", "bootstrap", "scaffold".'
+argument-hint: "[--force]"
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ---
 
-# Brace - GOTCHA/BRACE Framework Bootstrap
+# Brace - Project Scaffold
 
 When this skill is invoked, IMMEDIATELY output the banner below before doing anything else.
 Pick ONE tagline at random — vary your choice each time.
@@ -59,9 +59,9 @@ Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️
 
 ---
 
-Initialize any project directory with the GOTCHA/BRACE framework. Idempotent —
-safe to re-run on existing projects. Content templates and subagent prompts
-are in `references/`.
+Initialize any project directory with a standard scaffold for AI-assisted
+development. Idempotent — safe to re-run on existing projects. Content
+templates and subagent prompts are in `references/`.
 
 **Key principle:** Scan first, present plan, get approval, then act.
 
@@ -74,7 +74,6 @@ Report format: `references/report-template.md`
 ## Flags
 
 Parse optional flags from the request:
-- `--no-brace` — Skip BRACE build methodology (goals/build_app.md)
 - `--force` — Overwrite existing files without prompting
 
 ---
@@ -110,7 +109,7 @@ Launch **Bash** subagent (**haiku**):
 Task(
   subagent_type: "Bash",
   model: "haiku",
-  description: "Scan directory for existing GOTCHA structure",
+  description: "Scan directory for existing scaffold structure",
   prompt: <read from references/phase-prompts.md#phase-1>
 )
 ```
@@ -122,24 +121,26 @@ Parse SCAN_REPORT. Extract:
 - `has_claude_md` / `has_gitignore`
 - `has_atlas` (legacy ATLAS naming detected)
 - `has_forge` (legacy FORGE naming detected)
+- `has_legacy_gotcha` (legacy GOTCHA/goals structure detected)
 - `has_legacy_memory` (old tools/memory system detected)
 
 ---
 
 ## Phase 1b: Legacy Upgrade Detection
 
-**Skip if none of `has_atlas`, `has_forge`, or `has_legacy_memory` is true.**
+**Skip if none of `has_atlas`, `has_forge`, `has_legacy_gotcha`, or `has_legacy_memory` is true.**
 
 Build a description of what was found:
 - If `has_atlas` or `has_forge`: "Legacy ATLAS/FORGE naming detected"
+- If `has_legacy_gotcha`: "Legacy GOTCHA/BRACE framework detected (goals/ directory)"
 - If `has_legacy_memory`: "Legacy memory system (tools/memory/, memory/) detected"
 
 Ask the user via AskUserQuestion:
 
    Question: "Legacy components detected: {description}. Upgrade and clean up?"
    Options:
-   - "Yes, upgrade all" — Replace legacy naming with BRACE and remove old memory system
-   - "No, leave as-is" — Keep existing naming and memory system
+   - "Yes, upgrade all" — Replace legacy structure and remove old systems
+   - "No, leave as-is" — Keep existing structure
 
 Store result as `upgrade_legacy: true|false` in USER_CONFIG.
 
@@ -152,10 +153,9 @@ Store result as `upgrade_legacy: true|false` in USER_CONFIG.
 1. Derive default project name from SCAN_REPORT `directory_name`
 2. Present via AskUserQuestion:
 
-   Question: "What to include in GOTCHA setup?"
+   Question: "Set up project scaffold?"
    Options:
-   - "Full GOTCHA + BRACE (Recommended)"
-   - "GOTCHA structure only (no BRACE methodology)"
+   - "Full scaffold (Recommended)" — CLAUDE.md, directories, guardrails
    - "Cancel"
 
 3. If not cancelled, ask for project description (one sentence) via
@@ -172,7 +172,6 @@ Store result as `upgrade_legacy: true|false` in USER_CONFIG.
 5. Store as USER_CONFIG:
    - project_name: from directory name or user override
    - description: from user input
-   - include_brace: true/false (based on selection and `--no-brace`)
    - install_level: "both" | "global" | "project"
 
 **If cancelled, stop here.**
@@ -187,34 +186,33 @@ For each item in `references/scaffold-manifest.md`:
 - If component not selected in USER_CONFIG → status: "not selected"
 - If item already exists (from SCAN_REPORT) and no `--force` → status: "skip"
 - If item exists and `--force` → status: "overwrite"
-- If CLAUDE.md exists → status: "merge" (append GOTCHA section)
+- If CLAUDE.md exists → status: "merge" (append scaffold sections)
 - If .gitignore exists → status: "merge" (append missing entries)
 - Otherwise → status: "create"
 
 If `upgrade_legacy` is true in USER_CONFIG, set status "upgrade" for:
 - CLAUDE.md (replaces "merge" or "skip" — upgrade takes priority)
-- goals/build_app.md (replaces "skip")
-- goals/manifest.md (replaces "skip")
+
+If `upgrade_legacy` is true AND `has_legacy_gotcha` is true, additionally:
+- `goals/` → status: "remove" (only if contains only manifest.md and build_app.md)
 
 If `upgrade_legacy` is true AND `has_legacy_memory` is true, additionally:
 - `tools/memory/` → status: "remove"
 - `memory/` → status: "remove"
-- CLAUDE.md also gets memory section replacement (handled alongside upgrade)
 - `tools/manifest.md` → status: "cleanup" (remove memory tool rows)
 - `.gitignore` → status: "cleanup" (remove memory/*.npy entry)
 
 Present plan summary to user via AskUserQuestion:
 
 ```
-GOTCHA Framework Setup for: {project_name}
+Project Scaffold for: {project_name}
 
 Will create:  {list of items with status "create"}
 Will merge:   {list of items with status "merge"}
-Will upgrade: {list of items with status "upgrade" — legacy → BRACE}
-Will remove:  {list of items with status "remove" — legacy memory system}
+Will upgrade: {list of items with status "upgrade"}
+Will remove:  {list of items with status "remove" — legacy cleanup}
 Will clean:   {list of items with status "cleanup" — remove legacy references}
 Will skip:    {count} existing items
-Not selected: {count} items
 Global config: {install_level description}
 
 Proceed?
@@ -233,7 +231,7 @@ Launch **general-purpose** subagent:
 ```
 Task(
   subagent_type: "general-purpose",
-  description: "Create GOTCHA framework structure",
+  description: "Create project scaffold structure",
   prompt: <read from references/phase-prompts.md#phase-4>
 )
 ```
@@ -246,12 +244,8 @@ Before sending the prompt, substitute these variables:
 - `{CLAUDE_MD_TEMPLATE}` — read from `references/claude-md-template.md`
   (the section between BEGIN TEMPLATE and END TEMPLATE)
 - `{GITIGNORE_CONTENT}` — read from `assets/gitignore-template`
-- `{GOALS_MANIFEST}` — read from `references/scaffold-manifest.md`
-  (the goals/manifest.md content block)
 - `{TOOLS_MANIFEST}` — read from `references/scaffold-manifest.md`
   (the tools/manifest.md content block)
-- `{BRACE_WORKFLOW}` — read from `references/brace-workflow.md`
-  (the section after the header, used for goals/build_app.md)
 - `{GLOBAL_PREFERENCES_CONTENT}` — read from `assets/global-preferences-template.md`
   (the section between BEGIN TEMPLATE and END TEMPLATE)
 
@@ -267,7 +261,7 @@ Launch **Bash** subagent (**haiku**):
 Task(
   subagent_type: "Bash",
   model: "haiku",
-  description: "Verify GOTCHA structure",
+  description: "Verify project scaffold",
   prompt: <read from references/phase-prompts.md#phase-5>
 )
 ```
@@ -277,10 +271,44 @@ Parse VERIFY_REPORT. Present the final summary using the format in
 
 ---
 
+## Phase 6: Branch Protection
+
+**Only if the project is a git repo** (from SCAN_REPORT `git_initialized`).
+
+Check if the default branch (main or master) has branch protection:
+
+```bash
+default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
+```
+
+If a GitHub remote is detected (`git remote get-url origin` matches github.com):
+1. Check for existing branch protection via `gh api repos/{owner}/{repo}/branches/{default_branch}/protection` (404 = unprotected)
+2. If unprotected, ask via AskUserQuestion:
+
+   Question: "Default branch `{default_branch}` has no branch protection. Add it?"
+   Options:
+   - "Yes, require PR reviews (Recommended)" — require 1 approval, block force push
+   - "Skip" — leave unprotected
+
+3. If user accepts, apply via:
+   ```bash
+   gh api repos/{owner}/{repo}/branches/{default_branch}/protection \
+     -X PUT -f required_pull_request_reviews='{"required_approving_review_count":1}' \
+     -f enforce_admins=false \
+     -f restrictions=null \
+     -f required_status_checks=null \
+     -F allow_force_pushes=false \
+     -F allow_deletions=false
+   ```
+
+Include result in the final report under a "🔒 Branch protection" section.
+
+---
+
 ## Idempotency Rules
 
 - **Skip** directories and files that already exist (unless `--force`)
-- **Merge** CLAUDE.md: append GOTCHA section if file exists but lacks it
+- **Merge** CLAUDE.md: append scaffold sections if file exists but lacks them
 - **Merge** .gitignore: append missing entries only
 - **Never delete** user content
 - **Never overwrite** without `--force` or explicit user approval
