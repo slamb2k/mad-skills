@@ -179,7 +179,7 @@ Once the interview is complete and decisions are confirmed:
 
 ---
 
-## Output
+## Output & Handoff
 
 After the spec is created, report to the user:
 
@@ -201,9 +201,31 @@ After the spec is created, report to the user:
 │  🔗 Links
 │     Spec: {spec file path}
 │
-│  ⚡ Next steps
-│     1. Review the spec: {path}
-│     2. Run /build {spec path} to implement
-│
 └─────────────────────────────────────────────────
 ```
+
+Then **immediately** ask the user via AskUserQuestion:
+
+   Question: "Spec written to {spec file path}. Ready to build?"
+   Options:
+   - "Build now (Recommended)" — invoke `/build` with the spec file
+   - "Review first" — stop here so the user can review the spec before building
+   - "Done" — stop here, no build
+
+If the user selects **"Build now"**:
+1. Invoke `/build` using the Skill tool:
+   ```
+   Skill(skill: "build", args: "{spec file path}")
+   ```
+2. `/build` will read the spec file via Plan Resolution and execute the full
+   pipeline. **Do not** attempt to implement the spec yourself — always
+   delegate to `/build`.
+
+If the user selects **"Review first"** or **"Done"**, stop and display:
+```
+⚡ To build later, run: /build {spec file path}
+```
+
+**IMPORTANT:** After generating the spec, do NOT enter plan mode, do NOT
+start implementing directly, and do NOT offer to execute the plan yourself.
+The only path to implementation is through `/build`.
