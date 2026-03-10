@@ -384,10 +384,10 @@ Options:
      a concrete task with the suggested_action. Present the task list
      for user confirmation, then work through them.
 
-- "Create goals for future sessions"
-  → For each item, write a goal file to goals/ (if GOTCHA structure
-     exists) or append to CLAUDE.md as a "Known Issues" section.
-     Format: one goal per category grouping, not one per item.
+- "Create tasks for future sessions"
+  → For each item, create a persistent task via TaskCreate with the
+     suggested_action as the task description, or append to CLAUDE.md
+     as a "Known Issues" section. Group by category, not one per item.
 
 - "Note and continue"
   → Acknowledge items without formal tracking. Log to memory (if memory

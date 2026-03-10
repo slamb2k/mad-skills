@@ -1,7 +1,7 @@
 [
   {
     "name": "banner-and-tagline",
-    "prompt": "Initialize GOTCHA framework for this project",
+    "prompt": "Initialize this project with brace",
     "assertions": [
       { "type": "contains", "value": "██" },
       { "type": "regex", "value": "(Bracing the|Reinforcing before|Locking in the|Preparing for heavy|Cross-bracing|Tightening the load|Structural integrity|Brace for impact)" },
@@ -9,21 +9,20 @@
     ]
   },
   {
-    "name": "gotcha-framework",
-    "prompt": "Set up the GOTCHA structure in my project",
+    "name": "project-scaffold",
+    "prompt": "Set up the project scaffold with specs and context directories",
     "assertions": [
       { "type": "contains", "value": "██" },
-      { "type": "regex", "value": "GOTCHA", "flags": "i" },
-      { "type": "regex", "value": "(Goals|Orchestration|Tools|Context)", "flags": "i" },
-      { "type": "semantic", "value": "Describes the GOTCHA framework with its 6-layer structure: Goals, Orchestration, Tools, Context, Hard prompts, and Args" }
+      { "type": "regex", "value": "(specs|context|CLAUDE\\.md)", "flags": "i" },
+      { "type": "semantic", "value": "Describes creating a project scaffold with specs/, context/, and .tmp/ directories plus CLAUDE.md and .gitignore" }
     ]
   },
   {
     "name": "flag-handling",
-    "prompt": "Brace --no-brace this project directory",
+    "prompt": "Brace --force this project directory",
     "assertions": [
       { "type": "contains", "value": "██" },
-      { "type": "semantic", "value": "Acknowledges the --no-brace flag, indicating it will skip the BRACE build methodology while still creating the GOTCHA directory structure" }
+      { "type": "semantic", "value": "Acknowledges the --force flag, indicating it will overwrite existing files without prompting" }
     ]
   }
 ]

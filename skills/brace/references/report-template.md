@@ -13,21 +13,16 @@ Present this summary after verification completes.
 │  📍 Directory: {cwd}
 │
 │  📝 Structure
-│     {✅|⏭️} goals/         Goals layer
-│     {✅|⏭️} tools/         Tools layer
-│     {✅|⏭️} context/       Context layer
-│     {✅|⏭️} hardprompts/   Hard prompts layer
-│     {✅|⏭️} args/          Args layer
+│     {✅|⏭️} specs/         Specifications
+│     {✅|⏭️} context/       Domain knowledge
 │     {✅|⏭️} .tmp/          Temp directory
 │
 │  📄 Files
 │     {✅|⏭️} CLAUDE.md
 │     {✅|⏭️} .gitignore
-│     {✅|⏭️} goals/manifest.md
-│     {✅|⏭️} goals/build_app.md
-│     {✅|⏭️} tools/manifest.md
 │
-│  🗑️ Removed (only if legacy memory was cleaned up)
+│  🗑️ Removed (only if legacy items were cleaned up)
+│     {✅} goals/            Legacy goals directory
 │     {✅} tools/memory/     Legacy memory scripts
 │     {✅} memory/           Legacy memory directory
 │
@@ -37,8 +32,7 @@ Present this summary after verification completes.
 │  ⚡ Next steps
 │     1. Review CLAUDE.md and customise for your project
 │     2. Add domain knowledge to context/
-│     3. Define your first goal in goals/
-│     4. Start building with the BRACE methodology
+│     3. Run /speccy to design your first feature
 │
 └─────────────────────────────────────────────────
 ```

@@ -94,7 +94,7 @@ Before asking any questions, build a thorough understanding of the project:
    the manual scan below.
 3. **Scan the project** (skip items already loaded by /prime):
    - Read `CLAUDE.md` if present (project conventions, structure, domain)
-   - Read goal/spec manifests: `goals/manifest.md`, `spec/` directory
+   - Read spec directory: `specs/` for existing specifications
    - Scan existing specs and design docs for context
    - Read relevant source code that relates to the GOAL
    - Check memory for prior decisions or open questions related to the GOAL

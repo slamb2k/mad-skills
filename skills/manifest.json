@@ -1,12 +1,12 @@
 {
-  "generated": "2026-03-03T00:38:18.063Z",
-  "count": 7,
+  "generated": "2026-03-10T03:03:27.718Z",
+  "count": 10,
   "skills": [
     {
       "name": "brace",
       "directory": "brace",
-      "description": "> Initialize any project directory with the GOTCHA/BRACE framework for agentic AI systems. Creates the 6-layer structure (Goals, Orchestration, Tools, Context, Hard prompts, Args), BRACE build methodology, and a project CLAUDE.md. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: \"init gotcha\", \"setup brace\", \"brace\", \"initialize framework\", \"bootstrap gotcha\".",
-      "lines": 51,
+      "description": "'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project CLAUDE.md with development workflow and guardrails, .gitignore, and branch protection. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: \"init project\", \"setup brace\", \"brace\", \"initialize\", \"bootstrap\", \"scaffold\".'",
+      "lines": 328,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": true,
@@ -15,8 +15,8 @@
     {
       "name": "build",
       "directory": "build",
-      "description": "> Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.",
-      "lines": 48,
+      "description": "Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.",
+      "lines": 363,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": false,
@@ -25,18 +25,38 @@
     {
       "name": "distil",
       "directory": "distil",
-      "description": "> Generate multiple unique web design variations for any website or web application. Accepts site specifications from a file (--spec path) or pasted text block. Creates a Vite + React + TypeScript + Tailwind project with Bun and produces N different creative designs accessible at /1, /2, /3, etc. Use when prototyping or exploring design directions for any web interface.",
-      "lines": 38,
+      "description": "Generate multiple unique web design variations for any website or web application. Accepts site specifications from a file (--spec path) or pasted text block. Creates a Vite + React + TypeScript + Tailwind project with Bun and produces N different creative designs accessible at /1, /2, /3, etc. Use when prototyping or exploring design directions for any web interface.",
+      "lines": 332,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": true,
       "hasTests": true
     },
     {
+      "name": "dock",
+      "directory": "dock",
+      "description": ">- Generate container-based release pipelines that build once and promote immutable artifacts through environments (dev → staging → prod). Detects your stack, interviews for infrastructure choices, then outputs deterministic CI/CD files (Dockerfile, workflows, deployment manifests) that run without an LLM. Use when setting up deployment pipelines, containerizing an app, creating release workflows, or connecting CI to container-friendly infrastructure (Azure Container Apps, AWS Fargate, Google Cloud Run, Kubernetes, Dokku, Coolify, CapRover, etc.).",
+      "lines": 394,
+      "hasScripts": false,
+      "hasReferences": true,
+      "hasAssets": false,
+      "hasTests": true
+    },
+    {
+      "name": "keel",
+      "directory": "keel",
+      "description": ">- Generate Infrastructure as Code (IaC) pipelines that provision the cloud and container infrastructure your app deploys to. Interview-driven: detects your stack and cloud provider, then outputs deterministic IaC files (Terraform, Bicep, Pulumi, or CDK) plus CI/CD pipelines that plan on PR and apply on merge. Use when setting up cloud infrastructure, provisioning container registries, databases, networking, DNS, or any infrastructure that containers deploy onto. Designed to run before /dock — /keel lays the infrastructure, /dock deploys to it.",
+      "lines": 496,
+      "hasScripts": false,
+      "hasReferences": true,
+      "hasAssets": false,
+      "hasTests": true
+    },
+    {
       "name": "prime",
       "directory": "prime",
-      "description": "> Load project context before implementing features or making architectural decisions. Invoke proactively when starting significant work on DexAI. Supports domain-specific context loading: security (vault, RBAC, audit), routing (OpenRouter, model selection), adhd (design principles, RSD-safe), dashboard (frontend, backend, API), office (OAuth, email, calendar), memory (context capture, commitments), tasks (decomposition, friction-solving), channels (Telegram, Discord, Slack).",
-      "lines": 39,
+      "description": "\"Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans CLAUDE.md, README, goals/, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding.\"",
+      "lines": 148,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": false,
@@ -45,8 +65,8 @@
     {
       "name": "rig",
       "directory": "rig",
-      "description": "> Idempotently bootstrap any repository with standard development tools, hooks, and workflows. Use when starting work on a new repo, onboarding to an existing project, or ensuring a repo has proper CI/CD setup. Configures: git hooks (lefthook), commit message templates, PR templates, and GitHub Actions for lint/format/type-check/build. Prompts for user confirmation before changes. Triggers: \"bootstrap repo\", \"setup hooks\", \"configure CI\", \"rig\", \"standardize repo\".",
-      "lines": 38,
+      "description": "'Idempotently bootstrap any repository with standard development tools, hooks, and workflows. Use when starting work on a new repo, onboarding to an existing project, or ensuring a repo has proper CI/CD setup. Configures: git hooks (lefthook), commit message templates, PR templates, and GitHub Actions for lint/format/type-check/build. Prompts for user confirmation before changes. Triggers: \"bootstrap repo\", \"setup hooks\", \"configure CI\", \"rig\", \"standardize repo\".'",
+      "lines": 231,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": true,
@@ -55,8 +75,18 @@
     {
       "name": "ship",
       "directory": "ship",
-      "description": "> Ship changes through the full PR lifecycle. Use after completing feature work to commit, push, create PR, wait for checks, and merge. Handles the entire workflow: syncs with main, creates feature branch if needed, groups commits logically with semantic messages, creates detailed PR, monitors CI, fixes issues, squash merges, and cleans up. Invoke when work is ready to ship.",
-      "lines": 55,
+      "description": "\"Ship changes through the full PR lifecycle. Use after completing feature work to commit, push, create PR, wait for checks, and merge. Handles the entire workflow: syncs with main, creates feature branch if needed, groups commits logically with semantic messages, creates detailed PR, monitors CI, fixes issues, squash merges, and cleans up. Invoke when work is ready to ship.\"",
+      "lines": 262,
+      "hasScripts": false,
+      "hasReferences": true,
+      "hasAssets": false,
+      "hasTests": true
+    },
+    {
+      "name": "speccy",
+      "directory": "speccy",
+      "description": "Deep-dive interview skill for creating comprehensive specifications. Reviews existing code and docs, then interviews the user through multiple rounds of targeted questions covering technical implementation, UI/UX, concerns, and tradeoffs. Produces a structured spec via create-specification. Use when starting a new feature, system, or major change that needs a spec.",
+      "lines": 210,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": false,
@@ -65,8 +95,8 @@
     {
       "name": "sync",
       "directory": "sync",
-      "description": "> Sync local repository with origin/main. Use before starting new work, after completing a PR, or when needing latest upstream changes. Safely stashes uncommitted changes, fetches and pulls origin/main, restores stash, and cleans up stale local branches (merged or with deleted remotes). Invoke when switching contexts or preparing for new feature work.",
-      "lines": 54,
+      "description": "Sync local repository with origin/main. Use before starting new work, after completing a PR, or when needing latest upstream changes. Safely stashes uncommitted changes, fetches and pulls origin/main, restores stash, and cleans up stale local branches (merged or with deleted remotes). Invoke when switching contexts or preparing for new feature work.",
+      "lines": 244,
       "hasScripts": false,
       "hasReferences": false,
       "hasAssets": false,

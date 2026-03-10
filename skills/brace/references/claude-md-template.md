@@ -16,45 +16,26 @@ BEGIN TEMPLATE
 
 {PROJECT_DESCRIPTION}
 
-## Operating Framework: GOTCHA
-
-This project uses the **GOTCHA Framework** — a 6-layer architecture for
-agentic AI systems. LLMs handle reasoning; deterministic tools handle execution.
-
-**GOT** (The Engine):
-- **Goals** (`goals/`) — Process definitions. Check `goals/manifest.md` first.
-- **Orchestration** — You (the AI). Read goals, delegate to tools, handle errors.
-- **Tools** (`tools/`) — Python scripts. Check `tools/manifest.md` first.
-
-**CHA** (The Context):
-- **Context** (`context/`) — Domain knowledge, reference material
-- **Hard Prompts** (`hardprompts/`) — Reusable instruction templates
-- **Args** (`args/`) — Behaviour settings (YAML/JSON)
-
-### Operating Rules
-
-1. **Check goals first** — Before any task, read `goals/manifest.md`
-2. **Check tools first** — Before writing code, read `tools/manifest.md`
-3. **Fix and document** — When tools fail, fix them and update the goal
-4. **Never modify goals without permission** — Goals are living documentation
-5. **Communicate when stuck** — Explain what is missing, do not guess
-
-## Directory Structure
+## Project Structure
 
 ```
 {PROJECT_NAME}/
 ├── CLAUDE.md           This file
 ├── .gitignore          Ignores credentials, data, temp files
-├── goals/              Process definitions
-│   ├── manifest.md     Index of all goals
-│   └── build_app.md    BRACE build methodology
-├── tools/              Deterministic scripts
-│   └── manifest.md     Index of all tools
+├── specs/              Specifications (/speccy output, /build input)
 ├── context/            Domain knowledge and references
-├── hardprompts/        Reusable LLM instruction templates
-├── args/               Behaviour settings (YAML/JSON)
 └── .tmp/               Scratch work (gitignored)
 ```
+
+## Development Workflow
+
+```
+/speccy → specs/{name}.md → /build specs/{name}.md → /ship
+```
+
+- `/speccy` interviews and writes a structured spec to `specs/`
+- `/build` reads the spec, explores, designs, implements, reviews, tests
+- `/ship` commits, creates PR, waits for CI, merges
 
 ## Memory
 
@@ -68,24 +49,17 @@ MCP tools for search, timeline, and observation management. Claude Code's
 built-in auto memory (`~/.claude/projects/<project>/memory/MEMORY.md`)
 handles curated facts.
 
-## Build Methodology: BRACE
-
-See `goals/build_app.md` for the full workflow:
-- **B**rief — Define problem, users, success metrics
-- **R**esearch — Data schema, integrations, stack proposal
-- **A**rchitect — Design structure, validate all connections
-- **C**onstruct — Build DB first, then API, then UI
-- **E**valuate — Functional, integration, edge case, acceptance testing
-
 {UNIVERSAL_PRINCIPLES}
 
 ## Guardrails
 
-- Always check manifests before creating new goals or tools
 - Verify tool output format before chaining into another tool
 - Do not assume APIs support batch operations — check first
 - Preserve intermediate outputs when workflows fail mid-execution
-- Read the full goal before starting — do not skim
+- Use persistent tasks (`TaskCreate`/`TaskUpdate`) for cross-session tracking
 - Temporary files go in `.tmp/` — never store important data there
+- Don't build before designing — rewrites everything
+- Don't skip connection validation — hours wasted on broken integrations
+- Don't skip data modelling — schema changes cascade into UI rewrites
 
 END TEMPLATE

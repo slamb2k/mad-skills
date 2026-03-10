@@ -23,3 +23,25 @@ Thumbs.db
 
 # Branch protection config (used only for setup)
 .github/branch-protection.json
+
+# Credentials & secrets
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+token.json
+
+# Data & databases
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Temp & scratch
+.tmp/
+
+# Python
+__pycache__/
+*.pyc
+.venv/

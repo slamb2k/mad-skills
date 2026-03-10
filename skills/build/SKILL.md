@@ -303,13 +303,13 @@ Invoke the `/ship` skill:
    Options:
    - **"Fix now"** → create a task list of resolution activities for
      each item; present for user confirmation, then work through them
-   - **"Create goals for future sessions"** → write goal files to `goals/`
-     (if GOTCHA structure exists) or append to CLAUDE.md as Known Issues
+   - **"Create tasks for future sessions"** → create persistent tasks via
+     `TaskCreate` for each item, or append to CLAUDE.md as Known Issues
    - **"Note and continue"** → acknowledge items without formal tracking;
      log to memory (if exists) or as source file comments. No further action.
    - **"Let me choose per item"** → present each individually with full
      description, evidence, and impact. Options per item:
-     "Fix now" / "Add to goals" / "Explain more" / "Note and continue".
+     "Fix now" / "Create task" / "Explain more" / "Note and continue".
      "Explain more" reads source files cited in evidence, provides
      expanded context, then re-presents the item for decision.
 
