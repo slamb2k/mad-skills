@@ -2,7 +2,7 @@
 name: build
 description: Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.
 argument-hint: <plan text or spec file path> [--skip-questions] [--skip-review] [--no-ship] [--parallel-impl]
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion, TaskCreate, TaskUpdate, TaskGet, TaskList
 ---
 
 # Build - Context-Isolated Feature Development
@@ -107,12 +107,10 @@ For each row, in order:
    manually scanning CLAUDE.md and goals/ directory.
 3. Detect project type using `references/project-detection.md` to populate
    **PROJECT_CONFIG** (language, test_runner, test_setup)
-3. Check for outstanding questions from previous work:
+3. Check for outstanding items from previous work:
+   - Query persistent tasks via `TaskList` for incomplete items
    - Search CLAUDE.md for a "Known Issues" or "Open Questions" section
-   - Search `goals/` for files containing "open_question" or "unresolved"
-   - Search memory (if available) for recent items of type "task" or
-     "open_question" that are unresolved
-   - Check for `DEBRIEF_ITEMS` in any recent build logs
+   - Search memory (if available) for recent unresolved items
 4. If outstanding items found, present via AskUserQuestion:
    ```
    "Found {count} outstanding items from previous work:"
@@ -319,8 +317,9 @@ Invoke the `/ship` skill:
    Options:
    - **"Fix now"** → create a task list of resolution activities for
      each item; present for user confirmation, then work through them
-   - **"Create tasks for future sessions"** → create persistent tasks via
-     `TaskCreate` for each item, or append to CLAUDE.md as Known Issues
+   - **"Create tasks for future sessions"** → use `TaskCreate` for each
+     item as a persistent task, with category as prefix and suggested
+     action as description
    - **"Note and continue"** → acknowledge items without formal tracking;
      log to memory (if exists) or as source file comments. No further action.
    - **"Let me choose per item"** → present each individually with full
@@ -353,7 +352,7 @@ Invoke the `/ship` skill:
 │     Findings addressed: {count fixed} / {count found}
 │
 │  📊 Debrief: {count resolved} / {count surfaced}
-│     {list of created goals/tasks}
+│     {list of created tasks}
 │
 │  🔗 Links
 │     PR:  {pr_url}
