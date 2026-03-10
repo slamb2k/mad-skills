@@ -178,9 +178,6 @@ mad-skills/
 │   └── start-right/         # Archived skill
 ├── assets/                  # Project-level static assets
 │   └── mad-skills.png       # Logo/branding
-├── specs/                   # Specifications (/speccy → /build handoff)
-├── context/                 # Domain knowledge
-├── .tmp/                    # Scratch work (gitignored)
 ├── .claude-plugin/          # Plugin metadata
 │   ├── marketplace.json
 │   └── plugin.json
@@ -232,8 +229,7 @@ commit messages). Always include a fallback to a generic agent type.
 
 **ci.yml** — Unified CI and release workflow:
 - **On pull requests:** validate + lint, then evals (with API key guard)
-- **On push to main (non-release):** validates, bumps patch version, creates auto-merge PR
-- **On push to main (release):** creates tag, publishes to npm, builds `.skill` packages, creates GitHub Release
+- **On push to main:** validates, bumps patch version, commits + tags, publishes to npm, builds `.skill` packages, creates GitHub Release
 
 ### Adding New Skills
 

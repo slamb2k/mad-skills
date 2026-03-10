@@ -23,7 +23,7 @@ const { join } = require('path');
 const config = require('./lib/config.cjs');
 const state = require('./lib/state.cjs');
 const { OutputBuilder } = require('./lib/output.cjs');
-const { getBanner, BANNER_MARKER } = require('./lib/banner.cjs');
+const { getBanner } = require('./lib/banner.cjs');
 const { checkGit } = require('./lib/git-checks.cjs');
 const { checkTaskList } = require('./lib/task-checks.cjs');
 const { checkStaleness } = require('./lib/staleness.cjs');
@@ -174,7 +174,7 @@ function checkBrace(projectDir, output) {
   output.add('[SESSION GUARD] \u2139\uFE0F  CLAUDE.md exists but no project scaffold detected.');
   output.add('[SESSION GUARD] BRACE_DISMISS: If the user selects "Don\'t ask again", run: node <path-to-session-guard.cjs> dismiss-brace');
   output.addQuestion(
-    'This project has a CLAUDE.md but no project scaffold (specs/, tools/, context/). Want to set it up?',
+    'This project has a CLAUDE.md but no project scaffold (specs/, context/). Want to set it up?',
     'single_select',
     [
       '"Set up with /brace" \u2014 add project scaffold structure',
