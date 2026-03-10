@@ -1,6 +1,6 @@
 ---
 name: prime
-description: "Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans CLAUDE.md, README, goals/, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding."
+description: "Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans CLAUDE.md, README, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding."
 argument-hint: "[domain hints: comma-separated directory or topic names to focus on]"
 allowed-tools: Read, Glob, Grep, LS, Agent
 ---
@@ -66,7 +66,7 @@ subagent — the primary thread only sees a structured PRIME_REPORT.
 
 Extract domain hints from the request (comma-separated). These are directory
 names or topic keywords to focus the context scan on. If no domain specified,
-load core context only (CLAUDE.md, README, goals/, specs/).
+load core context only (CLAUDE.md, README, specs/).
 
 ## Step 2: Load Context via Subagent
 
@@ -92,7 +92,7 @@ Limit PRIME_REPORT to 30 lines maximum.
 
 1. CLAUDE.md — Project conventions, architecture, instructions
 2. README.md — Project overview, setup, usage
-3. goals/ or specs/ — Project goals, specs, roadmap (scan directory if present)
+3. specs/ — Project specifications and roadmap (scan directory if present)
 4. docs/ — Documentation directory (scan if present)
 
 If a file is missing, record as NOT FOUND and continue.

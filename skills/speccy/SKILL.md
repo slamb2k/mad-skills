@@ -90,12 +90,12 @@ Before asking any questions, build a thorough understanding of the project:
 
 1. **Capture GOAL** — the user's argument describing what needs to be specified
 2. **Load project context** — invoke `/prime` to load domain-specific context
-   (CLAUDE.md, goals, specs, memory). If /prime is unavailable, fall back to
+   (CLAUDE.md, specs, memory). If /prime is unavailable, fall back to
    the manual scan below.
 3. **Scan the project** (skip items already loaded by /prime):
    - Read `CLAUDE.md` if present (project conventions, structure, domain)
-   - Read spec directory: `specs/` for existing specifications
-   - Scan existing specs and design docs for context
+   - Scan `specs/` directory for existing specifications
+   - Scan existing design docs for context
    - Read relevant source code that relates to the GOAL
    - Check memory for prior decisions or open questions related to the GOAL
 3. **Identify knowledge gaps** — what must you learn from the user to write

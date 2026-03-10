@@ -103,8 +103,8 @@ For each row, in order:
 
 1. Capture **PLAN** (the user's argument) and **FLAGS**
 2. **Load project context** — invoke `/prime` to load domain-specific context
-   (CLAUDE.md, goals, specs, memory). If /prime is unavailable, fall back to
-   manually scanning CLAUDE.md and goals/ directory.
+   (CLAUDE.md, specs, memory). If /prime is unavailable, fall back to
+   manually scanning CLAUDE.md and specs/ directory.
 3. Detect project type using `references/project-detection.md` to populate
    **PROJECT_CONFIG** (language, test_runner, test_setup)
 3. Check for outstanding items from previous work:
@@ -132,7 +132,7 @@ Before Stage 1, resolve the PLAN argument into content:
 1. **File detection** — If the argument contains `/` or ends with
    `.md`, `.yaml`, `.json`, or `.txt`, treat it as a file path:
    - Try reading the path as-is
-   - If not found, try `specs/{arg}` then `goals/{arg}`
+   - If not found, try `specs/{arg}`
    - If found, use file content as PLAN
    - If not found at any location, treat the original argument as free-form text
 2. **Free-form text** — If not a file path (or file not found), use the argument
