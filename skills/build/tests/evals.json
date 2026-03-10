@@ -18,6 +18,14 @@
     ]
   },
   {
+    "name": "file-path-detection",
+    "prompt": "Build specs/user-auth.md",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "semantic", "value": "Detects that the argument is a file path (contains / or ends with .md) and attempts to read it as a spec file rather than treating it as literal plan text. Shows the resolved file path in the Input display." }
+    ]
+  },
+  {
     "name": "flag-handling",
     "prompt": "Build --skip-questions --no-ship: Refactor the auth module to use middleware pattern",
     "assertions": [

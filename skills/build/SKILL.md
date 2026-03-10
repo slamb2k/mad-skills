@@ -1,7 +1,7 @@
 ---
 name: build
 description: Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.
-argument-hint: <detailed design/plan to implement> [--skip-questions] [--skip-review] [--no-ship] [--parallel-impl]
+argument-hint: <plan text or spec file path> [--skip-questions] [--skip-review] [--no-ship] [--parallel-impl]
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ---
 
@@ -125,7 +125,23 @@ For each row, in order:
      Items marked "incorporate" get appended to the PLAN as additional
      requirements for Stage 1 to explore.
    - **"No, proceed with the build"** → continue normally
-5. Create a task list tracking all stages
+---
+
+## Plan Resolution
+
+Before Stage 1, resolve the PLAN argument into content:
+
+1. **File detection** — If the argument contains `/` or ends with
+   `.md`, `.yaml`, `.json`, or `.txt`, treat it as a file path:
+   - Try reading the path as-is
+   - If not found, try `specs/{arg}` then `goals/{arg}`
+   - If found, use file content as PLAN
+   - If not found at any location, treat the original argument as free-form text
+2. **Free-form text** — If not a file path (or file not found), use the argument
+   verbatim as PLAN
+3. **Display** — In the Input box, show the resolved source:
+   - File: `Plan: {file path} ({line count} lines)`
+   - Text: `Plan: inline ({word count} words)`
 
 ---
 
