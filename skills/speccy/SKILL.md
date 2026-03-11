@@ -90,12 +90,12 @@ Before asking any questions, build a thorough understanding of the project:
 
 1. **Capture GOAL** — the user's argument describing what needs to be specified
 2. **Load project context** — invoke `/prime` to load domain-specific context
-   (CLAUDE.md, goals, specs, memory). If /prime is unavailable, fall back to
+   (CLAUDE.md, specs, memory). If /prime is unavailable, fall back to
    the manual scan below.
 3. **Scan the project** (skip items already loaded by /prime):
    - Read `CLAUDE.md` if present (project conventions, structure, domain)
-   - Read spec directory: `specs/` for existing specifications
-   - Scan existing specs and design docs for context
+   - Scan `specs/` directory for existing specifications
+   - Scan existing design docs for context
    - Read relevant source code that relates to the GOAL
    - Check memory for prior decisions or open questions related to the GOAL
 3. **Identify knowledge gaps** — what must you learn from the user to write
@@ -163,19 +163,28 @@ proceeding to spec generation.
 
 Once the interview is complete and decisions are confirmed:
 
-1. **Invoke the `create-specification` skill** using the Skill tool:
+1. **Create `specs/` directory** if it doesn't exist:
+   ```
+   mkdir -p specs
+   ```
+
+2. **Invoke the `create-specification` skill** using the Skill tool:
    ```
    Skill(skill: "create-specification")
    ```
 
-2. **Provide the full context** to the skill as input:
+3. **Provide the full context** to the skill as input:
    - The original GOAL
    - All decisions from the interview rounds
    - Any relevant code/architecture context discovered in Stage 1
    - The spec purpose should match the GOAL description
+   - **Instruct the skill to save the spec to `specs/{name}.md`** where
+     `{name}` is a kebab-case slug derived from the GOAL (e.g.,
+     `specs/user-auth.md`, `specs/payment-integration.md`)
 
-3. The `create-specification` skill will handle formatting, naming, and
-   saving the spec file according to its own template and conventions.
+4. The `create-specification` skill will handle formatting and template
+   structure. The `specs/` directory is the standard location — `/build`
+   and `/prime` both scan it automatically.
 
 ---
 
@@ -200,6 +209,10 @@ After the spec is created, report to the user:
 │
 │  🔗 Links
 │     Spec: {spec file path}
+│
+│  ⚡ Next steps
+│     1. Review the spec: {path}
+│     2. Run `/build {spec path}` to implement (reads the file automatically)
 │
 └─────────────────────────────────────────────────
 ```

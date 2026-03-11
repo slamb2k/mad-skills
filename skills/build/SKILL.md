@@ -1,8 +1,8 @@
 ---
 name: build
 description: Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.
-argument-hint: <detailed design/plan to implement> [--skip-questions] [--skip-review] [--no-ship] [--parallel-impl]
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
+argument-hint: <plan text or spec file path> [--skip-questions] [--skip-review] [--no-ship] [--parallel-impl]
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion, TaskCreate, TaskUpdate, TaskGet, TaskList
 ---
 
 # Build - Context-Isolated Feature Development
@@ -103,16 +103,14 @@ For each row, in order:
 
 1. Capture **PLAN** (the user's argument) and **FLAGS**
 2. **Load project context** — invoke `/prime` to load domain-specific context
-   (CLAUDE.md, goals, specs, memory). If /prime is unavailable, fall back to
-   manually scanning CLAUDE.md and goals/ directory.
+   (CLAUDE.md, specs, memory). If /prime is unavailable, fall back to
+   manually scanning CLAUDE.md and specs/ directory.
 3. Detect project type using `references/project-detection.md` to populate
    **PROJECT_CONFIG** (language, test_runner, test_setup)
-3. Check for outstanding questions from previous work:
+3. Check for outstanding items from previous work:
+   - Query persistent tasks via `TaskList` for incomplete items
    - Search CLAUDE.md for a "Known Issues" or "Open Questions" section
-   - Search `goals/` for files containing "open_question" or "unresolved"
-   - Search memory (if available) for recent items of type "task" or
-     "open_question" that are unresolved
-   - Check for `DEBRIEF_ITEMS` in any recent build logs
+   - Search memory (if available) for recent unresolved items
 4. If outstanding items found, present via AskUserQuestion:
    ```
    "Found {count} outstanding items from previous work:"
@@ -125,7 +123,23 @@ For each row, in order:
      Items marked "incorporate" get appended to the PLAN as additional
      requirements for Stage 1 to explore.
    - **"No, proceed with the build"** → continue normally
-5. Create a task list tracking all stages
+---
+
+## Plan Resolution
+
+Before Stage 1, resolve the PLAN argument into content:
+
+1. **File detection** — If the argument contains `/` or ends with
+   `.md`, `.yaml`, `.json`, or `.txt`, treat it as a file path:
+   - Try reading the path as-is
+   - If not found, try `specs/{arg}`
+   - If found, use file content as PLAN
+   - If not found at any location, treat the original argument as free-form text
+2. **Free-form text** — If not a file path (or file not found), use the argument
+   verbatim as PLAN
+3. **Display** — In the Input box, show the resolved source:
+   - File: `Plan: {file path} ({line count} lines)`
+   - Text: `Plan: inline ({word count} words)`
 
 ---
 
@@ -303,8 +317,9 @@ Invoke the `/ship` skill:
    Options:
    - **"Fix now"** → create a task list of resolution activities for
      each item; present for user confirmation, then work through them
-   - **"Create tasks for future sessions"** → create persistent tasks via
-     `TaskCreate` for each item, or append to CLAUDE.md as Known Issues
+   - **"Create tasks for future sessions"** → use `TaskCreate` for each
+     item as a persistent task, with category as prefix and suggested
+     action as description
    - **"Note and continue"** → acknowledge items without formal tracking;
      log to memory (if exists) or as source file comments. No further action.
    - **"Let me choose per item"** → present each individually with full
@@ -337,7 +352,7 @@ Invoke the `/ship` skill:
 │     Findings addressed: {count fixed} / {count found}
 │
 │  📊 Debrief: {count resolved} / {count surfaced}
-│     {list of created goals/tasks}
+│     {list of created tasks}
 │
 │  🔗 Links
 │     PR:  {pr_url}

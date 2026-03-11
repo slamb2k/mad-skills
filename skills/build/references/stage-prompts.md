@@ -385,9 +385,10 @@ Options:
      for user confirmation, then work through them.
 
 - "Create tasks for future sessions"
-  → For each item, create a persistent task via TaskCreate with the
-     suggested_action as the task description, or append to CLAUDE.md
-     as a "Known Issues" section. Group by category, not one per item.
+  → For each item, use TaskCreate to create a persistent task with:
+     title: "[{category}] {summary}"
+     description: "{description}\n\nEvidence: {evidence}\nSuggested action: {suggested_action}"
+     Format: one task per item for granular tracking.
 
 - "Note and continue"
   → Acknowledge items without formal tracking. Log to memory (if memory
@@ -398,8 +399,9 @@ Options:
   → Present each item individually via AskUserQuestion. Show the full
      `description`, `evidence`, and `impact` fields so the user has
      enough context to decide. Options per item:
-     "Fix now" / "Add to goals" / "Explain more" / "Note and continue"
+     "Fix now" / "Create task" / "Explain more" / "Note and continue"
      - "Fix now": launch a general-purpose subagent to resolve
+     - "Create task": use TaskCreate to persist for future sessions
      - "Explain more": read the relevant source files/reports cited in
        `evidence`, summarise the context, then re-present the same item
        with the expanded explanation
