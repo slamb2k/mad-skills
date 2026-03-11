@@ -89,7 +89,7 @@ Before starting, check dependencies:
 |-----------|------|-------|----------|------------|--------|
 | docker | cli | `docker --version` | no | ask | Needed for local build verification; skip verify phase if absent |
 | git | cli | `git --version` | yes | stop | Install from https://git-scm.com |
-| sync | skill | `.claude/skills/sync/SKILL.md` | no | fallback | Repo sync; falls back to manual git pull |
+| sync | skill | `~/.claude/skills/sync/SKILL.md` or `~/.claude/plugins/marketplaces/slamb2k/skills/sync/SKILL.md` | no | fallback | Repo sync; falls back to manual git pull |
 
 For each row:
 1. Run the Check command

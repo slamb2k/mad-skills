@@ -84,8 +84,8 @@ Before starting, check all dependencies in this table:
 
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
-| ship | skill | `.claude/skills/ship/SKILL.md` | yes | stop | Install with: npx skills add slamb2k/mad-skills --skill ship |
-| prime | skill | `.claude/skills/prime/SKILL.md` | no | fallback | Context loading; falls back to manual CLAUDE.md/goals scan |
+| ship | skill | `~/.claude/skills/ship/SKILL.md` or `~/.claude/plugins/marketplaces/slamb2k/skills/ship/SKILL.md` | yes | stop | Install with: npx skills add slamb2k/mad-skills --skill ship |
+| prime | skill | `~/.claude/skills/prime/SKILL.md` or `~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md` | no | fallback | Context loading; falls back to manual CLAUDE.md/goals scan |
 | feature-dev:code-explorer | agent | — | no | fallback | Uses general-purpose agent |
 | feature-dev:code-architect | agent | — | no | fallback | Uses general-purpose agent |
 | feature-dev:code-reviewer | agent | — | no | fallback | Uses general-purpose agent |
