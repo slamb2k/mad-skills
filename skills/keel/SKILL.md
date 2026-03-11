@@ -75,7 +75,7 @@ Before starting, check dependencies:
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | git | cli | `git --version` | yes | stop | Install from https://git-scm.com |
-| sync | skill | `.claude/skills/sync/SKILL.md` | no | fallback | Repo sync; falls back to manual git pull |
+| sync | skill | `~/.claude/skills/sync/SKILL.md` or `~/.claude/plugins/marketplaces/slamb2k/skills/sync/SKILL.md` | no | fallback | Repo sync; falls back to manual git pull |
 | terraform | cli | `terraform --version` | no | fallback | Detected if user wants Terraform; suggest install from https://terraform.io |
 | az | cli | `az --version` | no | fallback | Needed for Bicep; suggest install from https://aka.ms/install-azure-cli |
 | pulumi | cli | `pulumi version` | no | fallback | Detected if user wants Pulumi; suggest install from https://pulumi.com |

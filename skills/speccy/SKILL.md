@@ -72,7 +72,7 @@ Before starting, check all dependencies in this table:
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | create-specification | skill | `~/.claude/skills/create-specification/SKILL.md` or `~/.agents/skills/create-specification/SKILL.md` | yes | ask | This skill is needed to format the final spec. Install with: `npx skills add slamb2k/mad-skills --skill create-specification` |
-| prime | skill | `.claude/skills/prime/SKILL.md` | no | fallback | Context loading; falls back to manual project scan |
+| prime | skill | `~/.claude/skills/prime/SKILL.md` or `~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md` | no | fallback | Context loading; falls back to manual project scan |
 
 For each row, in order:
 1. Test file existence (check both paths for symlinked skills)

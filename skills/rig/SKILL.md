@@ -75,7 +75,7 @@ Before starting, check all dependencies in this table:
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | git | cli | `git --version` | yes | stop | Install from https://git-scm.com |
-| sync | skill | `.claude/skills/sync/SKILL.md` | no | fallback | Repo sync; falls back to manual git pull |
+| sync | skill | `~/.claude/skills/sync/SKILL.md` or `~/.claude/plugins/marketplaces/slamb2k/skills/sync/SKILL.md` | no | fallback | Repo sync; falls back to manual git pull |
 | lefthook | npm | `npx lefthook --help` | yes | install | `npm install -g lefthook` |
 | gh | cli | `gh --version` | yes | url | https://cli.github.com |
 

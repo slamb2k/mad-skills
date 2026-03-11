@@ -129,7 +129,7 @@ Task(
   subagent_type: "Bash",
   model: "haiku",
   description: "Sync with default branch",
-  prompt: "Follow ~/.claude/skills/sync/SKILL.md subagent prompt. Return SYNC_REPORT."
+  prompt: "Follow ~/.claude/skills/sync/SKILL.md or ~/.claude/plugins/marketplaces/slamb2k/skills/sync/SKILL.md subagent prompt. Return SYNC_REPORT."
 )
 ```
 
