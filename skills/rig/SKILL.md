@@ -68,9 +68,31 @@ get approval, then act.
 
 ---
 
+## Platform Detection
+
+Detect the hosting platform **before** pre-flight so dependency checks are
+platform-specific:
+
+```bash
+REMOTE_URL=$(git remote get-url origin 2>/dev/null)
+if echo "$REMOTE_URL" | grep -qiE 'dev\.azure\.com|visualstudio\.com'; then
+  PLATFORM="azdo"
+elif echo "$REMOTE_URL" | grep -qi 'github\.com'; then
+  PLATFORM="github"
+else
+  PLATFORM="github"   # default fallback
+fi
+```
+
+Pass `{PLATFORM}` into all phase prompts. Each phase uses the appropriate
+CLI tool: `gh` for GitHub, `az repos`/`az pipelines` for Azure DevOps.
+
+---
+
 ## Pre-flight
 
-Before starting, check all dependencies in this table:
+Before starting, check all dependencies in this table. The table contains
+**all** dependencies — some are platform-conditional (see notes after table).
 
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
@@ -78,17 +100,102 @@ Before starting, check all dependencies in this table:
 | sync | skill | `~/.claude/skills/sync/SKILL.md` or `~/.claude/plugins/marketplaces/slamb2k/skills/sync/SKILL.md` | no | fallback | Repo sync; falls back to manual git pull |
 | lefthook | npm | `npx lefthook --help` | yes | install | `npm install -g lefthook` |
 | gh | cli | `gh --version` | yes | url | https://cli.github.com |
+| az devops | cli | `az devops -h 2>/dev/null` | no | fallback | Falls back to REST API with PAT; see AzDO tooling below |
 
-For each row, in order:
-1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
-2. If found: continue silently
-3. If missing: apply Resolution strategy
+**Platform-conditional rules:**
+- **`gh`**: Only required when `PLATFORM == github`. Skip for AzDO repos.
+- **`az devops`**: Only checked when `PLATFORM == azdo`. Skip for GitHub repos.
+
+For each applicable row, in order:
+1. Skip rows that don't apply to the detected `{PLATFORM}`
+2. Run the Check command (for cli/npm) or test file existence (for agent/skill)
+3. If found: continue silently
+4. If missing: apply Resolution strategy
    - **stop**: notify user with Detail, halt execution
    - **url**: notify user with Detail (install link), halt execution
    - **install**: notify user, run the command in Detail, continue if successful
    - **ask**: notify user, offer to run command in Detail, continue either way (or halt if required)
    - **fallback**: notify user with Detail, continue with degraded behavior
-4. After all checks: summarize what's available and what's degraded
+5. After all checks: summarize what's available and what's degraded
+
+### AzDO Tooling Detection
+
+When `PLATFORM == azdo`, determine which tooling is available. Set `AZDO_MODE`
+for use in all subsequent phases:
+
+```bash
+if az devops -h &>/dev/null; then
+  AZDO_MODE="cli"
+else
+  AZDO_MODE="rest"
+fi
+```
+
+- **`cli`**: Use `az repos` / `az pipelines` commands (preferred)
+- **`rest`**: Use Azure DevOps REST API via `curl`. Requires a PAT (personal
+  access token) in `AZURE_DEVOPS_EXT_PAT` or `AZDO_PAT` env var. If no PAT
+  is found, prompt the user to either install the CLI or set the env var.
+
+Report in pre-flight:
+- ✅ `az devops cli` — version found
+- ⚠️ `az devops cli` — not found → using REST API fallback
+- ❌ `az devops cli` — not found, no PAT configured → halt with setup instructions
+
+### AzDO Configuration Validation
+
+When `PLATFORM == azdo`, extract organization and project from the remote URL
+and validate they are usable. These values are needed by every `az repos` /
+`az pipelines` command and every REST API call.
+
+```bash
+# Extract org and project from remote URL patterns:
+#   https://dev.azure.com/{ORG}/{PROJECT}/_git/{REPO}
+#   https://{ORG}@dev.azure.com/{ORG}/{PROJECT}/_git/{REPO}
+#   {ORG}@vs-ssh.visualstudio.com:v3/{ORG}/{PROJECT}/{REPO}
+
+REMOTE_URL=$(git remote get-url origin 2>/dev/null)
+
+if echo "$REMOTE_URL" | grep -q 'dev\.azure\.com'; then
+  AZDO_ORG=$(echo "$REMOTE_URL" | sed -n 's|.*dev\.azure\.com/\([^/]*\)/.*|\1|p')
+  AZDO_PROJECT=$(echo "$REMOTE_URL" | sed -n 's|.*dev\.azure\.com/[^/]*/\([^/]*\)/.*|\1|p')
+  AZDO_ORG_URL="https://dev.azure.com/$AZDO_ORG"
+elif echo "$REMOTE_URL" | grep -q 'vs-ssh\.visualstudio\.com'; then
+  AZDO_ORG=$(echo "$REMOTE_URL" | sed -n 's|.*vs-ssh\.visualstudio\.com:v3/\([^/]*\)/.*|\1|p')
+  AZDO_PROJECT=$(echo "$REMOTE_URL" | sed -n 's|.*vs-ssh\.visualstudio\.com:v3/[^/]*/\([^/]*\)/.*|\1|p')
+  AZDO_ORG_URL="https://dev.azure.com/$AZDO_ORG"
+elif echo "$REMOTE_URL" | grep -q 'visualstudio\.com'; then
+  AZDO_ORG=$(echo "$REMOTE_URL" | sed -n 's|.*//\([^.]*\)\.visualstudio\.com.*|\1|p')
+  AZDO_PROJECT=$(echo "$REMOTE_URL" | sed -n 's|.*/\([^/]*\)/_git/.*|\1|p')
+  AZDO_ORG_URL="https://dev.azure.com/$AZDO_ORG"
+fi
+
+if [ -z "$AZDO_ORG" ] || [ -z "$AZDO_PROJECT" ]; then
+  echo "❌ Could not extract organization/project from remote URL"
+  echo "   Remote: $REMOTE_URL"
+  echo ""
+  echo "Ensure the remote URL follows one of these formats:"
+  echo "  https://dev.azure.com/{ORG}/{PROJECT}/_git/{REPO}"
+  echo "  https://{ORG}.visualstudio.com/{PROJECT}/_git/{REPO}"
+  echo "  {ORG}@vs-ssh.visualstudio.com:v3/{ORG}/{PROJECT}/{REPO}"
+  # HALT — cannot proceed without org/project context
+fi
+```
+
+When `AZDO_MODE == cli`, also configure the defaults so commands work correctly:
+```bash
+az devops configure --defaults organization="$AZDO_ORG_URL" project="$AZDO_PROJECT"
+```
+
+When `AZDO_MODE == rest`, store these for API calls:
+- Base URL: `$AZDO_ORG_URL/$AZDO_PROJECT/_apis`
+- Auth header: `Authorization: Basic $(echo -n ":$PAT" | base64)`
+
+Report in pre-flight:
+- ✅ `azdo context` — org: `{AZDO_ORG}`, project: `{AZDO_PROJECT}`
+- ❌ `azdo context` — could not parse from remote URL → halt with instructions
+
+Pass `{AZDO_MODE}`, `{AZDO_ORG}`, `{AZDO_PROJECT}`, `{AZDO_ORG_URL}` into
+all phase prompts alongside `{PLATFORM}`.
 
 ---
 
