@@ -32,5 +32,14 @@
       { "type": "semantic", "value": "Supports different deployment targets per environment" },
       { "type": "semantic", "value": "References both Azure Container Apps and Dokku as deployment platforms" }
     ]
+  },
+  {
+    "name": "azdo-awareness",
+    "prompt": "/dock for a Python FastAPI app in an Azure DevOps repo with azure-pipelines.yml already present",
+    "assertions": [
+      { "type": "semantic", "value": "Detects or acknowledges Azure DevOps as the platform based on the repository context" },
+      { "type": "semantic", "value": "Suggests Azure Container Registry rather than ghcr.io as the default registry" },
+      { "type": "semantic", "value": "References Azure Pipelines as the CI system for the generated workflow" }
+    ]
   }
 ]

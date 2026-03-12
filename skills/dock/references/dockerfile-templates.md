@@ -141,6 +141,9 @@ CMD ["gunicorn", "--bind", "0.0.0.0:{PORT}", "--workers", "4", "app:app"]
 FROM python:3.12-slim AS deps
 WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+# NOTE: ghcr.io/astral-sh/uv is the official uv installer image, not your app registry.
+# If ghcr.io is blocked (e.g., corporate firewall), mirror this image to your
+# internal registry: COPY --from={INTERNAL_REGISTRY}/astral-sh/uv:latest /uv /usr/local/bin/uv
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 

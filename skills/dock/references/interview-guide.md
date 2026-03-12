@@ -117,7 +117,9 @@ Mapping:
 - GitHub Actions → suggest ghcr.io
 - Azure Pipelines → suggest Azure Container Registry
 - GitLab CI → suggest GitLab Container Registry
-- No CI → suggest ghcr.io (most universal)
+- No CI → detect platform from git remote URL:
+  - AzDO remote → suggest Azure Container Registry
+  - GitHub remote or unknown → suggest ghcr.io (most universal)
 
 ### Environment Topology
 
@@ -181,6 +183,10 @@ Options:
 5. Doppler
 6. 1Password (via CLI)
 7. HashiCorp Vault
+
+Default selection based on platform:
+- `PLATFORM == github` → default to GitHub Secrets / Variables
+- `PLATFORM == azdo` → default to Azure Key Vault
 ```
 
 ### Rollback Strategy
