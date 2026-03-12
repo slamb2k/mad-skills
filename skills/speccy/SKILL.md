@@ -1,8 +1,8 @@
 ---
 name: speccy
-description: Deep-dive interview skill for creating comprehensive specifications. Reviews existing code and docs, then interviews the user through multiple rounds of targeted questions covering technical implementation, UI/UX, concerns, and tradeoffs. Produces a structured spec via create-specification. Use when starting a new feature, system, or major change that needs a spec.
+description: Deep-dive interview skill for creating comprehensive specifications. Reviews existing code and docs, then interviews the user through multiple rounds of targeted questions covering technical implementation, UI/UX, concerns, and tradeoffs. Produces a structured spec in specs/. Use when starting a new feature, system, or major change that needs a spec.
 argument-hint: Goal, feature, or high-level description to specify
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion, Skill
 ---
 
 # Speccy - Interview-Driven Specification Builder
@@ -60,10 +60,11 @@ Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️
 ---
 
 Interview the user through multiple rounds of targeted questions to build
-a comprehensive specification. Then hand off to the `create-specification`
-skill to produce the final structured spec document.
+a comprehensive specification, then write it directly using the spec template
+in `references/spec-template.md`.
 
 Interview prompts and question guidelines: `references/interview-guide.md`
+Spec template and writing guidelines: `references/spec-template.md`
 
 ## Pre-flight
 
@@ -71,15 +72,12 @@ Before starting, check all dependencies in this table:
 
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
-| create-specification | skill | `~/.claude/skills/create-specification/SKILL.md` or `~/.agents/skills/create-specification/SKILL.md` | yes | ask | This skill is needed to format the final spec. Install with: `npx skills add slamb2k/mad-skills --skill create-specification` |
 | prime | skill | `~/.claude/skills/prime/SKILL.md` or `~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md` | no | fallback | Context loading; falls back to manual project scan |
 
 For each row, in order:
 1. Test file existence (check both paths for symlinked skills)
 2. If found: continue silently
 3. If missing: apply Resolution strategy
-   - **ask**: Notify user the skill is missing, offer to install it. If they
-     decline, halt execution — the final spec cannot be produced without it.
 4. After all checks: proceed to context gathering
 
 ---
@@ -168,23 +166,21 @@ Once the interview is complete and decisions are confirmed:
    mkdir -p specs
    ```
 
-2. **Invoke the `create-specification` skill** using the Skill tool:
-   ```
-   Skill(skill: "create-specification")
-   ```
+2. **Read the spec template** from `references/spec-template.md`
 
-3. **Provide the full context** to the skill as input:
-   - The original GOAL
-   - All decisions from the interview rounds
-   - Any relevant code/architecture context discovered in Stage 1
-   - The spec purpose should match the GOAL description
-   - **Instruct the skill to save the spec to `specs/{name}.md`** where
-     `{name}` is a kebab-case slug derived from the GOAL (e.g.,
-     `specs/user-auth.md`, `specs/payment-integration.md`)
+3. **Generate the spec** by filling the template with:
+   - The original GOAL as the introduction and purpose
+   - All decisions from the interview rounds, mapped to the appropriate sections
+   - Code/architecture context discovered in Stage 1
+   - Acceptance criteria derived from requirements decisions
+   - Test strategy aligned with the project's existing patterns
 
-4. The `create-specification` skill will handle formatting and template
-   structure. The `specs/` directory is the standard location — `/build`
-   and `/prime` both scan it automatically.
+4. **Write the spec file** to `specs/{name}.md` where `{name}` is a
+   kebab-case slug derived from the GOAL (e.g., `specs/user-auth.md`,
+   `specs/payment-integration.md`). Use the Write tool directly.
+
+5. The `specs/` directory is the standard location — `/build` and `/prime`
+   both scan it automatically.
 
 ---
 
