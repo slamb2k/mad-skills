@@ -1,5 +1,5 @@
 {
-  "generated": "2026-03-10T03:03:27.718Z",
+  "generated": "2026-03-12T02:41:10.838Z",
   "count": 10,
   "skills": [
     {
@@ -16,7 +16,7 @@
       "name": "build",
       "directory": "build",
       "description": "Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.",
-      "lines": 363,
+      "lines": 378,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": false,
@@ -55,7 +55,7 @@
     {
       "name": "prime",
       "directory": "prime",
-      "description": "\"Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans CLAUDE.md, README, goals/, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding.\"",
+      "description": "\"Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans CLAUDE.md, README, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding.\"",
       "lines": 148,
       "hasScripts": false,
       "hasReferences": true,
@@ -76,7 +76,7 @@
       "name": "ship",
       "directory": "ship",
       "description": "\"Ship changes through the full PR lifecycle. Use after completing feature work to commit, push, create PR, wait for checks, and merge. Handles the entire workflow: syncs with main, creates feature branch if needed, groups commits logically with semantic messages, creates detailed PR, monitors CI, fixes issues, squash merges, and cleans up. Invoke when work is ready to ship.\"",
-      "lines": 262,
+      "lines": 356,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": false,
@@ -85,8 +85,8 @@
     {
       "name": "speccy",
       "directory": "speccy",
-      "description": "Deep-dive interview skill for creating comprehensive specifications. Reviews existing code and docs, then interviews the user through multiple rounds of targeted questions covering technical implementation, UI/UX, concerns, and tradeoffs. Produces a structured spec via create-specification. Use when starting a new feature, system, or major change that needs a spec.",
-      "lines": 210,
+      "description": "Deep-dive interview skill for creating comprehensive specifications. Reviews existing code and docs, then interviews the user through multiple rounds of targeted questions covering technical implementation, UI/UX, concerns, and tradeoffs. Produces a structured spec in specs/. Use when starting a new feature, system, or major change that needs a spec.",
+      "lines": 241,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": false,
