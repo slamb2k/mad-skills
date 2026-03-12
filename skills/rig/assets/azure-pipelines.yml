@@ -1,3 +1,11 @@
+# Azure Pipelines CI template for Node.js projects
+#
+# NOTE: Azure Pipelines does not have a built-in concurrency control equivalent
+# to GitHub Actions' `concurrency` key. To cancel redundant runs on the same
+# branch/PR, configure "Run number" or use the Azure DevOps UI/REST API to
+# cancel superseded builds. For PR triggers, enable "Cancel running CI builds
+# for a push" in the pipeline settings.
+
 trigger:
   branches:
     include:
@@ -22,8 +30,18 @@ stages:
               versionSpec: '20.x'
             displayName: 'Setup Node.js'
 
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: '$(Pipeline.Workspace)/.npm'
+            displayName: 'Cache npm packages'
+
           - script: npm ci
             displayName: 'Install dependencies'
+            env:
+              npm_config_cache: '$(Pipeline.Workspace)/.npm'
 
           - script: npm run lint --if-present
             displayName: 'Run linter'
@@ -36,8 +54,18 @@ stages:
               versionSpec: '20.x'
             displayName: 'Setup Node.js'
 
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: '$(Pipeline.Workspace)/.npm'
+            displayName: 'Cache npm packages'
+
           - script: npm ci
             displayName: 'Install dependencies'
+            env:
+              npm_config_cache: '$(Pipeline.Workspace)/.npm'
 
           - script: npm run format:check --if-present || npx prettier --check .
             displayName: 'Check formatting'
@@ -50,8 +78,18 @@ stages:
               versionSpec: '20.x'
             displayName: 'Setup Node.js'
 
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: '$(Pipeline.Workspace)/.npm'
+            displayName: 'Cache npm packages'
+
           - script: npm ci
             displayName: 'Install dependencies'
+            env:
+              npm_config_cache: '$(Pipeline.Workspace)/.npm'
 
           - script: npm run typecheck --if-present || npm run type-check --if-present || npx tsc --noEmit
             displayName: 'Run type check'
@@ -67,8 +105,18 @@ stages:
               versionSpec: '20.x'
             displayName: 'Setup Node.js'
 
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: '$(Pipeline.Workspace)/.npm'
+            displayName: 'Cache npm packages'
+
           - script: npm ci
             displayName: 'Install dependencies'
+            env:
+              npm_config_cache: '$(Pipeline.Workspace)/.npm'
 
           - script: npm run build
             displayName: 'Build'
@@ -84,8 +132,18 @@ stages:
               versionSpec: '20.x'
             displayName: 'Setup Node.js'
 
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: '$(Pipeline.Workspace)/.npm'
+            displayName: 'Cache npm packages'
+
           - script: npm ci
             displayName: 'Install dependencies'
+            env:
+              npm_config_cache: '$(Pipeline.Workspace)/.npm'
 
           - script: npm test --if-present
             displayName: 'Run tests'

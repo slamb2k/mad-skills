@@ -25,5 +25,14 @@
       { "type": "contains", "value": "██" },
       { "type": "semantic", "value": "Mentions that the process is idempotent (safe to run multiple times) and will prompt the user for confirmation before making changes" }
     ]
+  },
+  {
+    "name": "azdo-awareness",
+    "prompt": "Bootstrap CI for my Azure DevOps repository at https://dev.azure.com/myorg/myproject/_git/myrepo",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(Azure Pipelines|Azure DevOps|azdo)", "flags": "i" },
+      { "type": "semantic", "value": "Recognizes the repository is hosted on Azure DevOps and mentions Azure Pipelines as the CI platform instead of or alongside GitHub Actions" }
+    ]
   }
 ]
