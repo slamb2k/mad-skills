@@ -273,13 +273,24 @@ Parse VERIFY_REPORT. Present the final summary using the format in
 
 **Only if the project is a git repo** (from SCAN_REPORT `git_initialized`).
 
-Check if the default branch (main or master) has branch protection:
+Detect the default branch and hosting platform:
 
 ```bash
 default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
+
+REMOTE_URL=$(git remote get-url origin 2>/dev/null)
+if echo "$REMOTE_URL" | grep -qiE 'dev\.azure\.com|visualstudio\.com'; then
+  PLATFORM="azdo"
+elif echo "$REMOTE_URL" | grep -qi 'github\.com'; then
+  PLATFORM="github"
+else
+  PLATFORM="unknown"
+fi
 ```
 
-If a GitHub remote is detected (`git remote get-url origin` matches github.com):
+### GitHub
+
+If `PLATFORM == github`:
 1. Check for existing branch protection via `gh api repos/{owner}/{repo}/branches/{default_branch}/protection` (404 = unprotected)
 2. If unprotected, ask via AskUserQuestion:
 
@@ -298,6 +309,108 @@ If a GitHub remote is detected (`git remote get-url origin` matches github.com):
      -F allow_force_pushes=false \
      -F allow_deletions=false
    ```
+
+### Azure DevOps
+
+If `PLATFORM == azdo`:
+
+Extract org and project from the remote URL (same pattern as `/ship`):
+```bash
+if echo "$REMOTE_URL" | grep -q 'dev\.azure\.com'; then
+  AZDO_ORG=$(echo "$REMOTE_URL" | sed -n 's|.*dev\.azure\.com/\([^/]*\)/.*|\1|p')
+  AZDO_PROJECT=$(echo "$REMOTE_URL" | sed -n 's|.*dev\.azure\.com/[^/]*/\([^/]*\)/.*|\1|p')
+  AZDO_ORG_URL="https://dev.azure.com/$AZDO_ORG"
+elif echo "$REMOTE_URL" | grep -q 'vs-ssh\.visualstudio\.com'; then
+  AZDO_ORG=$(echo "$REMOTE_URL" | sed -n 's|.*vs-ssh\.visualstudio\.com:v3/\([^/]*\)/.*|\1|p')
+  AZDO_PROJECT=$(echo "$REMOTE_URL" | sed -n 's|.*vs-ssh\.visualstudio\.com:v3/[^/]*/\([^/]*\)/.*|\1|p')
+  AZDO_ORG_URL="https://dev.azure.com/$AZDO_ORG"
+elif echo "$REMOTE_URL" | grep -q 'visualstudio\.com'; then
+  AZDO_ORG=$(echo "$REMOTE_URL" | sed -n 's|.*//\([^.]*\)\.visualstudio\.com.*|\1|p')
+  AZDO_PROJECT=$(echo "$REMOTE_URL" | sed -n 's|.*/\([^/]*\)/_git/.*|\1|p')
+  AZDO_ORG_URL="https://dev.azure.com/$AZDO_ORG"
+fi
+REPO_NAME=$(basename -s .git "$REMOTE_URL")
+```
+
+If org/project extraction fails, report ⚠️ and skip branch policies.
+
+1. Check for existing branch policies. Use `az repos` CLI if available,
+   otherwise fall back to REST API:
+
+   **CLI:**
+   ```bash
+   az repos policy list \
+     --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
+     --repository-id "$REPO_NAME" --branch "$default_branch" \
+     --query "[].type.displayName" -o tsv
+   ```
+
+   **REST fallback:**
+   ```bash
+   AUTH="Authorization: Basic $(echo -n ":$PAT" | base64)"
+   # Get repository ID first
+   REPO_ID=$(curl -s -H "$AUTH" \
+     "$AZDO_ORG_URL/$AZDO_PROJECT/_apis/git/repositories/$REPO_NAME?api-version=7.0" \
+     | jq -r '.id')
+   # List branch policies
+   curl -s -H "$AUTH" \
+     "$AZDO_ORG_URL/$AZDO_PROJECT/_apis/policy/configurations?api-version=7.0" \
+     | jq "[.value[] | select(.settings.scope[]?.refName == \"refs/heads/$default_branch\" and .settings.scope[]?.repositoryId == \"$REPO_ID\")]"
+   ```
+
+2. If no "Minimum number of reviewers" policy exists, ask via AskUserQuestion:
+
+   Question: "Default branch `{default_branch}` has no minimum reviewer policy. Add it?"
+   Options:
+   - "Yes, require PR reviews (Recommended)" — require 1 approval, block direct push
+   - "Skip" — leave unprotected
+
+3. If user accepts, create the policy:
+
+   **CLI:**
+   ```bash
+   REPO_ID=$(az repos show --repository "$REPO_NAME" \
+     --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
+     --query 'id' -o tsv)
+
+   az repos policy approver-count create \
+     --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
+     --repository-id "$REPO_ID" --branch "$default_branch" \
+     --minimum-approver-count 1 \
+     --creator-vote-counts false \
+     --allow-downvotes false \
+     --reset-on-source-push true \
+     --blocking true --enabled true
+   ```
+
+   **REST fallback:**
+   ```bash
+   curl -s -X POST -H "$AUTH" -H "Content-Type: application/json" \
+     "$AZDO_ORG_URL/$AZDO_PROJECT/_apis/policy/configurations?api-version=7.0" \
+     -d "{
+       \"isEnabled\": true,
+       \"isBlocking\": true,
+       \"type\": {\"id\": \"fa4e907d-c16b-4a4c-9dfa-4906e5d171dd\"},
+       \"settings\": {
+         \"minimumApproverCount\": 1,
+         \"creatorVoteCounts\": false,
+         \"allowDownvotes\": false,
+         \"resetOnSourcePush\": true,
+         \"scope\": [{
+           \"repositoryId\": \"$REPO_ID\",
+           \"refName\": \"refs/heads/$default_branch\",
+           \"matchKind\": \"exact\"
+         }]
+       }
+     }"
+   ```
+
+### Unknown Platform
+
+If `PLATFORM == unknown`, skip branch protection and report:
+```
+⏭️ Branch protection — skipped (unrecognized remote, not GitHub or Azure DevOps)
+```
 
 Include result in the final report under a "🔒 Branch protection" section.
 
