@@ -10,6 +10,8 @@ Template variables:
 - `{STATE_BACKEND}`: backend config details
 - `{INFRA_DIR}`: path to IaC files (default: infra/)
 - `{ENVIRONMENTS}`: list of environments (dev, staging, prod)
+- `{PLATFORM}`: github or azdo — determines which pipeline template to use
+- `{SERVICE_CONNECTION}`: Azure DevOps service connection name (AzDO only)
 
 ---
 
@@ -411,6 +413,96 @@ stages:
                     environmentServiceNameAzureRM: $(serviceConnection)
 ```
 
+### Bicep
+
+File: `azure-pipelines-infra.yml`
+
+```yaml
+trigger:
+  branches:
+    include: [{DEFAULT_BRANCH}]
+  paths:
+    include: [infra/*]
+
+pr:
+  paths:
+    include: [infra/*]
+
+variables:
+  infraDir: infra
+  serviceConnection: "{SERVICE_CONNECTION}"
+  location: "{REGION}"
+
+stages:
+  - stage: WhatIf
+    condition: eq(variables['Build.Reason'], 'PullRequest')
+    jobs:
+      - job: BicepWhatIf
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: AzureCLI@2
+            displayName: Bicep What-If
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az deployment sub what-if \
+                  --location $(location) \
+                  --template-file $(infraDir)/main.bicep \
+                  --parameters $(infraDir)/environments/dev.bicepparam \
+                  --no-pretty-print
+
+  - stage: DeployDev
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/{DEFAULT_BRANCH}'))
+    jobs:
+      - deployment: DeployDev
+        environment: dev
+        pool:
+          vmImage: ubuntu-latest
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: Deploy Dev
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az deployment sub create \
+                        --location $(location) \
+                        --template-file $(infraDir)/main.bicep \
+                        --parameters $(infraDir)/environments/dev.bicepparam
+
+  - stage: DeployEnv
+    condition: eq(variables['Build.Reason'], 'Manual')
+    jobs:
+      - deployment: DeployEnv
+        environment: $(targetEnvironment)
+        pool:
+          vmImage: ubuntu-latest
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: Deploy $(targetEnvironment)
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az deployment sub create \
+                        --location $(location) \
+                        --template-file $(infraDir)/main.bicep \
+                        --parameters $(infraDir)/environments/$(targetEnvironment).bicepparam
+```
+
 ---
 
 ## Bootstrap Scripts
@@ -516,4 +608,59 @@ DB_URL=$(terraform output -raw database_connection_string 2>/dev/null) || true
 [ -n "$DB_URL" ] && gh secret set DATABASE_URL --body "$DB_URL"
 
 echo "Outputs synced to GitHub."
+```
+
+### infra/sync-outputs.sh (Azure DevOps)
+
+Reads IaC outputs and sets them as Azure DevOps variable group variables for /dock pipelines:
+
+```bash
+#!/bin/bash
+# Sync Terraform outputs to Azure DevOps variable group for /dock
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+PROJECT="{PROJECT}"
+VG_NAME="${PROJECT}-infra-outputs"
+
+echo "Syncing infrastructure outputs to Azure DevOps..."
+
+# Resolve or create the variable group
+VG_ID=$(az pipelines variable-group list \
+  --query "[?name=='${VG_NAME}'].id | [0]" -o tsv 2>/dev/null)
+
+if [ -z "$VG_ID" ]; then
+  echo "Creating variable group: ${VG_NAME}"
+  VG_ID=$(az pipelines variable-group create \
+    --name "$VG_NAME" \
+    --variables placeholder=true \
+    --query "id" -o tsv)
+fi
+
+# Helper: update or create a variable in the group
+upsert_var() {
+  local name="$1" value="$2" secret="${3:-false}"
+  if az pipelines variable-group variable list --group-id "$VG_ID" \
+      --query "\"${name}\"" -o tsv &>/dev/null; then
+    az pipelines variable-group variable update \
+      --group-id "$VG_ID" --name "$name" --value "$value" --secret "$secret" --output none
+  else
+    az pipelines variable-group variable create \
+      --group-id "$VG_ID" --name "$name" --value "$value" --secret "$secret" --output none
+  fi
+}
+
+# Public values
+REGISTRY_URL=$(terraform output -raw registry_url 2>/dev/null) || true
+[ -n "$REGISTRY_URL" ] && upsert_var "REGISTRY_URL" "$REGISTRY_URL"
+
+COMPUTE_ENDPOINT=$(terraform output -raw compute_endpoint 2>/dev/null) || true
+[ -n "$COMPUTE_ENDPOINT" ] && upsert_var "COMPUTE_ENDPOINT" "$COMPUTE_ENDPOINT"
+
+# Sensitive values
+DB_URL=$(terraform output -raw database_connection_string 2>/dev/null) || true
+[ -n "$DB_URL" ] && upsert_var "DATABASE_URL" "$DB_URL" true
+
+echo "Outputs synced to Azure DevOps variable group: ${VG_NAME} (ID: ${VG_ID})"
 ```

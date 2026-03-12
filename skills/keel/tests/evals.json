@@ -31,5 +31,14 @@
       { "type": "semantic", "value": "Describes or generates a CI/CD pipeline that plans on pull requests and applies on merge" },
       { "type": "semantic", "value": "Mentions state management for Terraform such as S3 backend or remote state" }
     ]
+  },
+  {
+    "name": "azdo-awareness",
+    "prompt": "/keel for a Bicep project hosted in Azure DevOps",
+    "assertions": [
+      { "type": "semantic", "value": "Detects or acknowledges Azure DevOps as the hosting platform rather than assuming GitHub" },
+      { "type": "semantic", "value": "Mentions Azure Pipelines or Azure DevOps pipeline generation rather than GitHub Actions" },
+      { "type": "regex", "value": "(?i)(azure devops|azdo|azure.pipelines|az pipelines)" }
+    ]
   }
 ]
