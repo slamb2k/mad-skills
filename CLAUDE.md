@@ -111,6 +111,24 @@ All skills follow these visual conventions for user-facing output.
 └─────────────────────────────────────────────────
 ```
 
+### Platform Support
+
+Skills auto-detect the hosting platform from the git remote URL and adapt
+their behavior accordingly. Both GitHub and Azure DevOps are first-class:
+
+| Capability | GitHub | Azure DevOps |
+|-----------|--------|--------------|
+| Platform detection | `github.com` in remote | `dev.azure.com` / `visualstudio.com` in remote |
+| CLI tooling | `gh` | `az devops` (falls back to REST API with PAT) |
+| CI templates | GitHub Actions | Azure Pipelines |
+| Container registry | ghcr.io | Azure Container Registry |
+| Secrets management | GitHub Secrets | Azure Key Vault |
+| Branch protection | Branch protection rules | Branch policies |
+| PR workflow | `gh pr create/merge` | `az repos pr create` / REST API |
+
+Skills that are platform-aware: `/ship`, `/brace`, `/rig`, `/dock`, `/keel`.
+Skills that are platform-agnostic: `/sync`, `/prime`, `/speccy`, `/build`, `/distil`.
+
 ### Custom Agents
 
 The `ship-analyzer` agent specializes in reading code diffs to produce
@@ -128,7 +146,8 @@ Guidance for contributing to the mad-skills repository itself.
 ### Repository Overview
 
 **MAD Skills** is a skill framework for Claude Code. It ships 10 skills
-covering the full development lifecycle. Skills are installed via
+covering the full development lifecycle with first-class support for both
+GitHub and Azure DevOps platforms. Skills are installed via
 `npx skills add slamb2k/mad-skills` or as a Claude Code plugin, and invoked
 as slash commands.
 
@@ -237,9 +256,10 @@ commit messages). Always include a fallback to a generic agent type.
 2. Include full YAML frontmatter: name, description, argument-hint, allowed-tools
 3. Add ASCII art banner with random taglines
 4. Prefer subagent-based execution with Agent tool in allowed-tools
-5. Add pre-flight dependency table with fallback strategies
-6. Run `npm run validate && npm run lint` to verify
-7. Run `npm run eval` to test
+5. Add pre-flight dependency table (6-column format) with fallback strategies
+6. Add platform detection if the skill interacts with CI/CD or git hosting APIs
+7. Run `npm run validate && npm run lint` to verify
+8. Run `npm run eval` to test
 
 ### Testing
 
