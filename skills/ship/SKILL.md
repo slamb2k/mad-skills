@@ -91,6 +91,15 @@ fi
 Pass `{PLATFORM}` into all stage prompts. Each stage uses the appropriate
 CLI tool: `gh` for GitHub, `az repos`/`az pipelines` for Azure DevOps.
 
+**Display the detected platform to the user immediately after detection:**
+```
+⚙️ Platform: GitHub (github.com)
+```
+or:
+```
+⚙️ Platform: Azure DevOps ({AZDO_ORG}/{AZDO_PROJECT})
+```
+
 ---
 
 ## Pre-flight
