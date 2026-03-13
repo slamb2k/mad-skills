@@ -259,15 +259,21 @@ suggest the manual PR creation command. Do NOT revert the push.
 
 ---
 
-## Stage 3: Wait for CI
+## Stage 3 + 4: CI Watch & Fix Loop
 
-Launch **Bash subagent** in the **background** (haiku — just polling):
+Run CI monitoring in the **foreground** so failures are caught and fixed
+immediately. This stage loops: watch → detect failure → fix → push → watch again.
+
+**Maximum 2 fix attempts.** If CI still fails after 2 rounds, report to user and stop.
+
+### Watch
+
+Launch **Bash subagent** (haiku — polling):
 
 ```
 Task(
   subagent_type: "Bash",
   model: "haiku",
-  run_in_background: true,
   description: "Monitor CI checks",
   prompt: <read from references/stage-prompts.md#stage-3>
 )
@@ -276,18 +282,14 @@ Task(
 Substitute `{PR_NUMBER}`, `{BRANCH}`, `{PLATFORM}`, `{AZDO_MODE}`,
 `{AZDO_ORG}`, `{AZDO_ORG_URL}`, `{AZDO_PROJECT}`, `{PAT}` into the prompt.
 
-While CI runs in the background, briefly inform the user:
-```
-CI running for PR #{pr_number}... waiting for checks.
-```
+Briefly inform the user: `⏳ Watching CI for PR #{pr_number}...`
 
-When the background task completes, read the output file and parse CHECKS_REPORT.
+Parse CHECKS_REPORT when the subagent returns.
 
----
+### Fix (if needed)
 
-## Stage 4: Fix Failing Checks (if needed)
-
-If CHECKS_REPORT shows failures, launch **general-purpose subagent**:
+If CHECKS_REPORT shows `some_failed`, **immediately** launch a fix subagent —
+do not wait, do not ask the user:
 
 ```
 Task(
@@ -300,8 +302,24 @@ Task(
 Substitute `{PR_NUMBER}`, `{BRANCH}`, `{FAILING_CHECKS}`, `{PLATFORM}`,
 `{AZDO_MODE}`, `{AZDO_ORG}`, `{AZDO_ORG_URL}`, `{AZDO_PROJECT}`, `{PAT}` into the prompt.
 
-If fixed, return to Stage 3 (run CI watch again).
-If unable to fix after 2 attempts, report to user and stop.
+The fix subagent MUST commit and push before returning. Once it returns,
+**immediately loop back to Watch** to re-check CI.
+
+### Loop summary
+
+```
+attempt = 0
+while attempt < 2:
+  CHECKS = run_watch()
+  if CHECKS.status == "all_passed" or CHECKS.status == "no_checks":
+    break  → proceed to Stage 5
+  attempt += 1
+  run_fix(CHECKS.failing_checks)
+  → loop back to watch
+
+if attempt == 2 and still failing:
+  report failures to user, stop
+```
 
 ---
 
