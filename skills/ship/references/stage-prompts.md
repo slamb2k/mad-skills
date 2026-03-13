@@ -19,7 +19,11 @@ push to a feature branch, and create a pull request.
 
 Limit SHIP_REPORT to 15 lines maximum.
 
+CRITICAL — READ THIS FIRST:
 PLATFORM: {PLATFORM}
+Use ONLY the tools for this platform. GitHub = gh CLI. Azure DevOps = az repos CLI.
+NEVER use gh commands on an Azure DevOps repository — they WILL fail.
+
 USER INTENT: {USER_INTENT}
 
 FILES TO INCLUDE: {FILES_TO_INCLUDE}
