@@ -147,7 +147,8 @@ SHIP_REPORT:
 **Agent:** Bash (haiku, background)
 
 ```
-Monitor PR/pipeline status checks until complete.
+Monitor PR/pipeline status checks until complete. Fail fast — stop polling the
+moment any check fails so fixes can start immediately.
 
 Limit CHECKS_REPORT to 10 lines maximum.
 
@@ -159,8 +160,8 @@ BRANCH: {BRANCH}
 
 **If PLATFORM == github:**
 
-1. **Wait for checks to complete**
-   gh pr checks {PR_NUMBER} --watch
+1. **Wait for checks — fail fast on first failure**
+   gh pr checks {PR_NUMBER} --watch --fail-fast
 
 2. **Report final status**
    gh pr checks {PR_NUMBER}
@@ -190,9 +191,9 @@ BRANCH: {BRANCH}
    ```
    If no policies exist either, report `no_checks`.
 
-2. **Wait for runs to complete — with fail-fast** (max 30 minutes, check every 30s)
+2. **Wait for runs to complete — with fail-fast** (max 30 minutes, check every 15s)
    ```
-   for i in $(seq 1 60); do
+   for i in $(seq 1 120); do
      # Check for failures FIRST — stop immediately if any run has failed
      FAILED=$(az pipelines runs list --branch "$BRANCH" --top 5 \
        --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" \
@@ -207,7 +208,7 @@ BRANCH: {BRANCH}
        --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" \
        --query "[?status=='inProgress'] | length(@)" -o tsv 2>/dev/null)
      if [ "$IN_PROGRESS" = "0" ] || [ -z "$IN_PROGRESS" ]; then break; fi
-     sleep 30
+     sleep 15
    done
    ```
 
@@ -259,9 +260,9 @@ BRANCH: {BRANCH}
    ```
    If no evaluations exist either, report `no_checks`.
 
-2. **Wait for runs to complete — with fail-fast** (max 30 minutes, check every 30s)
+2. **Wait for runs to complete — with fail-fast** (max 30 minutes, check every 15s)
    ```
-   for i in $(seq 1 60); do
+   for i in $(seq 1 120); do
      BUILDS_JSON=$(curl -s -H "$AUTH" "$BUILDS_URL")
 
      # Check for failures FIRST
@@ -274,7 +275,7 @@ BRANCH: {BRANCH}
      # Check if anything still running
      IN_PROGRESS=$(echo "$BUILDS_JSON" | jq '[.value[] | select(.status=="inProgress")] | length')
      if [ "$IN_PROGRESS" = "0" ]; then break; fi
-     sleep 30
+     sleep 15
    done
    ```
 
