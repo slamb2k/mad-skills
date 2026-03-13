@@ -357,6 +357,24 @@ Parse LAND_REPORT.
 
 ---
 
+## What's Next?
+
+After a successful merge, determine what work comes next by checking these
+sources (in priority order):
+
+1. **Active tasks** — check `TaskList` for any in-progress or pending tasks
+   in the current session
+2. **Session context** — review the conversation so far for any stated plans,
+   follow-up items, or deferred work the user mentioned
+3. **Memory** — if the `claude-mem` plugin is available, search for recent
+   checkpoints or plans related to this project
+
+Summarize the result as 1–3 short bullet points for the `⚡ Next` section of
+the report. If nothing is found, omit the section entirely — do not fabricate
+next steps.
+
+---
+
 ## Final Report to User
 
 Compile all stage reports into a summary:
@@ -376,8 +394,14 @@ Compile all stage reports into a summary:
 │
 │  📊 {count} files changed ({diff_summary})
 │
+│  ⚡ Next
+│     • {next item 1}
+│     • {next item 2}
+│
 └─────────────────────────────────────────────────
 ```
+
+If nothing was found for "What's Next?", omit the `⚡ Next` section.
 
 If any stage failed, add:
 ```
