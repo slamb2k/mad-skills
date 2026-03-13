@@ -368,6 +368,7 @@ FIX_REPORT:
 
 ```
 Merge the pull request and sync local {DEFAULT_BRANCH}.
+Do NOT ask the user for confirmation — proceed immediately.
 
 Limit LAND_REPORT to 10 lines maximum.
 

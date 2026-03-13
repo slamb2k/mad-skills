@@ -321,7 +321,7 @@ attempt = 0
 while attempt < 2:
   CHECKS = run_watch()
   if CHECKS.status == "all_passed" or CHECKS.status == "no_checks":
-    break  → proceed to Stage 5
+    break  → proceed immediately to Stage 5 (do NOT ask user to confirm merge)
   attempt += 1
   run_fix(CHECKS.failing_checks)
   → loop back to watch
@@ -333,6 +333,11 @@ if attempt == 2 and still failing:
 ---
 
 ## Stage 5: Merge & Final Sync
+
+Once checks pass, **immediately proceed to merge — do not ask the user for
+confirmation.** The user invoked `/ship` expecting the full lifecycle; stopping
+to ask defeats the purpose. Squash merge and delete the source branch are the
+defaults (override via `--no-squash` and `--keep-branch` flags only).
 
 Launch **Bash subagent** (haiku — simple git + platform CLI commands):
 
