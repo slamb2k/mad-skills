@@ -339,13 +339,15 @@ confirmation.** The user invoked `/ship` expecting the full lifecycle; stopping
 to ask defeats the purpose. Squash merge and delete the source branch are the
 defaults (override via `--no-squash` and `--keep-branch` flags only).
 
+### 5a. Merge the PR
+
 Launch **Bash subagent** (haiku — simple git + platform CLI commands):
 
 ```
 Task(
   subagent_type: "Bash",
   model: "haiku",
-  description: "Merge PR and sync",
+  description: "Merge PR",
   prompt: <read from references/stage-prompts.md#stage-5>
 )
 ```
@@ -354,6 +356,14 @@ Substitute `{PR_NUMBER}`, `{REMOTE}`, `{DEFAULT_BRANCH}`, `{PLATFORM}`,
 `{AZDO_MODE}`, `{AZDO_ORG_URL}`, `{AZDO_PROJECT}`, `{PAT}`, merge/branch flags.
 
 Parse LAND_REPORT.
+
+### 5b. Sync local repo
+
+After the merge subagent succeeds, invoke `/sync` from the orchestrator to
+checkout the default branch, pull the merge commit, and **clean up stale
+branches** (prune gone remotes, delete merged branches). This replaces any
+manual `git checkout`/`git pull` — `/sync` handles everything including stash
+restore and branch cleanup.
 
 ---
 

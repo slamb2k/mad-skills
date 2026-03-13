@@ -367,7 +367,8 @@ FIX_REPORT:
 **Agent:** Bash (haiku)
 
 ```
-Merge the pull request and sync local {DEFAULT_BRANCH}.
+Merge the pull request. Do NOT sync locally — the orchestrator handles that
+via /sync after this subagent returns.
 Do NOT ask the user for confirmation — proceed immediately.
 
 Limit LAND_REPORT to 10 lines maximum.
@@ -458,12 +459,7 @@ BRANCH_FLAGS: {--delete-branch (default) | omit if --keep-branch}
        "$PR_API?api-version=7.0" \
        -d "{\"status\": \"completed\", \"completionOptions\": {\"mergeStrategy\": \"$MERGE_STRATEGY\", \"deleteSourceBranch\": $DELETE_BRANCH}}"
 
-2. **Sync local repository**
-   Invoke `/sync` to checkout {DEFAULT_BRANCH}, pull latest changes, restore
-   any stashed work, and clean up merged branches. This replaces manual git
-   checkout/pull/fetch/prune — /sync handles all of it including stash restore.
-
-3. **Report**
+2. **Report**
    MERGE_COMMIT=$(git rev-parse --short HEAD)
 
 ## Output Format
@@ -473,6 +469,5 @@ LAND_REPORT:
 - merge_commit: {hash}
 - merge_type: squash|merge
 - branch_deleted: true|false
-- branches_cleaned: {list or "none"}
 - errors: {any errors}
 ```
