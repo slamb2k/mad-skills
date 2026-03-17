@@ -72,7 +72,7 @@ Before starting, check all dependencies in this table:
 
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
-| prime | skill | `~/.claude/skills/prime/SKILL.md` or `~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md` | no | fallback | Context loading; falls back to manual project scan |
+| prime | skill | `ls .claude/skills/prime/SKILL.md ~/.claude/skills/prime/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md 2>/dev/null` | no | fallback | Context loading; falls back to manual project scan |
 
 For each row, in order:
 1. Test file existence (check both paths for symlinked skills)

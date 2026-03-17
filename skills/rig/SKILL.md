@@ -97,7 +97,7 @@ Before starting, check all dependencies in this table. The table contains
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | git | cli | `git --version` | yes | stop | Install from https://git-scm.com |
-| sync | skill | `~/.claude/skills/sync/SKILL.md` or `~/.claude/plugins/marketplaces/slamb2k/skills/sync/SKILL.md` | no | fallback | Repo sync; falls back to manual git pull |
+| sync | skill | `ls .claude/skills/sync/SKILL.md ~/.claude/skills/sync/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/sync/SKILL.md 2>/dev/null` | no | fallback | Repo sync; falls back to manual git pull |
 | lefthook | npm | `npx lefthook --help` | yes | install | `npm install -g lefthook` |
 | gh | cli | `gh --version` | yes | url | https://cli.github.com |
 | az devops | cli | `az devops -h 2>/dev/null` | no | fallback | Falls back to REST API with PAT; see AzDO tooling below |

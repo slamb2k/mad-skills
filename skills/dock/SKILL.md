@@ -110,7 +110,7 @@ Before starting, check dependencies:
 |-----------|------|-------|----------|------------|--------|
 | docker | cli | `docker --version` | no | ask | Needed for local build verification; skip verify phase if absent |
 | git | cli | `git --version` | yes | stop | Install from https://git-scm.com |
-| sync | skill | `~/.claude/skills/sync/SKILL.md` or `~/.claude/plugins/marketplaces/slamb2k/skills/sync/SKILL.md` | no | fallback | Repo sync; falls back to manual git pull |
+| sync | skill | `ls .claude/skills/sync/SKILL.md ~/.claude/skills/sync/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/sync/SKILL.md 2>/dev/null` | no | fallback | Repo sync; falls back to manual git pull |
 | az devops | cli | `az devops -h 2>/dev/null` | no | fallback | Falls back to REST API with PAT; see AzDO tooling below |
 
 **Platform-conditional rules:**
