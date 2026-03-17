@@ -5,7 +5,8 @@ substitutes template variables before launching each subagent.
 
 `{PLATFORM}` is either `github` or `azdo` (detected from remote URL).
 `{AZDO_MODE}` is `cli` or `rest` (only relevant when PLATFORM == azdo).
-`{AZDO_ORG}`, `{AZDO_PROJECT}`, `{AZDO_ORG_URL}` provide AzDO context.
+`{AZDO_ORG}`, `{AZDO_PROJECT}`, `{AZDO_PROJECT_URL_SAFE}`, `{AZDO_ORG_URL}` provide AzDO context.
+Use `{AZDO_PROJECT}` for CLI `--project` flags and display. Use `{AZDO_PROJECT_URL_SAFE}` in REST API URL paths.
 
 ---
 
@@ -100,7 +101,7 @@ FILES TO EXCLUDE: {FILES_TO_EXCLUDE}
      PR_JSON=$(curl -s -X POST \
        -H "$AUTH" \
        -H "Content-Type: application/json" \
-       "{AZDO_ORG_URL}/{AZDO_PROJECT}/_apis/git/repositories/$REPO_NAME/pullrequests?api-version=7.0" \
+       "{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/git/repositories/$REPO_NAME/pullrequests?api-version=7.0" \
        -d "{\"sourceRefName\": \"refs/heads/$BRANCH\", \"targetRefName\": \"refs/heads/{DEFAULT_BRANCH}\", \"title\": \"<type>: <concise title>\", \"description\": \"## Summary\\n<1-3 sentences>\\n\\n## Changes\\n<bullets>\\n\\n## Testing\\n- [ ] <steps>\"}")
 
 6. **Gather info**
@@ -116,13 +117,13 @@ FILES TO EXCLUDE: {FILES_TO_EXCLUDE}
      PR_NUMBER=$(az repos pr list --source-branch "$BRANCH" --status active \
        --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" \
        --query '[0].pullRequestId' -o tsv)
-     PR_URL="{AZDO_ORG_URL}/{AZDO_PROJECT}/_git/$(basename -s .git "$(git remote get-url origin)")/pullrequest/$PR_NUMBER"
+     PR_URL="{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_git/$(basename -s .git "$(git remote get-url origin)")/pullrequest/$PR_NUMBER"
 
    **If PLATFORM == azdo AND AZDO_MODE == rest:**
      # Parse from the create response JSON:
      PR_NUMBER=$(echo "$PR_JSON" | jq -r '.pullRequestId')
      REPO_NAME=$(basename -s .git "$(git remote get-url origin)")
-     PR_URL="{AZDO_ORG_URL}/{AZDO_PROJECT}/_git/$REPO_NAME/pullrequest/$PR_NUMBER"
+     PR_URL="{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_git/$REPO_NAME/pullrequest/$PR_NUMBER"
 
    COMMITS=$(git log {REMOTE}/{DEFAULT_BRANCH}..HEAD --oneline)
    DIFF_STAT=$(git diff {REMOTE}/{DEFAULT_BRANCH} --shortstat)
@@ -244,7 +245,7 @@ BRANCH: {BRANCH}
    ```
    REPO_NAME=$(basename -s .git "$(git remote get-url origin)")
    AUTH="Authorization: Basic $(echo -n ":{PAT}" | base64)"
-   BUILDS_URL="{AZDO_ORG_URL}/{AZDO_PROJECT}/_apis/build/builds?branchName=refs/heads/$BRANCH&\$top=5&api-version=7.0"
+   BUILDS_URL="{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/build/builds?branchName=refs/heads/$BRANCH&\$top=5&api-version=7.0"
 
    RUNS_FOUND=false
    for i in $(seq 1 8); do
@@ -259,7 +260,7 @@ BRANCH: {BRANCH}
    If no runs appear, check PR policy evaluations via REST:
    ```
    EVALS=$(curl -s -H "$AUTH" \
-     "{AZDO_ORG_URL}/{AZDO_PROJECT}/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/{AZDO_PROJECT}/{PR_NUMBER}&api-version=7.0")
+     "{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/{AZDO_PROJECT_URL_SAFE}/{PR_NUMBER}&api-version=7.0")
    EVAL_COUNT=$(echo "$EVALS" | jq '.value | length')
    ```
    If no evaluations exist either, report `no_checks`.
@@ -323,22 +324,34 @@ FAILING CHECKS: {FAILING_CHECKS}
        --query "[?result=='failed'].id | [0]" -o tsv)
      az pipelines runs show --id $RUN_ID \
        --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" --output json
-     # Get timeline for detailed step failures:
-     az devops invoke --area build --resource timeline \
-       --route-parameters project="{AZDO_PROJECT}" buildId=$RUN_ID \
-       --org "{AZDO_ORG_URL}" \
-       --api-version 7.0 --query "records[?result=='failed'].{name:name, log:log.url}" -o table
+     # Download logs locally — more reliable than timeline API on legacy domains
+     LOGDIR=$(mktemp -d)
+     az pipelines logs download --run-id $RUN_ID --path "$LOGDIR" \
+       --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" 2>/dev/null
+     if [ -d "$LOGDIR" ] && [ "$(ls "$LOGDIR")" ]; then
+       grep -ril "error\|fail\|##vso\[task.logissue" "$LOGDIR" | head -5 | while read f; do
+         echo "=== $(basename "$f") ==="
+         grep -i "error\|fail\|##vso\[task.logissue" "$f" | tail -30
+       done
+     fi
+     rm -rf "$LOGDIR"
 
    **If PLATFORM == azdo AND AZDO_MODE == rest:**
      AUTH="Authorization: Basic $(echo -n ":{PAT}" | base64)"
      # Get failed build ID
      RUN_ID=$(curl -s -H "$AUTH" \
-       "{AZDO_ORG_URL}/{AZDO_PROJECT}/_apis/build/builds?branchName=refs/heads/{BRANCH}&resultFilter=failed&\$top=1&api-version=7.0" \
+       "{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/build/builds?branchName=refs/heads/{BRANCH}&resultFilter=failed&\$top=1&api-version=7.0" \
        | jq -r '.value[0].id')
      # Get timeline for step-level failures
-     curl -s -H "$AUTH" \
-       "{AZDO_ORG_URL}/{AZDO_PROJECT}/_apis/build/builds/$RUN_ID/timeline?api-version=7.0" \
-       | jq '.records[] | select(.result=="failed") | {name, log: .log.url}'
+     TIMELINE=$(curl -s -H "$AUTH" \
+       "{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/build/builds/$RUN_ID/timeline?api-version=7.0")
+     # Extract failed task names and log URLs
+     echo "$TIMELINE" | jq -r '.records[] | select(.result=="failed") | "\(.name): \(.log.url // "no log URL")"'
+     # Fetch actual log content from each failed task's log URL
+     for LOG_URL in $(echo "$TIMELINE" | jq -r '.records[] | select(.result=="failed") | .log.url // empty'); do
+       echo "=== Log: $LOG_URL ==="
+       curl -s -H "$AUTH" "$LOG_URL" | tail -50
+     done
 
 2. **Analyze and fix**
    Read the relevant source files, understand the failures, fix the code.
@@ -430,11 +443,11 @@ BRANCH_FLAGS: {--delete-branch (default) | omit if --keep-branch}
    **If PLATFORM == azdo AND AZDO_MODE == rest:**
      AUTH="Authorization: Basic $(echo -n ":{PAT}" | base64)"
      REPO_NAME=$(basename -s .git "$(git remote get-url origin)")
-     PR_API="{AZDO_ORG_URL}/{AZDO_PROJECT}/_apis/git/repositories/$REPO_NAME/pullrequests/{PR_NUMBER}"
+     PR_API="{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/git/repositories/$REPO_NAME/pullrequests/{PR_NUMBER}"
 
      # 1. Check for rejected policy evaluations
      EVALS=$(curl -s -H "$AUTH" \
-       "{AZDO_ORG_URL}/{AZDO_PROJECT}/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/{AZDO_PROJECT}/{PR_NUMBER}&api-version=7.0")
+       "{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/{AZDO_PROJECT_URL_SAFE}/{PR_NUMBER}&api-version=7.0")
      REJECTED=$(echo "$EVALS" | jq '[.value[] | select(.status=="rejected")] | length')
      if [ "$REJECTED" != "0" ]; then
        echo "ERROR: PR has rejected policy evaluations — cannot merge"
