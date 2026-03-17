@@ -402,7 +402,7 @@ Three methods are available. The table below shows what each delivers:
 | | Plugin | npx skills | npm package |
 |---|---|---|---|
 | Skills (slash commands) | ✅ all 10 | ✅ all 10 | — |
-| Agents (e.g. ship-analyzer) | ✅ | ❌ | — |
+| Bundled scripts (sync, CI, merge) | ✅ | ✅ | — |
 | Session hooks (session-guard) | ✅ | ❌ | — |
 | Cross-agent (Cursor, Cline, etc.) | ❌ Claude Code only | ✅ | — |
 | Selective skill install | ❌ | ✅ | — |
@@ -410,7 +410,7 @@ Three methods are available. The table below shows what each delivers:
 
 ### Plugin (recommended)
 
-Installs skills, agents, and session hooks from the GitHub repo into
+Installs skills and session hooks from the GitHub repo into
 `~/.claude/plugins/`. Updates automatically. Claude Code only.
 
 **Step 1 — Register the marketplace (one-time):**
@@ -448,9 +448,8 @@ npx skills add slamb2k/mad-skills -g -y              # All skills, global
 npx skills add slamb2k/mad-skills --skill ship -g -y  # Specific skill
 ```
 
-Installs skills into `~/.claude/skills/` (and `~/.agents/skills/` for other agents). **Does not install agents or hooks.** This means:
+Installs skills into `~/.claude/skills/` (and `~/.agents/skills/` for other agents). **Does not install hooks.** This means:
 
-- `/build` falls back to `general-purpose` agent for the ship stage instead of the optimised `ship-analyzer` agent
 - The session-guard hook (CLAUDE.md staleness detection, git validation) is not active
 
 Use this method when you need cross-agent compatibility (Cursor, Cline, Amp, etc.) or want to install individual skills.
@@ -514,7 +513,7 @@ mad-skills/
 │   ├── build-manifests.js   # Generate skills/manifest.json
 │   └── package-skills.js    # Package .skill archives
 ├── hooks/                   # Session hooks + plugin hook config
-├── agents/                  # Agent definitions (ship-analyzer)
+├── agents/                  # Agent definitions (reserved for future use)
 ├── tests/results/           # Eval output
 ├── archive/                 # Legacy skills (v1.x)
 ├── .claude-plugin/          # Plugin metadata
