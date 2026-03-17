@@ -329,6 +329,10 @@ elif echo "$REMOTE_URL" | grep -q 'visualstudio\.com'; then
   AZDO_PROJECT=$(echo "$REMOTE_URL" | sed -n 's|.*/\([^/]*\)/_git/.*|\1|p')
   AZDO_ORG_URL="https://dev.azure.com/$AZDO_ORG"
 fi
+# URL-decode for CLI/display; keep URL-safe versions for REST API paths
+AZDO_PROJECT_URL_SAFE="$AZDO_PROJECT"
+AZDO_ORG=$(printf '%b' "${AZDO_ORG//%/\\x}")
+AZDO_PROJECT=$(printf '%b' "${AZDO_PROJECT//%/\\x}")
 REPO_NAME=$(basename -s .git "$REMOTE_URL")
 ```
 
@@ -350,11 +354,11 @@ If org/project extraction fails, report ⚠️ and skip branch policies.
    AUTH="Authorization: Basic $(echo -n ":$PAT" | base64)"
    # Get repository ID first
    REPO_ID=$(curl -s -H "$AUTH" \
-     "$AZDO_ORG_URL/$AZDO_PROJECT/_apis/git/repositories/$REPO_NAME?api-version=7.0" \
+     "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/git/repositories/$REPO_NAME?api-version=7.0" \
      | jq -r '.id')
    # List branch policies
    curl -s -H "$AUTH" \
-     "$AZDO_ORG_URL/$AZDO_PROJECT/_apis/policy/configurations?api-version=7.0" \
+     "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/configurations?api-version=7.0" \
      | jq "[.value[] | select(.settings.scope[]?.refName == \"refs/heads/$default_branch\" and .settings.scope[]?.repositoryId == \"$REPO_ID\")]"
    ```
 
@@ -386,7 +390,7 @@ If org/project extraction fails, report ⚠️ and skip branch policies.
    **REST fallback:**
    ```bash
    curl -s -X POST -H "$AUTH" -H "Content-Type: application/json" \
-     "$AZDO_ORG_URL/$AZDO_PROJECT/_apis/policy/configurations?api-version=7.0" \
+     "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/configurations?api-version=7.0" \
      -d "{
        \"isEnabled\": true,
        \"isBlocking\": true,

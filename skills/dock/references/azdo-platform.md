@@ -54,6 +54,11 @@ elif echo "$REMOTE_URL" | grep -q 'visualstudio\.com'; then
   AZDO_ORG_URL="https://dev.azure.com/$AZDO_ORG"
 fi
 
+# URL-decode for CLI/display; keep URL-safe versions for REST API paths
+AZDO_PROJECT_URL_SAFE="$AZDO_PROJECT"
+AZDO_ORG=$(printf '%b' "${AZDO_ORG//%/\\x}")
+AZDO_PROJECT=$(printf '%b' "${AZDO_PROJECT//%/\\x}")
+
 if [ -z "$AZDO_ORG" ] || [ -z "$AZDO_PROJECT" ]; then
   echo "❌ Could not extract organization/project from remote URL"
   echo "   Remote: $REMOTE_URL"
@@ -72,7 +77,7 @@ az devops configure --defaults organization="$AZDO_ORG_URL" project="$AZDO_PROJE
 ```
 
 When `AZDO_MODE == rest`, store these for API calls:
-- Base URL: `$AZDO_ORG_URL/$AZDO_PROJECT/_apis`
+- Base URL: `$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis`
 - Auth header: `Authorization: Basic $(echo -n ":$PAT" | base64)`
 
 Report in pre-flight:
