@@ -217,18 +217,30 @@ Then **immediately** ask the user via AskUserQuestion:
 
    Question: "Spec written to {spec file path}. Ready to build?"
    Options:
-   - "Build now (Recommended)" — invoke `/build` with the spec file
+   - "Clear context & build (Recommended)" — clear the conversation first, then run `/build`
+   - "Build now" — invoke `/build` immediately in the current context
    - "Review first" — stop here so the user can review the spec before building
    - "Done" — stop here, no build
 
-If the user selects **"Build now"**:
-1. Invoke `/build` using the Skill tool:
+If the user selects **"Clear context & build"**:
+1. Run `/clear` to clear the conversation context
+2. Then invoke `/build {spec file path}`:
    ```
    Skill(skill: "build", args: "{spec file path}")
    ```
-2. `/build` will read the spec file via Plan Resolution and execute the full
-   pipeline. **Do not** attempt to implement the spec yourself — always
-   delegate to `/build`.
+   `/build` reads the spec file via Plan Resolution and executes the full
+   pipeline with maximum context window available.
+
+If the user selects **"Build now"**:
+1. Invoke `/build {spec file path}` directly:
+   ```
+   Skill(skill: "build", args: "{spec file path}")
+   ```
+   `/build` reads the spec file via Plan Resolution and executes the full
+   pipeline. The current conversation context is preserved.
+
+In both cases, **do not** attempt to implement the spec yourself — always
+delegate to `/build`.
 
 If the user selects **"Review first"** or **"Done"**, stop and display:
 ```
