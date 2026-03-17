@@ -19,12 +19,12 @@
     ]
   },
   {
-    "name": "subagent-architecture",
+    "name": "script-based-architecture",
     "prompt": "Ship everything to production",
     "assertions": [
       { "type": "contains", "value": "██" },
-      { "type": "regex", "value": "ship.analyzer", "flags": "i" },
-      { "type": "semantic", "value": "Mentions using specialized subagents for different stages, including a ship-analyzer agent for code analysis and commit/PR creation" }
+      { "type": "regex", "value": "(script|sync\\.sh|ci-watch\\.sh|merge\\.sh|general.purpose)", "flags": "i" },
+      { "type": "semantic", "value": "Uses deterministic scripts for sync, CI monitoring, and merge stages, with LLM subagents only for commit/PR authoring and CI fix analysis" }
     ]
   }
 ]

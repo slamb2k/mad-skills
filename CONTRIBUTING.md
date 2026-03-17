@@ -107,11 +107,11 @@ Task(
 )
 ```
 
-Use the lightest agent that can do the job:
-- **Bash** (haiku) — simple shell commands, git operations, polling
+Prefer deterministic scripts over LLM subagents for stages that are pure
+CLI commands. Use the lightest approach that can do the job:
+- **Bash scripts** (`scripts/`) — git operations, CI polling, merges, any deterministic workflow
 - **Explore** — codebase scanning, file pattern searches
-- **general-purpose** — complex analysis, code fixes, multi-step operations
-- **ship-analyzer** — diff analysis, commit messages, PR descriptions
+- **general-purpose** — complex analysis, code fixes, commit/PR authoring
 
 ### Report Pattern
 
@@ -191,7 +191,7 @@ mad-skills/
 ├── skills/          # 10 skill definitions
 ├── scripts/         # Build and CI tooling
 ├── hooks/           # Session guard (Node.js)
-├── agents/          # Agent definitions
+├── agents/          # Agent definitions (reserved)
 ├── tests/results/   # Eval output
 ├── archive/         # Legacy skills (inactive)
 ├── .claude-plugin/  # Plugin metadata

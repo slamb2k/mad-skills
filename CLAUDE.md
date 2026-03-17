@@ -129,13 +129,13 @@ their behavior accordingly. Both GitHub and Azure DevOps are first-class:
 Skills that are platform-aware: `/ship`, `/brace`, `/rig`, `/dock`, `/keel`.
 Skills that are platform-agnostic: `/sync`, `/prime`, `/speccy`, `/build`, `/distil`.
 
-### Custom Agents
+### Script-Based Execution
 
-The `ship-analyzer` agent specializes in reading code diffs to produce
-high-quality commit messages and PR descriptions. It's used by `/ship` and falls
-back to `general-purpose` if unavailable. Other skills use built-in agent types
-(Explore, Bash, feature-dev:code-explorer/architect/reviewer) which are always
-available.
+Deterministic stages (sync, CI polling, merge) use bundled bash scripts in
+`skills/<name>/scripts/` — no LLM needed. LLM subagents (general-purpose,
+Explore, feature-dev:code-explorer/architect/reviewer) are only used for
+stages that require reasoning: commit/PR authoring, CI fix analysis, and
+code exploration.
 
 ---
 
@@ -184,8 +184,6 @@ mad-skills/
 │       ├── state.cjs        # Persistent state (dismissals)
 │       ├── task-checks.cjs  # Task list checks
 │       └── utils.cjs        # Shared utilities
-├── agents/                  # Custom agent definitions
-│   └── ship-analyzer.md     # Semantic commit + PR agent for /ship
 ├── tests/                   # Eval test results
 │   └── results/             # JSON eval output (latest.json symlink)
 ├── archive/                 # Inactive skills (historical reference)
@@ -226,6 +224,7 @@ Each skill follows the standard layout:
 ```
 skills/<name>/
 ├── SKILL.md              # Frontmatter + banner + full execution logic
+├── scripts/              # Deterministic bash scripts (no LLM needed)
 ├── references/           # Extracted prompts, contracts, guides
 ├── assets/               # Static files (templates, components)
 └── tests/
@@ -238,11 +237,11 @@ skills/<name>/
 - `argument-hint` — Usage hint shown to users (e.g., `--flag, <required arg>`)
 - `allowed-tools` — Tools the skill may use (include `Agent` if using subagents)
 
-**Subagent strategy**: Skills should prefer subagents to keep the primary
-context window clean. Use Bash (haiku) for simple commands, Explore for codebase
-scanning, and general-purpose for complex logic. Custom agents (in `agents/`)
-are warranted when the task needs to read code AND produce prose output (like
-commit messages). Always include a fallback to a generic agent type.
+**Execution strategy**: Prefer deterministic bash scripts (in `scripts/`) for
+stages that are pure CLI commands — they're faster, cheaper, and more reliable
+than LLM subagents. Use LLM subagents only for stages that require reasoning:
+code analysis, commit message authoring, PR descriptions, debugging failures.
+Use Explore for codebase scanning and general-purpose for complex logic.
 
 ### CI/CD Pipeline
 
@@ -255,7 +254,7 @@ commit messages). Always include a fallback to a generic agent type.
 1. Create `skills/<name>/` with SKILL.md, references/, tests/evals.json
 2. Include full YAML frontmatter: name, description, argument-hint, allowed-tools
 3. Add ASCII art banner with random taglines
-4. Prefer subagent-based execution with Agent tool in allowed-tools
+4. Use bash scripts in `scripts/` for deterministic stages; LLM subagents only for reasoning
 5. Add pre-flight dependency table (6-column format) with fallback strategies
 6. Add platform detection if the skill interacts with CI/CD or git hosting APIs
 7. Run `npm run validate && npm run lint` to verify

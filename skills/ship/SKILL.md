@@ -59,9 +59,10 @@ Status icons: ✅ done · ❌ failed · ⚠️ degraded · ⏳ working · ⏭️
 
 ---
 
-Ship changes through the complete PR lifecycle. Every stage runs in a subagent
-to isolate context from the primary conversation. Prompts for each stage are
-in `references/stage-prompts.md`.
+Ship changes through the complete PR lifecycle. Deterministic stages (sync, CI
+polling, merge) run as bash scripts for speed and reliability. Only stages that
+require reasoning (commit/PR authoring, CI fix analysis) use LLM subagents.
+Stage prompts are in `references/stage-prompts.md`.
 
 ## Flags
 
@@ -112,7 +113,6 @@ Before starting, check all dependencies in this table. The table contains
 | git | cli | `git --version` | yes | stop | Install from https://git-scm.com |
 | gh | cli | `gh --version` | yes | url | https://cli.github.com |
 | az devops | cli | `az devops -h 2>/dev/null` | no | fallback | Falls back to REST API with PAT; see AzDO tooling below |
-| ship-analyzer | agent | `~/.claude/agents/ship-analyzer.md` or `~/.claude/plugins/marketplaces/slamb2k/agents/ship-analyzer.md` | no | fallback | Uses general-purpose agent |
 
 **Platform-conditional rules:**
 - **`gh`**: Only required when `PLATFORM == github`. Skip for AzDO repos.
@@ -129,6 +129,7 @@ For each applicable row, in order:
    - **ask**: notify user, offer to run command in Detail, continue either way (or halt if required)
    - **fallback**: notify user with Detail, continue with degraded behavior
 5. After all checks: summarize what's available and what's degraded
+6. Always show the commit/PR agent: `✅ commit agent    general-purpose`
 
 ### AzDO Tooling Detection
 
@@ -226,37 +227,32 @@ substituted into all stage prompts as `{REMOTE}` and `{DEFAULT_BRANCH}`.
 
 ## Stage 1: Sync
 
-Launch **Bash subagent** (haiku — simple git commands):
+Run the sync script directly (no LLM needed):
 
-```
-Task(
-  subagent_type: "Bash",
-  model: "haiku",
-  description: "Sync with default branch",
-  prompt: "Follow ~/.claude/skills/sync/SKILL.md or ~/.claude/plugins/marketplaces/slamb2k/skills/sync/SKILL.md subagent prompt. Return SYNC_REPORT."
-)
+```bash
+SKILL_ROOT="<resolved plugin root>"
+bash "$SKILL_ROOT/skills/sync/scripts/sync.sh" "{REMOTE}" "{DEFAULT_BRANCH}"
 ```
 
-Parse SYNC_REPORT. Extract `remote` and `default_branch`. Abort if sync failed.
+Parse SYNC_REPORT from output markers. Extract `remote` and `default_branch`.
+Abort if exit code is 1 (fatal).
 
 ---
 
 ## Stage 2: Commit, Push & Create PR
 
 This stage needs to **read and understand code** to write good commit messages
-and PR descriptions. Use a code-aware subagent.
+and PR descriptions — it's one of the few stages that requires an LLM.
 
-Launch **ship-analyzer subagent** (reads diffs + source files):
+Launch **general-purpose subagent** (reads diffs + source files):
 
 ```
 Task(
-  subagent_type: "ship-analyzer",
+  subagent_type: "general-purpose",
   description: "Analyze, commit, push, and create PR",
   prompt: <read from references/stage-prompts.md#stage-2>
 )
 ```
-
-> **Fallback:** If `ship-analyzer` is not available, use `subagent_type: "general-purpose"`.
 
 Substitute `{USER_INTENT}`, `{FILES_TO_INCLUDE}`, `{FILES_TO_EXCLUDE}`,
 `{REMOTE}`, `{DEFAULT_BRANCH}`, `{PLATFORM}`, `{AZDO_MODE}`, `{AZDO_ORG}`,
@@ -283,23 +279,19 @@ immediately. This stage loops: watch → detect failure → fix → push → wat
 
 ### Watch
 
-Launch **Bash subagent** (haiku — polling):
+Run the CI watch script directly (no LLM needed — just polling):
 
+```bash
+SKILL_ROOT="<resolved plugin root>"
+bash "$SKILL_ROOT/skills/ship/scripts/ci-watch.sh" \
+  "{PLATFORM}" "{PR_NUMBER}" "{BRANCH}" \
+  --azdo-mode="{AZDO_MODE}" --azdo-org-url="{AZDO_ORG_URL}" \
+  --azdo-project="{AZDO_PROJECT}" --azdo-project-url-safe="{AZDO_PROJECT_URL_SAFE}"
 ```
-Task(
-  subagent_type: "Bash",
-  model: "haiku",
-  description: "Monitor CI checks",
-  prompt: <read from references/stage-prompts.md#stage-3>
-)
-```
-
-Substitute `{PR_NUMBER}`, `{BRANCH}`, `{PLATFORM}`, `{AZDO_MODE}`,
-`{AZDO_ORG}`, `{AZDO_ORG_URL}`, `{AZDO_PROJECT}`, `{PAT}` into the prompt.
 
 Briefly inform the user: `⏳ Watching CI for PR #{pr_number}...`
 
-Parse CHECKS_REPORT when the subagent returns.
+Parse CHECKS_REPORT from output markers. Exit code 0=passed, 1=failed, 2=timeout.
 
 ### Fix (if needed)
 
@@ -347,29 +339,27 @@ defaults (override via `--no-squash` and `--keep-branch` flags only).
 
 ### 5a. Merge the PR
 
-Launch **Bash subagent** (haiku — simple git + platform CLI commands):
+Run the merge script directly (no LLM needed):
 
+```bash
+SKILL_ROOT="<resolved plugin root>"
+bash "$SKILL_ROOT/skills/ship/scripts/merge.sh" \
+  "{PLATFORM}" "{PR_NUMBER}" \
+  {MERGE_FLAGS} {BRANCH_FLAGS} \
+  --azdo-mode="{AZDO_MODE}" --azdo-org-url="{AZDO_ORG_URL}" \
+  --azdo-project="{AZDO_PROJECT}" --azdo-project-url-safe="{AZDO_PROJECT_URL_SAFE}"
 ```
-Task(
-  subagent_type: "Bash",
-  model: "haiku",
-  description: "Merge PR",
-  prompt: <read from references/stage-prompts.md#stage-5>
-)
-```
 
-Substitute `{PR_NUMBER}`, `{REMOTE}`, `{DEFAULT_BRANCH}`, `{PLATFORM}`,
-`{AZDO_MODE}`, `{AZDO_ORG_URL}`, `{AZDO_PROJECT}`, `{PAT}`, merge/branch flags.
-
-Parse LAND_REPORT.
+Parse LAND_REPORT from output markers. Exit code 0=merged, 1=failed.
 
 ### 5b. Sync local repo
 
-After the merge subagent succeeds, invoke `/sync` from the orchestrator to
-checkout the default branch, pull the merge commit, and **clean up stale
-branches** (prune gone remotes, delete merged branches). This replaces any
-manual `git checkout`/`git pull` — `/sync` handles everything including stash
-restore and branch cleanup.
+After the merge script succeeds, run the sync script to checkout the default
+branch, pull the merge commit, and **clean up stale branches**:
+
+```bash
+bash "$SKILL_ROOT/skills/sync/scripts/sync.sh" "{REMOTE}" "{DEFAULT_BRANCH}"
+```
 
 ---
 
