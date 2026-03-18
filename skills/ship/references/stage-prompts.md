@@ -258,6 +258,12 @@ FAILING CHECKS: {FAILING_CHECKS}
    )"
    git push
 
+CRITICAL — after pushing, your job is DONE. Return immediately.
+- Do NOT manually trigger, queue, or run any CI builds or pipelines
+- Do NOT use `az pipelines run`, `gh workflow run`, or any build-triggering command
+- The PR build policy will trigger automatically on push
+- The orchestrator will poll for the new build via ci-watch.sh
+
 ## Output Format
 
 FIX_REPORT:
