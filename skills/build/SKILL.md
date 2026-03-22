@@ -141,6 +141,39 @@ Before Stage 1, resolve the PLAN argument into content:
    - File: `Plan: {file path} ({line count} lines)`
    - Text: `Plan: inline ({word count} words)`
 
+## Pre-Build Branch Check
+
+Before starting Stage 1, verify the working tree is suitable for building:
+
+1. **Detect current branch and default branch:**
+   ```bash
+   CURRENT=$(git branch --show-current)
+   DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+   DEFAULT_BRANCH="${DEFAULT_BRANCH:-main}"
+   git fetch origin "$DEFAULT_BRANCH" --quiet 2>/dev/null
+   ```
+
+2. **If on a feature branch** (not `main`/`master`/default):
+   ```bash
+   BEHIND=$(git rev-list --count HEAD..origin/"$DEFAULT_BRANCH" 2>/dev/null || echo 0)
+   ```
+   If `BEHIND > 0`, warn the user via `AskUserQuestion`:
+   ```
+   "You're on branch '{CURRENT}' which is {BEHIND} commits behind {DEFAULT_BRANCH}.
+   Starting a new feature here risks divergent branches and complex rebases."
+   ```
+   Options:
+   - "Switch to main first (Recommended)" — run `/sync`, then create a new branch
+   - "Continue on this branch" — proceed (user accepts the risk)
+   - "Cancel" — stop
+
+3. **If on the default branch** and not up to date:
+   ```bash
+   LOCAL=$(git rev-parse "$DEFAULT_BRANCH")
+   REMOTE=$(git rev-parse "origin/$DEFAULT_BRANCH")
+   ```
+   If `LOCAL != REMOTE`, run `/sync` automatically before proceeding.
+
 ---
 
 ## Stage 1: Explore
