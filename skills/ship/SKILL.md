@@ -318,15 +318,50 @@ The fix subagent MUST commit and push before returning. Once it returns,
 attempt = 0
 while attempt < 2:
   CHECKS = run_watch()
-  if CHECKS.status == "all_passed" or CHECKS.status == "no_checks":
+  if CHECKS.status == "all_passed":
     break  → proceed immediately to Stage 5 (do NOT ask user to confirm merge)
+  if CHECKS.status == "no_checks":
+    → prompt user via AskUserQuestion:
+      "No CI checks found for PR #{PR_NUMBER} after waiting 30 seconds.
+       The repository may not have CI configured, or checks may still be registering."
+      Options:
+      - "Merge without checks (Recommended)" → break to Stage 5
+      - "Wait another 30 seconds" → re-run the watch (do not increment attempt)
+      - "Cancel" → stop /ship and display failure banner
+    break (if user chose merge or after re-wait resolves)
   attempt += 1
   run_fix(CHECKS.failing_checks)
   → loop back to watch
 
 if attempt == 2 and still failing:
-  report failures to user, stop
+  → display failure banner and stop (see Failure Handling below)
 ```
+
+### Failure Handling
+
+When /ship fails at ANY point (CI exhausts fix attempts, merge fails, post-merge
+verification fails), display the failure banner and STOP:
+
+```
+┌─ Ship · FAILED ──────────────────────────────────
+│
+│  ❌ PR #{PR_NUMBER} was NOT merged
+│
+│  Reason: {specific failure reason}
+│  Branch: {BRANCH} (still active)
+│
+│  ⚠️  You are still on branch '{BRANCH}'.
+│     Run /sync to return to main before starting new work.
+│
+└───────────────────────────────────────────────────
+```
+
+**Critical rules on failure:**
+- Do NOT proceed to "What's Next?"
+- Do NOT suggest next tasks or follow-up work
+- Do NOT invoke `/sync` or any other skill
+- Do NOT use language like "will be auto-merged" or "PR is pending"
+- The failure banner is the LAST output — nothing follows it
 
 ---
 
@@ -352,6 +387,34 @@ bash "$SKILL_ROOT/skills/ship/scripts/merge.sh" \
 
 Parse LAND_REPORT from output markers. Exit code 0=merged, 1=failed.
 
+### 5a-verify. Verify merge completed
+
+After merge.sh reports success, verify the PR actually merged:
+
+**GitHub:**
+```bash
+PR_STATE=$(gh pr view "$PR_NUMBER" --json state --jq '.state')
+```
+Expected: `"MERGED"`
+
+**AzDO CLI:**
+```bash
+PR_STATE=$(az repos pr show --id "$PR_NUMBER" --query status -o tsv)
+```
+Expected: `"completed"`
+
+**AzDO REST:**
+```bash
+PR_RESP=$(curl -s -H "$AUTH" "${AZDO_ORG_URL}/${AZDO_PROJECT_URL_SAFE}/_apis/git/repositories/${REPO_ID}/pullRequests/${PR_NUMBER}?api-version=7.1")
+PR_STATE=$(echo "$PR_RESP" | jq -r '.status')
+```
+Expected: `"completed"`
+
+If the PR is NOT in the expected merged/completed state, treat as a failure —
+display the failure banner (see Failure Handling) with reason "PR merge was
+accepted but PR is still in '{PR_STATE}' state. The merge may be queued or
+deferred." and stop.
+
 ### 5b. Sync local repo
 
 After the merge script succeeds, run the sync script to checkout the default
@@ -361,9 +424,22 @@ branch, pull the merge commit, and **clean up stale branches**:
 bash "$SKILL_ROOT/skills/sync/scripts/sync.sh" "{REMOTE}" "{DEFAULT_BRANCH}"
 ```
 
+After sync completes, verify the working tree is on the default branch:
+
+```bash
+CURRENT=$(git branch --show-current)
+if [ "$CURRENT" != "{DEFAULT_BRANCH}" ]; then
+  git checkout {DEFAULT_BRANCH}
+  git pull {REMOTE} {DEFAULT_BRANCH}
+fi
+```
+
 ---
 
 ## What's Next?
+
+**Only run this section if /ship succeeded (PR is merged).** If any failure
+occurred, the failure banner was already displayed and nothing should follow it.
 
 After a successful merge, determine what work comes next by checking these
 sources (in priority order):
@@ -393,6 +469,7 @@ Compile all stage reports into a summary:
 │  🌿 Branch:  {branch}
 │  🔗 PR:      {pr_url}
 │  🔀 Merged:  {merge_commit} ({merge_type})
+│  🌿 Now on: {DEFAULT_BRANCH} (up to date)
 │
 │  📝 Commits
 │     • {commit message 1}
