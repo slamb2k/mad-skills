@@ -51,6 +51,20 @@ handles curated facts.
 
 {UNIVERSAL_PRINCIPLES}
 
+## Branch Discipline
+
+- **Always sync to main before starting new work** — run `/sync` or
+  `git checkout main && git pull` before creating a feature branch
+- **Never branch from a feature branch** — always branch from an up-to-date `main`
+- **One feature per branch** — don't stack unrelated changes on the same branch
+- **After shipping a PR, sync immediately** — checkout main and pull before
+  starting the next task
+- **If a PR is pending review**, switch to main before starting unrelated work —
+  don't build on top of an unmerged branch
+
+These rules prevent divergent branches that require complex rebases with risk
+of silent conflict resolution.
+
 ## Guardrails
 
 - Verify tool output format before chaining into another tool

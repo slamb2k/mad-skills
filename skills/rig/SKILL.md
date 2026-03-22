@@ -293,6 +293,26 @@ If "Let me choose", present individual options as multi-select.
 For each approved item, follow the procedures in
 `references/configuration-steps.md`.
 
+### Branch Discipline in CLAUDE.md
+
+If the project has an existing `CLAUDE.md`:
+
+1. Check if `## Branch Discipline` already exists:
+   ```bash
+   grep -q "## Branch Discipline" CLAUDE.md
+   ```
+2. If NOT found, inject the Branch Discipline section before `## Guardrails`:
+   - Read the file content
+   - Find the line containing `## Guardrails`
+   - Insert the Branch Discipline section immediately before it
+   - If no `## Guardrails` section exists, append at the end of the file
+3. If already present, skip (idempotent)
+
+The Branch Discipline content to inject is the `## Branch Discipline` section
+from `skills/brace/references/claude-md-template.md`. Read that file to get
+the exact content — this avoids duplication and ensures both /brace and /rig
+inject identical text.
+
 ---
 
 ## Phase 5: Verification
