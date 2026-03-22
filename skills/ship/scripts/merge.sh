@@ -65,16 +65,34 @@ DELETE_FLAG=$( [ "$DELETE_BRANCH" = true ] && echo "true" || echo "false" )
 
 # ── AzDO CLI mode ──────────────────────────────────────
 if [ "$AZDO_MODE" = "cli" ]; then
-  # Check for rejected policies
-  REJECTED=$(az repos pr policy list --id "$PR_NUMBER" \
-    --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
-    --query "[?status=='rejected'] | length(@)" -o tsv 2>/dev/null)
-  if [ -n "$REJECTED" ] && [ "$REJECTED" != "0" ]; then
-    STATUS="failed"
-    ERRORS="$REJECTED PR policies are rejected"
-    MERGE_COMMIT=""; BRANCH_DELETED=false
-    emit_report; exit 1
-  fi
+  # Wait for all policies to reach terminal state (approved/rejected/notApplicable)
+  POLICY_TIMEOUT=20  # 20 iterations × 15 seconds = 5 minutes
+  for POLICY_ITER in $(seq 1 $POLICY_TIMEOUT); do
+    POLICY_JSON=$(az repos pr policy list --id "$PR_NUMBER" --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" -o json 2>/dev/null || echo "[]")
+
+    REJECTED=$(echo "$POLICY_JSON" | jq '[.[] | select(.status=="rejected")] | length')
+    PENDING=$(echo "$POLICY_JSON" | jq '[.[] | select(.status=="running" or .status=="queued" or .status=="pending")] | length')
+
+    if [ "${REJECTED:-0}" -gt 0 ]; then
+      STATUS="failed"
+      ERRORS="policies rejected"
+      MERGE_COMMIT=""; BRANCH_DELETED=false
+      emit_report; exit 1
+    fi
+
+    if [ "${PENDING:-0}" -eq 0 ]; then
+      break  # All policies terminal
+    fi
+
+    if [ "$POLICY_ITER" -eq "$POLICY_TIMEOUT" ]; then
+      STATUS="failed"
+      ERRORS="policies not evaluated after 5 minutes"
+      MERGE_COMMIT=""; BRANCH_DELETED=false
+      emit_report; exit 1
+    fi
+
+    sleep 15
+  done
 
   # Complete the PR
   if az repos pr update --id "$PR_NUMBER" --status completed \
@@ -111,16 +129,35 @@ if [ "$AZDO_MODE" = "rest" ]; then
   REPO_NAME=$(basename -s .git "$(git remote get-url origin)")
   PR_API="$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/git/repositories/$REPO_NAME/pullrequests/$PR_NUMBER"
 
-  # Check for rejected policies
-  EVALS=$(curl -s -H "$AUTH" \
-    "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/$AZDO_PROJECT_URL_SAFE/$PR_NUMBER&api-version=7.0")
-  REJECTED=$(echo "$EVALS" | jq '[.value[] | select(.status=="rejected")] | length')
-  if [ "$REJECTED" != "0" ]; then
-    STATUS="failed"
-    ERRORS="PR has rejected policy evaluations"
-    MERGE_COMMIT=""; BRANCH_DELETED=false
-    emit_report; exit 1
-  fi
+  # Wait for all policy evaluations to reach terminal state
+  POLICY_TIMEOUT=20
+  for POLICY_ITER in $(seq 1 $POLICY_TIMEOUT); do
+    EVALS=$(curl -s -H "$AUTH" \
+      "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/$AZDO_PROJECT_URL_SAFE/$PR_NUMBER&api-version=7.0" 2>/dev/null || echo '{"value":[]}')
+
+    REJECTED=$(echo "$EVALS" | jq '[.value[] | select(.status=="rejected")] | length')
+    PENDING=$(echo "$EVALS" | jq '[.value[] | select(.status=="running" or .status=="queued" or .status=="pending")] | length')
+
+    if [ "${REJECTED:-0}" -gt 0 ]; then
+      STATUS="failed"
+      ERRORS="PR has rejected policy evaluations"
+      MERGE_COMMIT=""; BRANCH_DELETED=false
+      emit_report; exit 1
+    fi
+
+    if [ "${PENDING:-0}" -eq 0 ]; then
+      break
+    fi
+
+    if [ "$POLICY_ITER" -eq "$POLICY_TIMEOUT" ]; then
+      STATUS="failed"
+      ERRORS="policies not evaluated after 5 minutes"
+      MERGE_COMMIT=""; BRANCH_DELETED=false
+      emit_report; exit 1
+    fi
+
+    sleep 15
+  done
 
   # Resolve merge strategy
   MERGE_STRATEGY=$( [ "$SQUASH" = true ] && echo "squash" || echo "noFastForward" )

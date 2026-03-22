@@ -22,12 +22,14 @@ for arg in "$@"; do
 done
 
 STATUS="" CHECKS="" FAILING=""
+GRACE_POLLS=0
 
 emit_report() {
   echo "CHECKS_REPORT_BEGIN"
   echo "status=$STATUS"
   echo "checks=$CHECKS"
   echo "failing_checks=${FAILING:-none}"
+  echo "grace_period_polls=$GRACE_POLLS"
   echo "CHECKS_REPORT_END"
 }
 
@@ -38,15 +40,29 @@ if [ "$PLATFORM" = "github" ]; then
     emit_report; exit 3
   fi
 
+  # Grace period: wait for checks to register (CI may not trigger immediately)
+  GRACE_POLLS=0
+  GRACE_JSON="[]"
+  for _ in $(seq 1 3); do
+    GRACE_POLLS=$((GRACE_POLLS + 1))
+    GRACE_JSON=$(gh pr checks "$PR_NUMBER" --json name,state 2>/dev/null || echo "[]")
+    if [ "$GRACE_JSON" != "[]" ]; then
+      break
+    fi
+    sleep 10
+  done
+
+  # If no checks found after grace period, report and exit
+  if [ "$GRACE_JSON" = "[]" ]; then
+    STATUS="no_checks"; CHECKS=""; FAILING="none"
+    emit_report; exit 0
+  fi
+
   # gh pr checks --watch blocks until done; --fail-fast stops on first failure
   gh pr checks "$PR_NUMBER" --watch --fail-fast 2>/dev/null || true
 
   # Parse final status
   CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json name,state 2>/dev/null || echo "[]")
-  if [ "$CHECKS_JSON" = "[]" ]; then
-    STATUS="no_checks"; CHECKS=""; FAILING="none"
-    emit_report; exit 0
-  fi
 
   FAIL_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state=="FAILURE")] | length')
   CHECKS=$(echo "$CHECKS_JSON" | jq -r '.[] | "\(.name):\(.state | ascii_downcase)"' | paste -sd, -)
@@ -77,9 +93,11 @@ fi
 
 # ── AzDO CLI mode ──────────────────────────────────────
 if [ "$AZDO_MODE" = "cli" ]; then
-  # Wait for CI to start (max 2 min)
+  # Grace period: wait for CI to start (max 2 min)
   RUNS_FOUND=false
+  GRACE_POLLS=0
   for _ in $(seq 1 8); do
+    GRACE_POLLS=$((GRACE_POLLS + 1))
     RUN_COUNT=$(az pipelines runs list --branch "$BRANCH" --top 5 \
       --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
       --query "length(@)" -o tsv 2>/dev/null)
@@ -147,9 +165,11 @@ fi
 if [ "$AZDO_MODE" = "rest" ]; then
   BUILDS_URL="$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/build/builds?branchName=refs/heads/$BRANCH&\$top=5&api-version=7.0"
 
-  # Wait for CI to start (max 2 min)
+  # Grace period: wait for CI to start (max 2 min)
   RUNS_FOUND=false
+  GRACE_POLLS=0
   for _ in $(seq 1 8); do
+    GRACE_POLLS=$((GRACE_POLLS + 1))
     RUN_COUNT=$(curl -s -H "$AUTH" "$BUILDS_URL" | jq '.value | length')
     if [ -n "$RUN_COUNT" ] && [ "$RUN_COUNT" != "0" ]; then
       RUNS_FOUND=true; break

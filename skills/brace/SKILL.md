@@ -249,6 +249,21 @@ Before sending the prompt, substitute these variables:
 
 Parse SCAFFOLD_REPORT. If status is "failed", report to user and stop.
 
+### Branch Discipline Injection
+
+When updating an existing project CLAUDE.md (not creating from template):
+
+1. Check if `## Branch Discipline` already exists:
+   ```bash
+   grep -q "## Branch Discipline" CLAUDE.md
+   ```
+2. If NOT found, inject the Branch Discipline section before `## Guardrails`:
+   - Read the file content
+   - Find the line containing `## Guardrails`
+   - Insert the Branch Discipline section (from the template) immediately before it
+   - If no `## Guardrails` section exists, append the section at the end of the file
+3. If already present, skip (idempotent)
+
 ---
 
 ## Phase 5: Verification & Report

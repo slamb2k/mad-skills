@@ -84,6 +84,25 @@ For each row, in order:
 
 ## Stage 1: Context Gathering
 
+### Pre-Spec Branch Check
+
+Before gathering context, check if the user is on a stale branch:
+
+```bash
+CURRENT=$(git branch --show-current)
+if [ "$CURRENT" != "main" ] && [ "$CURRENT" != "master" ]; then
+  git fetch origin main --quiet 2>/dev/null
+  BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
+  if [ "$BEHIND" -gt 5 ]; then
+    echo "⚠️ Branch '$CURRENT' is $BEHIND commits behind main."
+    echo "   Consider running /sync before building from this spec."
+  fi
+fi
+```
+
+This is advisory only (specs don't modify code) — do not block, continue
+regardless of the result.
+
 Before asking any questions, build a thorough understanding of the project:
 
 1. **Capture GOAL** — the user's argument describing what needs to be specified
