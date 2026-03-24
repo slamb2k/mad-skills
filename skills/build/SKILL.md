@@ -399,6 +399,33 @@ Invoke the `/ship` skill:
 
 If any stage failed, report the failure point and what was accomplished.
 
+### Pipeline Summary
+
+When `/build` was invoked as part of a chained pipeline (e.g., from `/speccy`),
+emit a concise **Pipeline Summary** after the Final Report. This gives an
+at-a-glance view of the entire end-to-end process:
+
+```
+┌─ Pipeline Summary ─────────────────────────────
+│
+│  {icon} Spec       {spec file or "inline plan"}
+│  {icon} Explore    {files identified count}
+│  {icon} Questions  {answered or "skipped"}
+│  {icon} Architect  {approach one-liner}
+│  {icon} Implement  {files changed summary}
+│  {icon} Review     {findings summary}
+│  {icon} Verify     {test result}
+│  {icon} Ship       {PR link} → {merge commit}
+│
+└─────────────────────────────────────────────────
+```
+
+Use ✅ for completed stages, ⏭️ for skipped, ❌ for failed.
+
+**Always emit this summary** — even when `/build` was invoked directly (not
+from `/speccy`). It serves as a compact status line for any multi-stage build,
+regardless of how it was triggered.
+
 ---
 
 ## Rollback
