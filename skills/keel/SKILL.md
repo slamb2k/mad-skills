@@ -124,8 +124,9 @@ For each applicable row, in order:
    - **fallback**: notify user with Detail, continue with degraded behavior
 5. After all checks: summarize what's available and what's degraded
 
-When `PLATFORM == azdo`, follow `references/azdo-platform.md` for tooling
-detection (`AZDO_MODE`) and configuration validation (`AZDO_ORG`, `AZDO_PROJECT`).
+When `PLATFORM == azdo`, follow the shared AzDO platform guide
+(repo root: references/azdo-platform.md) for tooling detection (`AZDO_MODE`)
+and configuration validation (`AZDO_ORG`, `AZDO_PROJECT`).
 Pass these variables into all phase prompts alongside `{PLATFORM}`.
 
 ---
