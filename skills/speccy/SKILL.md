@@ -232,28 +232,17 @@ After the spec is created, report to the user:
 └─────────────────────────────────────────────────
 ```
 
-Then **immediately** ask the user via AskUserQuestion:
+Then display the build command:
 
-   Question: "Spec written to {spec file path}. Ready to build?"
-   Options:
-   - "Build now (Recommended)" — invoke `/build` immediately
-   - "Review first" — stop here so the user can review the spec before building
-   - "Done" — stop here, no build
-
-If the user selects **"Build now"**:
-1. Invoke `/build {spec file path}` directly:
-   ```
-   Skill(skill: "build", args: "{spec file path}")
-   ```
-   `/build` reads the spec file via Plan Resolution and executes the full
-   pipeline. **Do not** attempt to implement the spec yourself — always
-   delegate to `/build`.
-
-If the user selects **"Review first"** or **"Done"**, stop and display:
 ```
-⚡ To build later, run: /build {spec file path}
+⚡ To implement, run: /build {spec file path}
 ```
 
-**IMPORTANT:** After generating the spec, do NOT enter plan mode, do NOT
-start implementing directly, and do NOT offer to execute the plan yourself.
-The only path to implementation is through `/build`.
+The spec file persists on disk, so the user can `/clear` the conversation
+to free context before running `/build`. This is the recommended flow for
+large specs — clearing context gives `/build` maximum working room.
+
+**IMPORTANT:** After generating the spec, STOP. Do NOT enter plan mode,
+do NOT start implementing directly, do NOT invoke `/build` yourself, and
+do NOT offer to execute the plan. The spec file is the handoff artifact —
+the user controls when and how to invoke `/build`.
