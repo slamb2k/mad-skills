@@ -80,7 +80,10 @@ function check() {
   // 3) Staleness evaluation
   checkStaleness(PROJECT_DIR, CLAUDE_MD, gitRoot, output);
 
-  // 4) Staleness summary
+  // 4) Pending build check
+  checkPendingBuild(PROJECT_DIR, output);
+
+  // 5) Staleness summary
   if (output.score >= config.staleness.threshold) {
     output.blank();
     output.add(`[SESSION GUARD] \u26A0\uFE0F  CLAUDE.md appears STALE (score: ${output.score}/${config.staleness.threshold})`);
@@ -229,6 +232,26 @@ function checkRig(projectDir, output) {
     ],
     'low',
   );
+}
+
+// ─── pending build check ──────────────────────────────────────────────
+
+function checkPendingBuild(projectDir, output) {
+  const pending = state.loadPendingBuild(projectDir);
+  if (!pending) return;
+
+  const specPath = pending.specPath;
+  const specExists = existsSync(join(projectDir, specPath));
+
+  if (!specExists) {
+    // Spec file was deleted — clean up stale marker
+    state.clearPendingBuild(projectDir);
+    return;
+  }
+
+  output.blank();
+  output.add(`[SESSION GUARD] 📋 Pending spec ready for build: ${specPath}`);
+  output.add(`[SESSION GUARD] → Run: /build ${specPath}`);
 }
 
 // ─── helpers ───────────────────────────────────────────────────────────

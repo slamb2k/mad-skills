@@ -232,10 +232,21 @@ After the spec is created, report to the user:
 └─────────────────────────────────────────────────
 ```
 
+Then write a **pending-build marker** so the next session knows about this spec:
+
+```bash
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
+node -e "require('$PLUGIN_ROOT/hooks/lib/state.cjs').savePendingBuild(process.cwd(), '{spec file path}')"
+```
+
+This marker is picked up by the session-guard hook on the next session start
+(including after `/clear`), which surfaces the build command automatically.
+
 Then display the build command:
 
 ```
 ⚡ To implement, run: /build {spec file path}
+   (You can /clear first — the spec is saved and the next session will remind you)
 ```
 
 The spec file persists on disk, so the user can `/clear` the conversation
