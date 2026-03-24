@@ -107,7 +107,17 @@ For each row, in order:
    manually scanning CLAUDE.md and specs/ directory.
 3. Detect project type using `references/project-detection.md` to populate
    **PROJECT_CONFIG** (language, test_runner, test_setup)
-3. Check for outstanding items from previous work:
+4. **Create task list** — ALWAYS create tasks upfront for all stages using
+   `TaskCreate`. This provides visible progress tracking throughout the build:
+   - Task: "Stage 1: Explore codebase"
+   - Task: "Stage 2: Clarifying questions" (if not `--skip-questions`)
+   - Task: "Stage 3: Architecture design"
+   - Task: "Stage 4: Implementation"
+   - Task: "Stage 5: Code review" (if not `--skip-review`)
+   - Task: "Stage 7: Verify"
+   - Task: "Stage 9: Ship" (if not `--no-ship`)
+   Mark each task `in_progress` when starting and `completed` when done.
+5. Check for outstanding items from previous work:
    - Query persistent tasks via `TaskList` for incomplete items
    - Search CLAUDE.md for a "Known Issues" or "Open Questions" section
    - Search memory (if available) for recent unresolved items
@@ -226,10 +236,13 @@ If rejected, incorporate feedback and re-run.
 
 ## Stage 4: Implementation
 
-If `--parallel-impl` and ARCH_REPORT has independent `parallel_groups`,
-launch **multiple general-purpose subagents in parallel**.
+If ARCH_REPORT identifies independent `parallel_groups`, launch **multiple
+general-purpose subagents in parallel** — one per group. Do NOT wait for
+`--parallel-impl` flag; parallel execution is the **default** when the
+architecture supports it. The flag is retained only as an explicit override.
 
-Otherwise launch **one general-purpose subagent**:
+If the architecture has no independent groups, launch **one general-purpose
+subagent**:
 
 ```
 Task(
