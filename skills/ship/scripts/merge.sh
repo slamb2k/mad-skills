@@ -96,7 +96,7 @@ if [ "$AZDO_MODE" = "cli" ]; then
 
   # Complete the PR
   if az repos pr update --id "$PR_NUMBER" --status completed \
-    --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
+    --org "$AZDO_ORG_URL" \
     --squash "$SQUASH_FLAG" \
     --delete-source-branch "$DELETE_FLAG" 2>/dev/null; then
     STATUS="success"
@@ -106,7 +106,7 @@ if [ "$AZDO_MODE" = "cli" ]; then
     # Retry once after 30s (policies may still be evaluating)
     sleep 30
     if az repos pr update --id "$PR_NUMBER" --status completed \
-      --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
+      --org "$AZDO_ORG_URL" \
       --squash "$SQUASH_FLAG" \
       --delete-source-branch "$DELETE_FLAG" 2>/dev/null; then
       STATUS="success"
@@ -125,7 +125,7 @@ fi
 
 # ── AzDO REST mode ─────────────────────────────────────
 if [ "$AZDO_MODE" = "rest" ]; then
-  AUTH="Authorization: Basic $(echo -n ":$PAT" | base64)"
+  AUTH="Authorization: Basic $(printf ":%s" "$PAT" | base64 | tr -d '\n')"
   REPO_NAME=$(basename -s .git "$(git remote get-url origin)")
   PR_API="$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/git/repositories/$REPO_NAME/pullrequests/$PR_NUMBER"
 
@@ -133,7 +133,10 @@ if [ "$AZDO_MODE" = "rest" ]; then
   POLICY_TIMEOUT=20
   for POLICY_ITER in $(seq 1 $POLICY_TIMEOUT); do
     EVALS=$(curl -s -H "$AUTH" \
-      "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/$AZDO_PROJECT_URL_SAFE/$PR_NUMBER&api-version=7.0" 2>/dev/null || echo '{"value":[]}')
+      "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/$AZDO_PROJECT_URL_SAFE/$PR_NUMBER&api-version=7.0" 2>&1)
+    if ! echo "$EVALS" | jq empty 2>/dev/null; then
+      EVALS='{"value":[]}'
+    fi
 
     REJECTED=$(echo "$EVALS" | jq '[.value[] | select(.status=="rejected")] | length')
     PENDING=$(echo "$EVALS" | jq '[.value[] | select(.status=="running" or .status=="queued" or .status=="pending")] | length')
@@ -165,7 +168,13 @@ if [ "$AZDO_MODE" = "rest" ]; then
   # Complete the PR
   RESPONSE=$(curl -s -X PATCH -H "$AUTH" -H "Content-Type: application/json" \
     "$PR_API?api-version=7.0" \
-    -d "{\"status\": \"completed\", \"completionOptions\": {\"mergeStrategy\": \"$MERGE_STRATEGY\", \"deleteSourceBranch\": $DELETE_FLAG}}")
+    -d "{\"status\": \"completed\", \"completionOptions\": {\"mergeStrategy\": \"$MERGE_STRATEGY\", \"deleteSourceBranch\": $DELETE_FLAG}}" 2>&1)
+  if ! echo "$RESPONSE" | jq empty 2>/dev/null; then
+    STATUS="failed"
+    ERRORS="REST merge returned non-JSON response"
+    MERGE_COMMIT=""; BRANCH_DELETED=false
+    emit_report; exit 1
+  fi
 
   PR_STATUS=$(echo "$RESPONSE" | jq -r '.status // empty')
   if [ "$PR_STATUS" = "completed" ]; then

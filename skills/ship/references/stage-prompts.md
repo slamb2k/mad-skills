@@ -130,7 +130,7 @@ Bad examples:
 
    **If PLATFORM == azdo AND AZDO_MODE == rest:**
      REPO_NAME=$(basename -s .git "$(git remote get-url origin)")
-     AUTH="Authorization: Basic $(echo -n ":{PAT}" | base64)"
+     AUTH="Authorization: Basic $(printf ":%s" "{PAT}" | base64 | tr -d '\n')"
      PR_JSON=$(curl -s -X POST \
        -H "$AUTH" \
        -H "Content-Type: application/json" \
@@ -231,7 +231,7 @@ FAILING CHECKS: {FAILING_CHECKS}
      rm -rf "$LOGDIR"
 
    **If PLATFORM == azdo AND AZDO_MODE == rest:**
-     AUTH="Authorization: Basic $(echo -n ":{PAT}" | base64)"
+     AUTH="Authorization: Basic $(printf ":%s" "{PAT}" | base64 | tr -d '\n')"
      # Get failed build ID
      RUN_ID=$(curl -s -H "$AUTH" \
        "{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/build/builds?branchName=refs/heads/{BRANCH}&resultFilter=failed&\$top=1&api-version=7.0" \
