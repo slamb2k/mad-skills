@@ -102,12 +102,17 @@ For each row, in order:
 4. After all checks: summarize what's available and what's degraded
 
 1. Capture **PLAN** (the user's argument) and **FLAGS**
-2. **Load project context** — invoke `/prime` to load domain-specific context
+2. **Clear pending-build marker** — if a marker was left by `/speccy`, clear it:
+   ```bash
+   PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
+   node -e "require('$PLUGIN_ROOT/hooks/lib/state.cjs').clearPendingBuild(process.cwd())"
+   ```
+3. **Load project context** — invoke `/prime` to load domain-specific context
    (CLAUDE.md, specs, memory). If /prime is unavailable, fall back to
    manually scanning CLAUDE.md and specs/ directory.
-3. Detect project type using `references/project-detection.md` to populate
+4. Detect project type using `references/project-detection.md` to populate
    **PROJECT_CONFIG** (language, test_runner, test_setup)
-4. **Create task list** — ALWAYS create tasks upfront for all stages using
+5. **Create task list** — ALWAYS create tasks upfront for all stages using
    `TaskCreate`. This provides visible progress tracking throughout the build:
    - Task: "Stage 1: Explore codebase"
    - Task: "Stage 2: Clarifying questions" (if not `--skip-questions`)
@@ -117,11 +122,11 @@ For each row, in order:
    - Task: "Stage 7: Verify"
    - Task: "Stage 9: Ship" (if not `--no-ship`)
    Mark each task `in_progress` when starting and `completed` when done.
-5. Check for outstanding items from previous work:
+6. Check for outstanding items from previous work:
    - Query persistent tasks via `TaskList` for incomplete items
    - Search CLAUDE.md for a "Known Issues" or "Open Questions" section
    - Search memory (if available) for recent unresolved items
-4. If outstanding items found, present via AskUserQuestion:
+7. If outstanding items found, present via AskUserQuestion:
    ```
    "Found {count} outstanding items from previous work:"
    {numbered list with summary of each}

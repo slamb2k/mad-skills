@@ -70,4 +70,33 @@ function savePrefs(projectDir, prefs) {
   writeFileSync(prefsPath(projectDir), JSON.stringify(prefs, null, 2));
 }
 
-module.exports = { save, load, clear, isRecentlyChecked, loadPrefs, savePrefs };
+// ─── pending build marker ─────────────────────────────────────────────
+
+function pendingBuildPath(projectDir) {
+  return join(STATE_DIR, `${projectKey(projectDir)}-pending-build.json`);
+}
+
+function savePendingBuild(projectDir, specPath) {
+  ensureDir();
+  writeFileSync(pendingBuildPath(projectDir), JSON.stringify({
+    specPath,
+    projectDir,
+    timestamp: Date.now(),
+  }, null, 2));
+}
+
+function loadPendingBuild(projectDir) {
+  const path = pendingBuildPath(projectDir);
+  if (!existsSync(path)) return null;
+  try {
+    return JSON.parse(readFileSync(path, 'utf-8'));
+  } catch {
+    return null;
+  }
+}
+
+function clearPendingBuild(projectDir) {
+  try { unlinkSync(pendingBuildPath(projectDir)); } catch { /* noop */ }
+}
+
+module.exports = { save, load, clear, isRecentlyChecked, loadPrefs, savePrefs, savePendingBuild, loadPendingBuild, clearPendingBuild };
