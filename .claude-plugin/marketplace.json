@@ -26,7 +26,10 @@
         "name": "slamb2k",
         "url": "https://github.com/slamb2k"
       },
-      "source": "slamb2k/squiz",
+      "source": {
+        "source": "github",
+        "repo": "slamb2k/squiz"
+      },
       "category": "browser-automation",
       "homepage": "https://github.com/slamb2k/squiz",
       "tags": ["browser", "automation", "testing", "scraping", "screenshots"]
