@@ -8,30 +8,11 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseFrontmatter } from "./lib/frontmatter.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SKILLS_DIR = resolve(__dirname, "..", "skills");
 const MANIFEST_PATH = resolve(__dirname, "..", "skills", "manifest.json");
-
-function parseFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) return {};
-
-  const result = {};
-  let currentKey = null;
-
-  for (const line of match[1].split("\n")) {
-    if (currentKey && (line.startsWith("  ") || line.startsWith("\t"))) {
-      result[currentKey] += " " + line.trim();
-      continue;
-    }
-    const colonIdx = line.indexOf(":");
-    if (colonIdx === -1) continue;
-    currentKey = line.slice(0, colonIdx).trim();
-    result[currentKey] = line.slice(colonIdx + 1).trim();
-  }
-  return result;
-}
 
 async function main() {
   const entries = await readdir(SKILLS_DIR, { withFileTypes: true });

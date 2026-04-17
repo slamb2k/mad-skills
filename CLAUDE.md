@@ -171,7 +171,9 @@ mad-skills/
 │   ├── lint-skills.js       # SKILL.md linting
 │   ├── run-evals.js         # Eval runner (Anthropic/OpenRouter)
 │   ├── build-manifests.js   # Generate skills/manifest.json
-│   └── package-skills.js    # Package .skill archives
+│   ├── package-skills.js    # Package .skill archives
+│   └── lib/                 # Shared helpers
+│       └── frontmatter.js   # YAML frontmatter parser (validate + manifests)
 ├── hooks/                   # Session guard (Node.js)
 │   ├── hooks.json           # Plugin hook definitions
 │   ├── session-guard.cjs    # Entry point (check/remind subcommands)
@@ -195,6 +197,8 @@ mad-skills/
 │   └── start-right/         # Archived skill
 ├── assets/                  # Project-level static assets
 │   └── mad-skills.png       # Logo/branding
+├── references/              # Shared reference material for skills
+├── specs/                   # Feature specifications produced by /speccy
 ├── .claude-plugin/          # Plugin metadata
 │   ├── marketplace.json
 │   └── plugin.json
