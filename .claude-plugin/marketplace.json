@@ -18,6 +18,18 @@
       "category": "development",
       "homepage": "https://github.com/slamb2k/mad-skills",
       "tags": ["planning", "tdd", "architecture", "llm-review", "implementation"]
+    },
+    {
+      "name": "squiz",
+      "description": "Browser automation that works on Windows, WSL, remote VMs, and macOS — no Chrome extension required. Token-efficient agent-browser CLI with context isolation.",
+      "author": {
+        "name": "slamb2k",
+        "url": "https://github.com/slamb2k"
+      },
+      "source": "slamb2k/squiz",
+      "category": "browser-automation",
+      "homepage": "https://github.com/slamb2k/squiz",
+      "tags": ["browser", "automation", "testing", "scraping", "screenshots"]
     }
   ]
 }
