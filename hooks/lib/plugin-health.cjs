@@ -2,7 +2,6 @@
 
 const { join } = require('path');
 const { homedir } = require('os');
-const { readdirSync } = require('fs');
 const config = require('./config.cjs');
 const state = require('./state.cjs');
 const { readJson } = require('./utils.cjs');
@@ -11,7 +10,6 @@ const { readJson } = require('./utils.cjs');
  * Plugin Health — detect performance anti-patterns in companion plugins.
  *
  * Checks:
- *   - Hookify enabled with no rules (pure overhead)
  *   - claude-mem missing SKIP_TOOLS for read-only tools
  *   - claude-mem context injection too high (when OMC also active)
  *
@@ -27,36 +25,7 @@ function checkPluginHealth(projectDir, output) {
 
   const plugins = settings.enabledPlugins || {};
 
-  checkHookify(projectDir, plugins, output);
   checkClaudeMem(plugins, output);
-}
-
-// ─── hookify ──────────────────────────────────────────────────────────
-
-function checkHookify(projectDir, plugins, output) {
-  const hookifyKey = Object.keys(plugins).find(k => k.includes('hookify'));
-  if (!hookifyKey || plugins[hookifyKey] !== true) return; // Not enabled
-
-  // Count rule files in project .claude/ directory
-  let ruleCount = 0;
-  try {
-    const projectClaudeDir = join(projectDir, '.claude');
-    const files = readdirSync(projectClaudeDir);
-    ruleCount = files.filter(f => config.pluginHealth.hookify.rulePattern.test(f)).length;
-  } catch { /* directory doesn't exist — zero rules */ }
-
-  // Also check global .claude/ directory
-  try {
-    const globalClaudeDir = join(homedir(), '.claude');
-    const files = readdirSync(globalClaudeDir);
-    ruleCount += files.filter(f => config.pluginHealth.hookify.rulePattern.test(f)).length;
-  } catch { /* noop */ }
-
-  if (ruleCount === 0) {
-    output.signals.push(
-      '\u26A0 Hookify enabled but no rules configured \u2014 fires on every tool call for nothing. Run /brace or disable in settings',
-    );
-  }
 }
 
 // ─── claude-mem ───────────────────────────────────────────────────────

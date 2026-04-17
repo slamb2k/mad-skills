@@ -146,21 +146,31 @@ skills-based workflow while preserving all other content.
   This project uses claude-mem for persistent cross-session memory.
   ```
 
-### Global preferences (conditional)
+### Global preferences and universal principles
 
-If INSTALL_LEVEL is "global" or "both":
+**If INSTALL_LEVEL is "global":**
 - Read ~/.claude/CLAUDE.md
 - If it does NOT contain "## Global Preferences", insert the Global
   Preferences Content (below) immediately before "## Current Skills"
 - If it already contains "## Global Preferences", skip (idempotent)
+- Substitute {UNIVERSAL_PRINCIPLES} in the project CLAUDE.md template with
+  an empty string (principles are in the global config instead).
 
-### {UNIVERSAL_PRINCIPLES} substitution
-
-If INSTALL_LEVEL is "project" or "both", substitute {UNIVERSAL_PRINCIPLES}
-in the CLAUDE.md template with the Universal Principles Content below.
-
-If INSTALL_LEVEL is "global", substitute {UNIVERSAL_PRINCIPLES} with an
-empty string (principles are in the global config instead).
+**If INSTALL_LEVEL is "project":**
+- Do NOT modify ~/.claude/CLAUDE.md.
+- Before writing universal principles into the project CLAUDE.md, check
+  ~/.claude/CLAUDE.md for existing equivalent sections (redundancy guard):
+  - If global contains "## Global Preferences" → SKIP that section in
+    project CLAUDE.md. Add to SCAFFOLD_REPORT.skipped_redundant.
+  - If global contains "## Universal Operating Principles" → SKIP that
+    section in project CLAUDE.md. Add to SCAFFOLD_REPORT.skipped_redundant.
+- For any sections NOT found in global, substitute {UNIVERSAL_PRINCIPLES}
+  in the project CLAUDE.md template with only the non-redundant sections
+  from the Universal Principles Content below.
+- If ALL sections are redundant, substitute {UNIVERSAL_PRINCIPLES} with
+  an empty string.
+- Report each skipped section to the user:
+  "⏭️ Skipped {section} in project CLAUDE.md — already present in ~/.claude/CLAUDE.md"
 
 ### CLAUDE.md Template
 
@@ -206,6 +216,7 @@ SCAFFOLD_REPORT:
   cleaned: [list of files cleaned of legacy references]
   preserved_content: [any key decisions extracted from memory/MEMORY.md, or empty]
   skipped: [list of items skipped]
+  skipped_redundant: [sections skipped in project CLAUDE.md because already in global, or empty]
   global_updated: true|false|skipped
   errors: [any errors encountered]
 ```
@@ -286,39 +297,19 @@ Limit PLUGIN_REPORT to 30 lines maximum.
    node -e "
      const s = JSON.parse(require('fs').readFileSync('$HOME/.claude/settings.json','utf8'));
      const p = s.enabledPlugins || {};
-     const hookify = Object.keys(p).find(k => k.includes('hookify'));
      const mem = Object.keys(p).find(k => k.includes('claude-mem'));
      const omc = Object.keys(p).find(k => k.includes('oh-my-claudecode'));
-     console.log('hookify_installed:' + !!hookify);
-     console.log('hookify_enabled:' + (hookify && p[hookify] === true));
      console.log('claude_mem_installed:' + !!mem);
      console.log('claude_mem_enabled:' + (mem && p[mem] === true));
      console.log('omc_installed:' + !!omc);
      console.log('omc_enabled:' + (omc && p[omc] === true));
    "
-   Record: hookify_installed/enabled, claude_mem_installed/enabled, omc_installed/enabled
+   Record: claude_mem_installed/enabled, omc_installed/enabled
 
    If a plugin is not installed (not in enabledPlugins at all), skip its
    entire audit section below and report all its fields as "N/A".
 
-2. **Hookify audit** (only if hookify_enabled == true)
-   a. Check python3 availability:
-      python3 --version >/dev/null 2>&1 && echo "python3_available:true" || echo "python3_available:false"
-      Record: python3_available
-
-   b. Count hookify rule files:
-      RULE_COUNT=0
-      for f in "$HOME/.claude"/hookify.*.local.md .claude/hookify.*.local.md; do
-        [ -f "$f" ] && RULE_COUNT=$((RULE_COUNT + 1))
-      done
-      echo "hookify_rule_count:$RULE_COUNT"
-      Record: hookify_rule_count
-
-   c. Determine findings:
-      - If python3_available == false → finding H2
-      - If hookify_rule_count == 0 → finding H1
-
-3. **claude-mem audit** (only if claude_mem_enabled == true)
+2. **claude-mem audit** (only if claude_mem_enabled == true)
    MEM_SETTINGS="$HOME/.claude-mem/settings.json"
    if [ -f "$MEM_SETTINGS" ]; then
      node -e "
@@ -349,10 +340,6 @@ Limit PLUGIN_REPORT to 30 lines maximum.
 
 PLUGIN_REPORT:
   settings_file_found: true|false
-  hookify_installed: true|false
-  hookify_enabled: true|false
-  hookify_python3_available: true|false|N/A
-  hookify_rule_count: {number}|N/A
   claude_mem_installed: true|false
   claude_mem_enabled: true|false
   claude_mem_skip_tools: {current value}|N/A
@@ -363,5 +350,5 @@ PLUGIN_REPORT:
   claude_mem_has_openrouter_key: true|false|N/A
   omc_installed: true|false
   omc_enabled: true|false
-  findings: {comma-separated list of H1,H2,M1,M2,M3 or "none"}
+  findings: {comma-separated list of M1,M2,M3 or "none"}
 ```
