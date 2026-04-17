@@ -15,6 +15,10 @@ data/
 # Temp & scratch
 .tmp/
 
+# AI tooling local state
+.claude/
+.omc/
+
 # Python
 __pycache__/
 *.pyc
