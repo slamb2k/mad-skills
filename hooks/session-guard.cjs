@@ -27,6 +27,7 @@ const { getBanner } = require('./lib/banner.cjs');
 const { checkGit } = require('./lib/git-checks.cjs');
 const { checkTaskList } = require('./lib/task-checks.cjs');
 const { checkStaleness } = require('./lib/staleness.cjs');
+const { checkPluginHealth } = require('./lib/plugin-health.cjs');
 
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const CLAUDE_MD = join(PROJECT_DIR, 'CLAUDE.md');
@@ -83,7 +84,10 @@ function check() {
   // 4) Pending build check
   checkPendingBuild(PROJECT_DIR, output);
 
-  // 5) Staleness summary
+  // 5) Plugin health check
+  checkPluginHealth(PROJECT_DIR, output);
+
+  // 6) Staleness summary
   if (output.score >= config.staleness.threshold) {
     output.blank();
     output.add(`[SESSION GUARD] \u26A0\uFE0F  CLAUDE.md appears STALE (score: ${output.score}/${config.staleness.threshold})`);
@@ -290,8 +294,15 @@ switch (command) {
     console.log(`Rig prompt dismissed for ${PROJECT_DIR}`);
     break;
   }
+  case 'dismiss-plugin-health': {
+    const prefs = state.loadPrefs(PROJECT_DIR);
+    prefs.pluginHealthDismissed = true;
+    state.savePrefs(PROJECT_DIR, prefs);
+    console.log(`Plugin health checks dismissed for ${PROJECT_DIR}`);
+    break;
+  }
   default:
     console.error(`Session Guard v${config.version}`);
-    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig>');
+    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|dismiss-plugin-health>');
     process.exit(1);
 }

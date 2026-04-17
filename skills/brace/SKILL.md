@@ -1,7 +1,7 @@
 ---
 name: brace
 description: 'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project CLAUDE.md with development workflow and guardrails, .gitignore, and branch protection. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: "init project", "setup brace", "brace", "initialize", "bootstrap", "scaffold".'
-argument-hint: "[--force]"
+argument-hint: "[--force] [--skip-plugin-tuning]"
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ---
 
@@ -75,6 +75,7 @@ Report format: `references/report-template.md`
 
 Parse optional flags from the request:
 - `--force` — Overwrite existing files without prompting
+- `--skip-plugin-tuning` — Skip Phase 7 plugin performance tuning
 
 ---
 
@@ -85,6 +86,7 @@ Before starting, check all dependencies in this table:
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | claude-mem | plugin | — | no | ask | `claude plugin install claude-mem` |
+| oh-my-claudecode | plugin | — | no | ask | `claude plugin install oh-my-claudecode` |
 
 For each row, in order:
 1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
@@ -96,6 +98,11 @@ For each row, in order:
    - **ask**: notify user, offer to run command in Detail, continue either way (or halt if required)
    - **fallback**: notify user with Detail, continue with degraded behavior
 4. After all checks: summarize what's available and what's degraded
+
+**Plugin detection:** For plugin dependencies (Type = plugin), check
+`~/.claude/settings.json` → `enabledPlugins` for a key containing the plugin
+name set to `true`. Store results as `PLUGIN_STATE` (`claude_mem_installed`,
+`omc_installed`, `hookify_installed`) for use in Phase 4 and Phase 7.
 
 1. Capture **FLAGS** from the user's request
 
@@ -246,6 +253,11 @@ Before sending the prompt, substitute these variables:
 - `{GITIGNORE_CONTENT}` — read from `assets/gitignore-template`
 - `{GLOBAL_PREFERENCES_CONTENT}` — read from `assets/global-preferences-template.md`
   (the section between BEGIN TEMPLATE and END TEMPLATE)
+- `{PLUGIN_ROLE_SEPARATION}` — if both claude-mem AND oh-my-claudecode are
+  detected as enabled (from Phase 7 PLUGIN_REPORT, or by checking
+  `~/.claude/settings.json`), substitute with the content from
+  `references/plugin-tuning-steps.md#plugin-role-separation-content`.
+  Otherwise, substitute with an empty string.
 
 Parse SCAFFOLD_REPORT. If status is "failed", report to user and stop.
 
@@ -288,150 +300,105 @@ Parse VERIFY_REPORT. Present the final summary using the format in
 
 **Only if the project is a git repo** (from SCAN_REPORT `git_initialized`).
 
-Detect the default branch and hosting platform:
+Detect the default branch and hosting platform (GitHub, Azure DevOps, or
+unknown). Platform detection and all CLI/REST commands are in
+`references/branch-protection-steps.md`.
 
-```bash
-default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
+### Flow
 
-REMOTE_URL=$(git remote get-url origin 2>/dev/null)
-if echo "$REMOTE_URL" | grep -qiE 'dev\.azure\.com|visualstudio\.com'; then
-  PLATFORM="azdo"
-elif echo "$REMOTE_URL" | grep -qi 'github\.com'; then
-  PLATFORM="github"
-else
-  PLATFORM="unknown"
-fi
-```
-
-### GitHub
-
-If `PLATFORM == github`:
-1. Check for existing branch protection via `gh api repos/{owner}/{repo}/branches/{default_branch}/protection` (404 = unprotected)
-2. If unprotected, ask via AskUserQuestion:
-
-   Question: "Default branch `{default_branch}` has no branch protection. Add it?"
-   Options:
+1. Detect platform from `git remote get-url origin`
+2. **GitHub:** Check existing protection via `gh api`. If unprotected, ask via
+   AskUserQuestion:
    - "Yes, require PR reviews (Recommended)" — require 1 approval, block force push
    - "Skip" — leave unprotected
+3. **Azure DevOps:** Extract org/project from remote URL. Check existing
+   policies via `az repos` CLI or REST fallback. If no minimum reviewer
+   policy, ask via AskUserQuestion (same options as GitHub).
+4. **Unknown platform:** Skip and report.
 
-3. If user accepts, apply via:
-   ```bash
-   gh api repos/{owner}/{repo}/branches/{default_branch}/protection \
-     -X PUT -f required_pull_request_reviews='{"required_approving_review_count":1}' \
-     -f enforce_admins=false \
-     -f restrictions=null \
-     -f required_status_checks=null \
-     -F allow_force_pushes=false \
-     -F allow_deletions=false
-   ```
-
-### Azure DevOps
-
-If `PLATFORM == azdo`:
-
-Extract org and project from the remote URL (same pattern as `/ship`):
-```bash
-if echo "$REMOTE_URL" | grep -q 'dev\.azure\.com'; then
-  AZDO_ORG=$(echo "$REMOTE_URL" | sed -n 's|.*dev\.azure\.com/\([^/]*\)/.*|\1|p')
-  AZDO_PROJECT=$(echo "$REMOTE_URL" | sed -n 's|.*dev\.azure\.com/[^/]*/\([^/]*\)/.*|\1|p')
-  AZDO_ORG_URL="https://dev.azure.com/$AZDO_ORG"
-elif echo "$REMOTE_URL" | grep -q 'vs-ssh\.visualstudio\.com'; then
-  AZDO_ORG=$(echo "$REMOTE_URL" | sed -n 's|.*vs-ssh\.visualstudio\.com:v3/\([^/]*\)/.*|\1|p')
-  AZDO_PROJECT=$(echo "$REMOTE_URL" | sed -n 's|.*vs-ssh\.visualstudio\.com:v3/[^/]*/\([^/]*\)/.*|\1|p')
-  AZDO_ORG_URL="https://dev.azure.com/$AZDO_ORG"
-elif echo "$REMOTE_URL" | grep -q 'visualstudio\.com'; then
-  AZDO_ORG=$(echo "$REMOTE_URL" | sed -n 's|.*//\([^.]*\)\.visualstudio\.com.*|\1|p')
-  AZDO_PROJECT=$(echo "$REMOTE_URL" | sed -n 's|.*/\([^/]*\)/_git/.*|\1|p')
-  AZDO_ORG_URL="https://${AZDO_ORG}.visualstudio.com"
-fi
-# URL-decode for CLI/display; keep URL-safe versions for REST API paths
-AZDO_PROJECT_URL_SAFE="$AZDO_PROJECT"
-AZDO_ORG=$(python3 -c "import urllib.parse; print(urllib.parse.unquote('$AZDO_ORG'))")
-AZDO_PROJECT=$(python3 -c "import urllib.parse; print(urllib.parse.unquote('$AZDO_PROJECT_URL_SAFE'))")
-REPO_NAME=$(basename -s .git "$REMOTE_URL")
-```
-
-If org/project extraction fails, report ⚠️ and skip branch policies.
-
-1. Check for existing branch policies. Use `az repos` CLI if available,
-   otherwise fall back to REST API:
-
-   **CLI:**
-   ```bash
-   az repos policy list \
-     --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
-     --repository-id "$REPO_NAME" --branch "$default_branch" \
-     --query "[].type.displayName" -o tsv
-   ```
-
-   **REST fallback:**
-   ```bash
-   AUTH="Authorization: Basic $(printf ":%s" "$PAT" | base64 | tr -d '\n')"
-   # Get repository ID first
-   REPO_ID=$(curl -s -H "$AUTH" \
-     "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/git/repositories/$REPO_NAME?api-version=7.0" \
-     | jq -r '.id')
-   # List branch policies
-   curl -s -H "$AUTH" \
-     "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/configurations?api-version=7.0" \
-     | jq "[.value[] | select(.settings.scope[]?.refName == \"refs/heads/$default_branch\" and .settings.scope[]?.repositoryId == \"$REPO_ID\")]"
-   ```
-
-2. If no "Minimum number of reviewers" policy exists, ask via AskUserQuestion:
-
-   Question: "Default branch `{default_branch}` has no minimum reviewer policy. Add it?"
-   Options:
-   - "Yes, require PR reviews (Recommended)" — require 1 approval, block direct push
-   - "Skip" — leave unprotected
-
-3. If user accepts, create the policy:
-
-   **CLI:**
-   ```bash
-   REPO_ID=$(az repos show --repository "$REPO_NAME" \
-     --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
-     --query 'id' -o tsv)
-
-   az repos policy approver-count create \
-     --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
-     --repository-id "$REPO_ID" --branch "$default_branch" \
-     --minimum-approver-count 1 \
-     --creator-vote-counts false \
-     --allow-downvotes false \
-     --reset-on-source-push true \
-     --blocking true --enabled true
-   ```
-
-   **REST fallback:**
-   ```bash
-   curl -s -X POST -H "$AUTH" -H "Content-Type: application/json" \
-     "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/configurations?api-version=7.0" \
-     -d "{
-       \"isEnabled\": true,
-       \"isBlocking\": true,
-       \"type\": {\"id\": \"fa4e907d-c16b-4a4c-9dfa-4906e5d171dd\"},
-       \"settings\": {
-         \"minimumApproverCount\": 1,
-         \"creatorVoteCounts\": false,
-         \"allowDownvotes\": false,
-         \"resetOnSourcePush\": true,
-         \"scope\": [{
-           \"repositoryId\": \"$REPO_ID\",
-           \"refName\": \"refs/heads/$default_branch\",
-           \"matchKind\": \"exact\"
-         }]
-       }
-     }"
-   ```
-
-### Unknown Platform
-
-If `PLATFORM == unknown`, skip branch protection and report:
-```
-⏭️ Branch protection — skipped (unrecognized remote, not GitHub or Azure DevOps)
-```
+If user accepts, apply using the procedures in
+`references/branch-protection-steps.md`.
 
 Include result in the final report under a "🔒 Branch protection" section.
+
+---
+
+## Phase 7: Plugin Performance Tuning
+
+**Skip this phase if `--skip-plugin-tuning` flag is set.**
+
+Detect companion Claude Code plugins and recommend performance optimisations.
+This phase modifies user-level settings files (`~/.claude/settings.json`,
+`~/.claude-mem/settings.json`) — not repo-level files.
+
+If `--force` is set, apply all recommendations without prompting.
+
+**Plugin presence guards:** Only audit plugins detected as installed during
+pre-flight (`PLUGIN_STATE`). Skip H1/H2 if hookify is absent. Skip M1/M2/M3
+if claude-mem is absent. Skip M2 if OMC is absent (M2 requires both). The
+`{PLUGIN_ROLE_SEPARATION}` content in CLAUDE.md is only injected when both
+claude-mem and OMC are confirmed enabled.
+
+If no companion plugins are installed at all, output:
+```
+━━ 7 · Plugin Performance ━━━━━━━━━━━━━━━━━━━━
+  ⏭️ No companion plugins installed — skipping
+```
+and skip to the report.
+
+### Detection
+
+Launch **Bash** subagent (**haiku**):
+
+```
+Task(
+  subagent_type: "Bash",
+  model: "haiku",
+  description: "Detect installed plugins and audit performance",
+  prompt: <read from references/phase-prompts.md#phase-7>
+)
+```
+
+Parse PLUGIN_REPORT.
+
+### Present Findings
+
+If PLUGIN_REPORT contains zero findings, output:
+```
+━━ 7 · Plugin Performance ━━━━━━━━━━━━━━━━━━━━
+  ⏭️ No plugin optimisations needed
+```
+Skip to the report.
+
+Otherwise, present findings with **AskUserQuestion**:
+
+Options:
+- "Apply all recommendations (Recommended)"
+- "Let me choose which to apply"
+- "Skip plugin tuning"
+
+If "Let me choose", present individual findings as multi-select.
+
+### Audit Rules
+
+| Code | Check | Condition | Severity |
+|------|-------|-----------|----------|
+| H1 | Hookify: no rules | enabled + zero `hookify.*.local.md` files | high |
+| H2 | Hookify: python3 broken | enabled + `python3 --version` fails | high |
+| M1 | claude-mem: read-only tools | SKIP_TOOLS missing Read/Glob/Grep/ToolSearch/Agent/WebSearch/WebFetch | medium |
+| M2 | claude-mem: high context | observations > 10 or sessions > 3, AND OMC also enabled | medium |
+| M3 | claude-mem: provider=claude | provider is "claude" (SDK spawn known-broken) | low |
+
+### Apply Approved Changes
+
+For each approved finding, follow the procedures in
+`references/plugin-tuning-steps.md`. Each script is idempotent — re-reads
+the target file before writing and checks current value before modifying.
+
+If both claude-mem AND oh-my-claudecode are detected as enabled, also inject
+the Plugin Role Separation section into the project CLAUDE.md (see
+`references/plugin-tuning-steps.md#plugin-role-separation-content`).
+Skip if section already exists (idempotent).
 
 ---
 

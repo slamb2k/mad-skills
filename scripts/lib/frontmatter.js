@@ -4,7 +4,9 @@
  */
 
 export function parseFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  // Normalise line endings (CRLF → LF) for cross-platform support
+  const normalised = content.replace(/\r\n/g, "\n");
+  const match = normalised.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return null;
 
   const result = {};

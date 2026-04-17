@@ -26,6 +26,14 @@ Present this summary after verification completes.
 │     {✅} tools/memory/     Legacy memory scripts
 │     {✅} memory/           Legacy memory directory
 │
+│  🔌 Plugin Tuning (only if Phase 7 ran)
+│     {✅|⏭️} Hookify: {disabled / already disabled / not installed / skipped / N/A}
+│     {✅|⏭️} claude-mem SKIP_TOOLS: {optimised / already optimal / not installed / skipped / N/A}
+│     {✅|⏭️} claude-mem context: {reduced / already optimal / not installed / skipped / N/A}
+│     {✅|⏭️} claude-mem provider: {switched / already optimal / not installed / skipped / N/A}
+│     {⏭️}    oh-my-claudecode: {installed / not installed}
+│     {✅|⏭️} Plugin role separation: {injected / already present / not applicable / skipped}
+│
 │  ⚠️ Notes
 │     {any warnings or skipped items}
 │
@@ -33,6 +41,7 @@ Present this summary after verification completes.
 │     1. Review CLAUDE.md and customise for your project
 │     2. Add domain knowledge to context/
 │     3. Run /speccy to design your first feature
+│     4. Restart Claude Code to activate plugin changes (if any applied)
 │
 └─────────────────────────────────────────────────
 ```
