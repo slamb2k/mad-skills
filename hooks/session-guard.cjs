@@ -19,6 +19,7 @@
 
 const { existsSync } = require('fs');
 const { join } = require('path');
+const { spawn } = require('child_process');
 
 const config = require('./lib/config.cjs');
 const state = require('./lib/state.cjs');
@@ -33,7 +34,8 @@ const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const CLAUDE_MD = join(PROJECT_DIR, 'CLAUDE.md');
 
 // ─── check ─────────────────────────────────────────────────────────────
-// Runs at SessionStart. Validates project health and emits context.
+// Runs at SessionStart. Spawns background worker and exits immediately
+// so the Claude Code UI stays responsive.
 
 function check() {
   // Dedup: skip if recently checked (handles dual global+project registration)
@@ -42,6 +44,28 @@ function check() {
     return;
   }
 
+  // Write in-progress marker immediately (also serves as dedup guard)
+  state.saveInProgress(PROJECT_DIR);
+
+  // Emit empty response — SessionStart returns instantly
+  console.log(JSON.stringify({}));
+
+  // Spawn background worker for heavy checks
+  // windowsHide: true prevents a console window from flashing on Windows
+  const worker = spawn(process.execPath, [__filename, 'check-bg'], {
+    detached: true,
+    stdio: 'ignore',
+    windowsHide: true,
+    env: { ...process.env, CLAUDE_PROJECT_DIR: PROJECT_DIR },
+  });
+  worker.unref();
+}
+
+// ─── check-bg ──────────────────────────────────────────────────────────
+// Runs as a detached background process. Performs all validation and
+// writes results to the state file for remind() to pick up.
+
+function checkBackground() {
   const output = new OutputBuilder();
 
   // Banner — shown once per session at start
@@ -63,7 +87,7 @@ function check() {
         '"Skip" \u2014 continue without one',
       ],
     );
-    emit(output);
+    saveState(output);
     return;
   }
 
@@ -109,14 +133,15 @@ function check() {
     output.signals.forEach(sig => output.add(`  ${sig}`));
   }
 
-  emit(output);
+  saveState(output);
 }
 
 // ─── remind ────────────────────────────────────────────────────────────
 // Runs at UserPromptSubmit. Re-emits pending context from check, once.
 
 function remind() {
-  const pending = state.load(PROJECT_DIR);
+  // Wait for background check to complete (polls up to 4s at 200ms intervals)
+  const pending = state.waitForReady(PROJECT_DIR);
 
   if (!pending || !pending.context) {
     console.log(JSON.stringify({}));
@@ -260,8 +285,8 @@ function checkPendingBuild(projectDir, output) {
 
 // ─── helpers ───────────────────────────────────────────────────────────
 
-function emit(output) {
-  console.log(output.toJson());
+/** Save check results to state file (used by background worker, no stdout). */
+function saveState(output) {
   state.save(PROJECT_DIR, {
     context: output.parts.join('\n'),
     score: output.score,
@@ -279,6 +304,15 @@ switch (command) {
     break;
   case 'remind':
     remind();
+    break;
+  case 'check-bg':
+    try {
+      checkBackground();
+    } catch {
+      // Background worker failed — clear in-progress marker so remind()
+      // doesn't hang waiting. Graceful degradation: no context this session.
+      state.clear(PROJECT_DIR);
+    }
     break;
   case 'dismiss-brace': {
     const prefs = state.loadPrefs(PROJECT_DIR);

@@ -1,9 +1,14 @@
 'use strict';
 
 const { existsSync } = require('fs');
-const { join, dirname, basename } = require('path');
+const { join, dirname, basename, resolve } = require('path');
 const config = require('./config.cjs');
 const { git, readJson, countFiles } = require('./utils.cjs');
+
+/** Normalize path separators for reliable comparison on Windows. */
+function normalizePath(p) {
+  return resolve(p).replace(/\\/g, '/');
+}
 
 /**
  * Validate git repository state.
@@ -25,7 +30,7 @@ function checkGit(projectDir, output) {
     return { gitRoot: null };
   }
 
-  if (gitRoot !== projectDir) {
+  if (normalizePath(gitRoot) !== normalizePath(projectDir)) {
     checkNestedGit(projectDir, gitRoot, output);
   }
 
@@ -33,11 +38,12 @@ function checkGit(projectDir, output) {
 }
 
 function checkNestedGit(projectDir, gitRoot, output) {
-  // Calculate depth
+  // Calculate depth — normalize separators for reliable comparison on Windows
   let depth = 0;
-  let check = projectDir;
-  while (check !== gitRoot && check !== '/') {
-    check = dirname(check);
+  let check = normalizePath(projectDir);
+  const normalizedRoot = normalizePath(gitRoot);
+  while (check !== normalizedRoot && check !== '/' && depth < 20) {
+    check = normalizePath(dirname(check));
     depth++;
   }
 
