@@ -170,6 +170,10 @@ empty string (principles are in the global config instead).
 
 {GITIGNORE_CONTENT}
 
+### Plugin Role Separation Content
+
+{PLUGIN_ROLE_SEPARATION}
+
 ### Global Preferences Content
 
 {GLOBAL_PREFERENCES_CONTENT}
@@ -253,4 +257,111 @@ VERIFY_REPORT:
   gitignore_entries: {count}/{expected}
   legacy_cleaned: true|false|not_applicable
   issues: [any problems found]
+```
+
+---
+
+## Phase 7: Plugin Performance Detection
+
+**Agent:** Bash | **Model:** haiku
+
+```
+Detect installed Claude Code plugins and audit their performance configuration.
+
+Limit PLUGIN_REPORT to 30 lines maximum.
+
+## Checks
+
+1. **Read plugin registry**
+   SETTINGS_FILE="$HOME/.claude/settings.json"
+   if [ ! -f "$SETTINGS_FILE" ]; then
+     echo "no_settings_file"
+     echo "PLUGIN_REPORT:"
+     echo "  settings_file_found: false"
+     echo "  findings: none"
+     exit 0
+   fi
+
+   Use node to parse JSON and extract installed/enabled plugin status:
+   node -e "
+     const s = JSON.parse(require('fs').readFileSync('$HOME/.claude/settings.json','utf8'));
+     const p = s.enabledPlugins || {};
+     const hookify = Object.keys(p).find(k => k.includes('hookify'));
+     const mem = Object.keys(p).find(k => k.includes('claude-mem'));
+     const omc = Object.keys(p).find(k => k.includes('oh-my-claudecode'));
+     console.log('hookify_installed:' + !!hookify);
+     console.log('hookify_enabled:' + (hookify && p[hookify] === true));
+     console.log('claude_mem_installed:' + !!mem);
+     console.log('claude_mem_enabled:' + (mem && p[mem] === true));
+     console.log('omc_installed:' + !!omc);
+     console.log('omc_enabled:' + (omc && p[omc] === true));
+   "
+   Record: hookify_installed/enabled, claude_mem_installed/enabled, omc_installed/enabled
+
+   If a plugin is not installed (not in enabledPlugins at all), skip its
+   entire audit section below and report all its fields as "N/A".
+
+2. **Hookify audit** (only if hookify_enabled == true)
+   a. Check python3 availability:
+      python3 --version >/dev/null 2>&1 && echo "python3_available:true" || echo "python3_available:false"
+      Record: python3_available
+
+   b. Count hookify rule files:
+      RULE_COUNT=0
+      for f in "$HOME/.claude"/hookify.*.local.md .claude/hookify.*.local.md; do
+        [ -f "$f" ] && RULE_COUNT=$((RULE_COUNT + 1))
+      done
+      echo "hookify_rule_count:$RULE_COUNT"
+      Record: hookify_rule_count
+
+   c. Determine findings:
+      - If python3_available == false → finding H2
+      - If hookify_rule_count == 0 → finding H1
+
+3. **claude-mem audit** (only if claude_mem_enabled == true)
+   MEM_SETTINGS="$HOME/.claude-mem/settings.json"
+   if [ -f "$MEM_SETTINGS" ]; then
+     node -e "
+       const s = JSON.parse(require('fs').readFileSync('$HOME/.claude-mem/settings.json','utf8'));
+       console.log('skip_tools:' + (s.CLAUDE_MEM_SKIP_TOOLS || ''));
+       console.log('observations:' + (s.CLAUDE_MEM_CONTEXT_OBSERVATIONS || '50'));
+       console.log('session_count:' + (s.CLAUDE_MEM_CONTEXT_SESSION_COUNT || '10'));
+       console.log('provider:' + (s.CLAUDE_MEM_PROVIDER || 'claude'));
+       console.log('has_openrouter_key:' + !!(s.CLAUDE_MEM_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY));
+     "
+   fi
+
+   a. Check SKIP_TOOLS for read-only tools:
+      Required: Read,Glob,Grep,ToolSearch,Agent,WebSearch,WebFetch
+      For each, check if it appears in the skip_tools value.
+      Record: missing_skip_tools (comma-separated list, or "none")
+      If any missing → finding M1
+
+   b. Check context injection levels (only if omc_enabled == true):
+      If observations > 10 OR session_count > 3 → finding M2
+      Record: current_observations, current_session_count
+
+   c. Check provider:
+      If provider == "claude" → finding M3
+      Record: current_provider
+
+## Output Format
+
+PLUGIN_REPORT:
+  settings_file_found: true|false
+  hookify_installed: true|false
+  hookify_enabled: true|false
+  hookify_python3_available: true|false|N/A
+  hookify_rule_count: {number}|N/A
+  claude_mem_installed: true|false
+  claude_mem_enabled: true|false
+  claude_mem_skip_tools: {current value}|N/A
+  claude_mem_missing_skip_tools: {list}|none|N/A
+  claude_mem_observations: {number}|N/A
+  claude_mem_session_count: {number}|N/A
+  claude_mem_provider: {value}|N/A
+  claude_mem_has_openrouter_key: true|false|N/A
+  omc_installed: true|false
+  omc_enabled: true|false
+  findings: {comma-separated list of H1,H2,M1,M2,M3 or "none"}
 ```

@@ -27,6 +27,7 @@ function git(args, cwd) {
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
       timeout: 10000,
+      windowsHide: true,
     }).trim();
   } catch {
     return null;

@@ -49,6 +49,8 @@ MCP tools for search, timeline, and observation management. Claude Code's
 built-in auto memory (`~/.claude/projects/<project>/memory/MEMORY.md`)
 handles curated facts.
 
+{PLUGIN_ROLE_SEPARATION}
+
 {UNIVERSAL_PRINCIPLES}
 
 ## Branch Discipline
