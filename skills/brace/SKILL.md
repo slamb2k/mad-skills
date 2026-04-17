@@ -102,7 +102,7 @@ For each row, in order:
 **Plugin detection:** For plugin dependencies (Type = plugin), check
 `~/.claude/settings.json` → `enabledPlugins` for a key containing the plugin
 name set to `true`. Store results as `PLUGIN_STATE` (`claude_mem_installed`,
-`omc_installed`, `hookify_installed`) for use in Phase 4 and Phase 7.
+`omc_installed`) for use in Phase 4 and Phase 7.
 
 1. Capture **FLAGS** from the user's request
 
@@ -170,16 +170,15 @@ Store result as `upgrade_legacy: true|false` in USER_CONFIG.
 
 4. Ask installation level via AskUserQuestion:
 
-   Question: "Where should global preferences and universal principles go?"
+   Question: "Install universal guidance (preferences, principles) at user level?"
    Options:
-   - "Both — global + project (Recommended)" → portable AND global coverage
-   - "Global (~/.claude/CLAUDE.md) only" → applies to all projects
-   - "Project level only" → self-contained, portable
+   - "Yes, install globally (Recommended)" — applies to all projects via `~/.claude/CLAUDE.md`
+   - "No, project level only" — self-contained in this project's CLAUDE.md
 
 5. Store as USER_CONFIG:
    - project_name: from directory name or user override
    - description: from user input
-   - install_level: "both" | "global" | "project"
+   - install_level: "global" | "project"
 
 **If cancelled, stop here.**
 
@@ -220,7 +219,7 @@ Will upgrade: {list of items with status "upgrade"}
 Will remove:  {list of items with status "remove" — legacy cleanup}
 Will clean:   {list of items with status "cleanup" — remove legacy references}
 Will skip:    {count} existing items
-Global config: {install_level description}
+Universal guidance: {install_level description}
 
 Proceed?
 ```
@@ -247,7 +246,7 @@ Before sending the prompt, substitute these variables:
 - `{ACTION_PLAN}` — the action plan from Phase 3
 - `{PROJECT_NAME}` — from USER_CONFIG
 - `{PROJECT_DESCRIPTION}` — from USER_CONFIG
-- `{INSTALL_LEVEL}` — from USER_CONFIG ("both", "global", or "project")
+- `{INSTALL_LEVEL}` — from USER_CONFIG ("global" or "project")
 - `{CLAUDE_MD_TEMPLATE}` — read from `references/claude-md-template.md`
   (the section between BEGIN TEMPLATE and END TEMPLATE)
 - `{GITIGNORE_CONTENT}` — read from `assets/gitignore-template`
@@ -334,10 +333,10 @@ This phase modifies user-level settings files (`~/.claude/settings.json`,
 If `--force` is set, apply all recommendations without prompting.
 
 **Plugin presence guards:** Only audit plugins detected as installed during
-pre-flight (`PLUGIN_STATE`). Skip H1/H2 if hookify is absent. Skip M1/M2/M3
-if claude-mem is absent. Skip M2 if OMC is absent (M2 requires both). The
-`{PLUGIN_ROLE_SEPARATION}` content in CLAUDE.md is only injected when both
-claude-mem and OMC are confirmed enabled.
+pre-flight (`PLUGIN_STATE`). Skip M1/M2/M3 if claude-mem is absent. Skip M2
+if OMC is absent (M2 requires both). The `{PLUGIN_ROLE_SEPARATION}` content
+in CLAUDE.md is only injected when both claude-mem and OMC are confirmed
+enabled.
 
 If no companion plugins are installed at all, output:
 ```
@@ -383,8 +382,6 @@ If "Let me choose", present individual findings as multi-select.
 
 | Code | Check | Condition | Severity |
 |------|-------|-----------|----------|
-| H1 | Hookify: no rules | enabled + zero `hookify.*.local.md` files | high |
-| H2 | Hookify: python3 broken | enabled + `python3 --version` fails | high |
 | M1 | claude-mem: read-only tools | SKIP_TOOLS missing Read/Glob/Grep/ToolSearch/Agent/WebSearch/WebFetch | medium |
 | M2 | claude-mem: high context | observations > 10 or sessions > 3, AND OMC also enabled | medium |
 | M3 | claude-mem: provider=claude | provider is "claude" (SDK spawn known-broken) | low |

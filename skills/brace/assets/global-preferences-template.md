@@ -1,8 +1,11 @@
 # Global Preferences & Universal Principles
 
 Template appended to `~/.claude/CLAUDE.md` by brace when the user
-selects "global" or "both" installation level. The Phase 4 agent inserts
-this content before the "## Current Skills" section.
+selects "global" install level. When the user selects "project" level,
+this file is not used — instead, the universal principles are written
+to the project CLAUDE.md (with a redundancy check against global).
+The Phase 4 agent inserts this content before the "## Current Skills"
+section.
 
 ---
 

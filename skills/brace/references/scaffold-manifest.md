@@ -9,7 +9,7 @@ creation checklist. Phase 1 uses it to detect existing structure.
 |------|--------|-------------|
 | `CLAUDE.md` | references/claude-md-template.md | Project operating document |
 | `.gitignore` | assets/gitignore-template | Standard ignores |
-| `~/.claude/CLAUDE.md` | assets/global-preferences-template.md | Global preferences (conditional on install_level) |
+| `~/.claude/CLAUDE.md` | assets/global-preferences-template.md | Global preferences (when install_level is "global") |
 
 ## Project Directories
 

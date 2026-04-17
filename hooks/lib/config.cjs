@@ -62,8 +62,5 @@ module.exports = {
         'Read', 'Glob', 'Grep', 'ToolSearch', 'Agent', 'WebSearch', 'WebFetch',
       ],
     },
-    hookify: {
-      rulePattern: /^hookify\..*\.local\.md$/,
-    },
   },
 };

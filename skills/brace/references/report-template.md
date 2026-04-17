@@ -19,6 +19,7 @@ Present this summary after verification completes.
 │
 │  📄 Files
 │     {✅|⏭️} CLAUDE.md
+│     {✅|⏭️} ~/.claude/CLAUDE.md  {updated / already present / skipped (project-only)}
 │     {✅|⏭️} .gitignore
 │
 │  🗑️ Removed (only if legacy items were cleaned up)
@@ -27,7 +28,6 @@ Present this summary after verification completes.
 │     {✅} memory/           Legacy memory directory
 │
 │  🔌 Plugin Tuning (only if Phase 7 ran)
-│     {✅|⏭️} Hookify: {disabled / already disabled / not installed / skipped / N/A}
 │     {✅|⏭️} claude-mem SKIP_TOOLS: {optimised / already optimal / not installed / skipped / N/A}
 │     {✅|⏭️} claude-mem context: {reduced / already optimal / not installed / skipped / N/A}
 │     {✅|⏭️} claude-mem provider: {switched / already optimal / not installed / skipped / N/A}

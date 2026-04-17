@@ -6,28 +6,6 @@ checks current value before modifying.
 
 ---
 
-## H1/H2: Disable Hookify
-
-Target: `~/.claude/settings.json`
-
-```bash
-node -e "
-  const fs = require('fs');
-  const p = require('os').homedir() + '/.claude/settings.json';
-  const s = JSON.parse(fs.readFileSync(p, 'utf8'));
-  const key = Object.keys(s.enabledPlugins || {}).find(k => k.includes('hookify'));
-  if (key && s.enabledPlugins[key] !== false) {
-    s.enabledPlugins[key] = false;
-    fs.writeFileSync(p, JSON.stringify(s, null, 2) + '\n');
-    console.log('Disabled hookify');
-  } else {
-    console.log('Hookify already disabled — skipped');
-  }
-"
-```
-
----
-
 ## M1: Add Read-Only Tools to SKIP_TOOLS
 
 Target: `~/.claude-mem/settings.json`

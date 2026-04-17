@@ -4,9 +4,10 @@ Template for the generated project CLAUDE.md. The Phase 4 agent substitutes
 `{VARIABLE}` placeholders and writes to the project root.
 
 `{UNIVERSAL_PRINCIPLES}` is populated with the Question & Assumption
-Accountability and Communication sections when install_level is "project"
-or "both". Left empty when install_level is "global" (principles are in
-`~/.claude/CLAUDE.md` instead).
+Accountability section when install_level is "project" AND those sections
+are not already present in `~/.claude/CLAUDE.md`. Left empty when
+install_level is "global" (principles are in the global config instead)
+or when the sections would be redundant with existing global content.
 
 ---
 
