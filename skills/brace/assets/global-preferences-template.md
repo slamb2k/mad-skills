@@ -53,4 +53,24 @@ These defaults apply to all projects. Override in a project-level CLAUDE.md.
 - When a workflow fails mid-execution, preserve intermediate outputs
 - Verify output format before chaining into another tool or step
 
+## Commit Discipline
+
+Reinforces Claude Code's built-in "only commit when explicitly asked" rule.
+Restated here because LLMs drift on implicit system-prompt rules under
+long-session pressure.
+
+- **Do not commit, push, create PRs, or merge unless the user explicitly
+  asks.** A feature request ("can you add X") is an edit request, not a
+  ship request. Make the edits, run validate/lint/tests, then stop and
+  ask before any `git commit`, `git push`, `gh pr create`, or merge
+  operation.
+- **Skill invocation is the explicit authorization.** `/ship`, `/build`,
+  `/commit`, and similar skills constitute consent to commit as part of
+  their defined flow. Running their **component scripts** manually
+  (`merge.sh`, `ci-watch.sh`, `sync.sh`) is **not** — those are skill
+  internals, not a substitute for the skill.
+- **When shipping is warranted, invoke the skill.** Don't run individual
+  scripts to emulate `/ship` — the skill sequences stages correctly and
+  catches the errors piecemeal execution reintroduces.
+
 END TEMPLATE
