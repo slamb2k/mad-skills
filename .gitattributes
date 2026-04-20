@@ -1,0 +1,18 @@
+# Enforce LF line endings for text files so Windows contributors with
+# core.autocrlf=true don't introduce CRLF into the working copy, which
+# the SKILL.md linter would otherwise flag as trailing whitespace.
+* text=auto eol=lf
+*.md text eol=lf
+*.js text eol=lf
+*.cjs text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binary files — do not touch
+*.png binary
+*.jpg binary
+*.gif binary
+*.skill binary

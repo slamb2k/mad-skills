@@ -21,7 +21,9 @@ let totalWarnings = 0;
 let totalErrors = 0;
 
 function lint(skillName, content) {
-  const lines = content.split("\n");
+  // Normalize CRLF -> LF so Windows contributors with core.autocrlf=true
+  // don't get spurious "trailing whitespace" warnings on every line.
+  const lines = content.replace(/\r\n/g, "\n").split("\n");
   const issues = [];
   let inCodeBlock = false;
   let inFrontmatter = false;

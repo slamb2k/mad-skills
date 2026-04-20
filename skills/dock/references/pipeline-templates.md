@@ -115,9 +115,18 @@ jobs:
 
       - name: Smoke test
         run: |
-          # Wait for deployment to be ready, then hit health endpoint
-          sleep 10
-          curl -f "$DEV_URL/healthz" || exit 1
+          # Poll the health endpoint until ready (bounded deadline so a
+          # genuinely broken deploy still fails fast). Do not use a blind
+          # `sleep N && curl` — it flakes on slow cold starts and wastes
+          # time on fast ones.
+          deadline=$((SECONDS + 120))
+          until curl -fs "$DEV_URL/healthz" >/dev/null; do
+            if [ $SECONDS -ge $deadline ]; then
+              echo "Health check failed to pass within 120s" >&2
+              exit 1
+            fi
+            sleep 2
+          done
 
   # ── Promote to Staging (on release tag) ───────────────────────
   promote-staging:
@@ -173,8 +182,15 @@ jobs:
 
       - name: Post-deploy smoke test
         run: |
-          sleep 10
-          curl -f "$PROD_URL/healthz" || exit 1
+          # Poll until healthy, bounded deadline. Never `sleep N && curl`.
+          deadline=$((SECONDS + 120))
+          until curl -fs "$PROD_URL/healthz" >/dev/null; do
+            if [ $SECONDS -ge $deadline ]; then
+              echo "Production health check failed to pass within 120s" >&2
+              exit 1
+            fi
+            sleep 2
+          done
 ```
 
 ### Reusable deploy step patterns

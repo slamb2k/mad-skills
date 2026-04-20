@@ -94,30 +94,32 @@ if [ "$AZDO_MODE" = "cli" ]; then
     sleep 15
   done
 
-  # Complete the PR
-  if az repos pr update --id "$PR_NUMBER" --status completed \
-    --org "$AZDO_ORG_URL" \
-    --squash "$SQUASH_FLAG" \
-    --delete-source-branch "$DELETE_FLAG" 2>/dev/null; then
-    STATUS="success"
-    MERGE_COMMIT=$(git rev-parse --short HEAD 2>/dev/null)
-    BRANCH_DELETED=$DELETE_BRANCH
-  else
-    # Retry once after 30s (policies may still be evaluating)
-    sleep 30
+  # Complete the PR — retry on a bounded deadline; policies may still be
+  # evaluating after the initial poll finished. First attempt runs
+  # immediately, then we poll every 5s up to a 30s total budget.
+  # Avoid `sleep 30 && retry` (blind wait) — this loop exits early on success.
+  MERGE_DEADLINE=$((SECONDS + 30))
+  MERGE_OK=false
+  while :; do
     if az repos pr update --id "$PR_NUMBER" --status completed \
       --org "$AZDO_ORG_URL" \
       --squash "$SQUASH_FLAG" \
       --delete-source-branch "$DELETE_FLAG" 2>/dev/null; then
-      STATUS="success"
-      MERGE_COMMIT=$(git rev-parse --short HEAD 2>/dev/null)
-      BRANCH_DELETED=$DELETE_BRANCH
-    else
-      STATUS="failed"
-      ERRORS="Merge failed after retry"
-      MERGE_COMMIT=""; BRANCH_DELETED=false
-      emit_report; exit 2
+      MERGE_OK=true
+      break
     fi
+    [ $SECONDS -ge $MERGE_DEADLINE ] && break
+    sleep 5
+  done
+  if $MERGE_OK; then
+    STATUS="success"
+    MERGE_COMMIT=$(git rev-parse --short HEAD 2>/dev/null)
+    BRANCH_DELETED=$DELETE_BRANCH
+  else
+    STATUS="failed"
+    ERRORS="Merge failed after retry"
+    MERGE_COMMIT=""; BRANCH_DELETED=false
+    emit_report; exit 2
   fi
   emit_report
   exit 0
