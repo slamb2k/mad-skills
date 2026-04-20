@@ -30,7 +30,10 @@ gh api repos/{owner}/{repo}/branches/{default_branch}/protection
 ```
 404 = unprotected.
 
-### Apply protection
+### Apply protection — team project (reviewer gate)
+
+Requires 1 approving review before merge. Use when multiple humans work on
+the repo.
 
 ```bash
 gh api repos/{owner}/{repo}/branches/{default_branch}/protection \
@@ -40,6 +43,34 @@ gh api repos/{owner}/{repo}/branches/{default_branch}/protection \
   -f required_status_checks=null \
   -F allow_force_pushes=false \
   -F allow_deletions=false
+```
+
+### Apply protection — solo project (no reviewer gate)
+
+Keeps force-push and deletion prevention but drops the reviewer
+requirement. Use when you are the only contributor — this is what makes
+`/ship` squash-merge succeed without `gh pr merge --admin`.
+
+The only difference from the team variant is the absence of
+`-f required_pull_request_reviews=...`:
+
+```bash
+gh api repos/{owner}/{repo}/branches/{default_branch}/protection \
+  -X PUT \
+  -f enforce_admins=false \
+  -f restrictions=null \
+  -f required_status_checks=null \
+  -F allow_force_pushes=false \
+  -F allow_deletions=false
+```
+
+**Migrating an existing team-project repo to solo:** if a reviewer policy
+is already in place, remove just that sub-rule without tearing down the
+rest of the protection:
+
+```bash
+gh api --method DELETE \
+  repos/{owner}/{repo}/branches/{default_branch}/protection/required_pull_request_reviews
 ```
 
 ---
@@ -94,7 +125,10 @@ curl -s -H "$AUTH" \
   | jq "[.value[] | select(.settings.scope[]?.refName == \"refs/heads/$default_branch\" and .settings.scope[]?.repositoryId == \"$REPO_ID\")]"
 ```
 
-### Create minimum reviewer policy
+### Create minimum reviewer policy — team project (reviewer gate)
+
+Use when multiple humans review each other's PRs. The PR author's own
+vote does not count toward the minimum approver count.
 
 **CLI:**
 ```bash
@@ -133,3 +167,24 @@ curl -s -X POST -H "$AUTH" -H "Content-Type: application/json" \
     }
   }"
 ```
+
+### Create minimum reviewer policy — solo project (author self-approve)
+
+Use when you are the only contributor. A PR is still required before
+merge, but `--creator-vote-counts true` means the author's own vote
+satisfies the 1-approver gate — no second human needed.
+
+**CLI:**
+```bash
+az repos policy approver-count create \
+  --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
+  --repository-id "$REPO_ID" --branch "$default_branch" \
+  --minimum-approver-count 1 \
+  --creator-vote-counts true \
+  --allow-downvotes false \
+  --reset-on-source-push true \
+  --blocking true --enabled true
+```
+
+**REST fallback:** same body as the team variant, but with
+`"creatorVoteCounts": true`.

@@ -308,17 +308,23 @@ unknown). Platform detection and all CLI/REST commands are in
 1. Detect platform from `git remote get-url origin`
 2. **GitHub:** Check existing protection via `gh api`. If unprotected, ask via
    AskUserQuestion:
-   - "Yes, require PR reviews (Recommended)" — require 1 approval, block force push
+   - "Yes, require PR reviews (team project — Recommended)" — require 1 approval, block force push + deletion
+   - "Yes, protect branch without review requirement (solo project)" — block force push + deletion, no reviewer gate so `/ship` squash-merges without `--admin`
    - "Skip" — leave unprotected
 3. **Azure DevOps:** Extract org/project from remote URL. Check existing
    policies via `az repos` CLI or REST fallback. If no minimum reviewer
-   policy, ask via AskUserQuestion (same options as GitHub).
+   policy, ask via AskUserQuestion:
+   - "Yes, require PR reviews (team project — Recommended)" — 1 approver, creator votes do not count
+   - "Yes, PR required, author can self-approve (solo project)" — same approver policy but `creator-vote-counts=true` so the author's own vote satisfies the gate
+   - "Skip" — no policy applied
 4. **Unknown platform:** Skip and report.
 
-If user accepts, apply using the procedures in
-`references/branch-protection-steps.md`.
+Apply the variant matching the user's choice using the procedures in
+`references/branch-protection-steps.md` (see "Apply protection — team
+project" vs "Apply protection — solo project" for each platform).
 
-Include result in the final report under a "🔒 Branch protection" section.
+Include result in the final report under a "🔒 Branch protection" section,
+labelled with the chosen variant (team / solo / skipped).
 
 ---
 
