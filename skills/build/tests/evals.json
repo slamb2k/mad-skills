@@ -32,5 +32,21 @@
       { "type": "contains", "value": "██" },
       { "type": "semantic", "value": "Acknowledges the --skip-questions flag (skipping clarifying questions) and the --no-ship flag (stopping before committing/pushing/creating PR)" }
     ]
+  },
+  {
+    "name": "build-superpowers-present",
+    "prompt": "The superpowers plugin is installed. Run build on specs/rate-limiter.md. Which superpowers skill does build route its implementation core through?",
+    "assertions": [
+      { "type": "regex", "value": "(executing-plans|subagent-driven-development)", "flags": "i" },
+      { "type": "contains", "value": "Superpowers detected" }
+    ]
+  },
+  {
+    "name": "build-superpowers-absent",
+    "prompt": "Superpowers is NOT installed. How does build implement a plan?",
+    "assertions": [
+      { "type": "regex", "value": "(explore|architect|implement|review)", "flags": "i" },
+      { "type": "semantic", "value": "Runs the standalone feature-dev pipeline (explore, architect, implement, review, verify) using its own subagents, with no deferral to superpowers" }
+    ]
   }
 ]

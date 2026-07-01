@@ -75,6 +75,7 @@ Parse optional flags from the request:
 - `--skip-review`: Skip Stage 5 (code review)
 - `--no-ship`: Stop after Stage 8 docs update
 - `--parallel-impl`: Split implementation into parallel agents when independent
+- `--no-superpowers`: Force the standalone pipeline even when Superpowers is installed
 
 ---
 
@@ -89,6 +90,7 @@ Before starting, check all dependencies in this table:
 | feature-dev:code-explorer | agent | — | no | fallback | Uses general-purpose agent |
 | feature-dev:code-architect | agent | — | no | fallback | Uses general-purpose agent |
 | feature-dev:code-reviewer | agent | — | no | fallback | Uses general-purpose agent |
+| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Routes Stage 4 impl core to superpowers:executing-plans / subagent-driven-development when present; see references/superpowers-deferral.md |
 
 For each row, in order:
 1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
@@ -240,6 +242,16 @@ If rejected, incorporate feedback and re-run.
 ---
 
 ## Stage 4: Implementation
+
+**Superpowers deferral (soft dependency):** When Superpowers is detected (per the
+pre-flight check) and `--no-superpowers` is not set, announce
+`⚡ Superpowers detected — deferring plan/implement core to superpowers:executing-plans`
+and route the plan-execution/implementation core through
+`superpowers:executing-plans` / `superpowers:subagent-driven-development` instead
+of the general-purpose subagents below. Stage 1 (explore), Stage 5 (3× review),
+and Stage 7 (verify) remain unchanged either way. When Superpowers is absent or
+`--no-superpowers` is set, run the standalone implementation below unchanged.
+See `references/superpowers-deferral.md`.
 
 If ARCH_REPORT identifies independent `parallel_groups`, launch **multiple
 general-purpose subagents in parallel** — one per group. Do NOT wait for

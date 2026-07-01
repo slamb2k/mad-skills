@@ -70,6 +70,7 @@ Parse optional flags from the request:
 - `--pr-only`: Stop after creating the PR
 - `--no-squash`: Use regular merge instead of squash
 - `--keep-branch`: Don't delete the source branch after merge
+- `--no-superpowers`: Force standalone merge even when Superpowers is installed
 
 ---
 
@@ -113,6 +114,7 @@ Before starting, check all dependencies in this table. The table contains
 | git | cli | `git --version` | yes | stop | Install from https://git-scm.com |
 | gh | cli | `gh --version` | yes | url | https://cli.github.com |
 | az devops | cli | `az devops -h 2>/dev/null` | no | fallback | Falls back to REST API with PAT; see AzDO tooling below |
+| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Replaces final merge with superpowers:finishing-a-development-branch when present; see references/superpowers-deferral.md |
 
 **Platform-conditional rules:**
 - **`gh`**: Only required when `PLATFORM == github`. Skip for AzDO repos.
@@ -373,6 +375,8 @@ to ask defeats the purpose. Squash merge and delete the source branch are the
 defaults (override via `--no-squash` and `--keep-branch` flags only).
 
 ### 5a. Merge the PR
+
+**Superpowers deferral:** When Superpowers is detected and `--no-superpowers` is not set, after CI is green and auto-fix, announce `⚡ Superpowers detected — deferring final integration to superpowers:finishing-a-development-branch` and invoke that skill to present merge/PR/cleanup options instead of calling merge.sh directly (CI-poll + auto-fix and the no-manual-CI-trigger rule still apply); otherwise run merge.sh below.
 
 Run the merge script directly (no LLM needed):
 

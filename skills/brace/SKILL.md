@@ -87,6 +87,7 @@ Before starting, check all dependencies in this table:
 |-----------|------|-------|----------|------------|--------|
 | claude-mem | plugin | — | no | ask | `claude plugin install claude-mem` |
 | oh-my-claudecode | plugin | — | no | ask | `claude plugin install oh-my-claudecode` |
+| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | ask | `claude plugin install superpowers` |
 
 For each row, in order:
 1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
@@ -103,6 +104,11 @@ For each row, in order:
 `~/.claude/settings.json` → `enabledPlugins` for a key containing the plugin
 name set to `true`. Store results as `PLUGIN_STATE` (`claude_mem_installed`,
 `omc_installed`) for use in Phase 4 and Phase 7.
+
+**Superpowers detection differs:** Superpowers is a soft dependency detected via
+the on-disk glob helper `scripts/lib/superpowers.js` (anchor file
+`using-superpowers/SKILL.md`), **not** the `enabledPlugins` settings.json check
+used for claude-mem and OMC — see `references/superpowers-deferral.md`.
 
 1. Capture **FLAGS** from the user's request
 

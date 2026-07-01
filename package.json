@@ -11,6 +11,8 @@
     "skills/",
     "agents/",
     "hooks/",
+    "scripts/lib/",
+    "references/",
     ".claude-plugin/"
   ],
   "scripts": {
@@ -22,7 +24,8 @@
     "build:skills": "node scripts/package-skills.js",
     "build": "npm run build:manifests && npm run build:skills",
     "prepublishOnly": "npm run validate && npm run build:manifests",
-    "test": "npm run validate && npm run lint && npm run eval"
+    "test:unit": "node --test scripts/lib/superpowers.test.js",
+    "test": "npm run validate && npm run lint && npm run test:unit && npm run eval"
   },
   "keywords": [
     "claude",

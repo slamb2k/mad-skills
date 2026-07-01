@@ -30,5 +30,29 @@
         "value": "Security"
       }
     ]
+  },
+  {
+    "name": "speccy-superpowers-present",
+    "prompt": "The superpowers plugin is installed. Run speccy to spec out a rate limiter. Which stage does speccy defer, and to which superpowers skill?",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "⚡ Superpowers detected"
+      },
+      {
+        "type": "contains",
+        "value": "brainstorming"
+      }
+    ]
+  },
+  {
+    "name": "speccy-superpowers-absent",
+    "prompt": "Superpowers is NOT installed. How does speccy gather requirements to build a spec?",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "interview"
+      }
+    ]
   }
 ]
