@@ -18,7 +18,8 @@ import { fileURLToPath } from "node:url";
 import { parseFrontmatter } from "./lib/frontmatter.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SKILLS_DIR = resolve(__dirname, "..", "skills");
+const REPO_ROOT = resolve(__dirname, "..");
+const SKILLS_DIR = resolve(REPO_ROOT, "skills");
 
 const VALID_SUBDIRS = new Set(["scripts", "references", "assets", "agents", "tests", "evals", "eval-viewer"]);
 const MAX_SKILL_MD_LINES = 500;
@@ -240,8 +241,11 @@ async function validateSkill(skillName, skillDir) {
   // Check referenced files exist
   const refs = await extractReferencedPaths(content, skillDir);
   for (const ref of refs) {
-    const refPath = join(skillDir, ref);
-    if (!(await fileExists(refPath))) {
+    // Resolve against the skill dir first, then fall back to the repo root
+    // for shared references/ and scripts/ paths.
+    const skillLocal = join(skillDir, ref);
+    const repoShared = join(REPO_ROOT, ref);
+    if (!(await fileExists(skillLocal)) && !(await fileExists(repoShared))) {
       error(skillName, `Referenced file not found: ${ref}`);
     }
   }

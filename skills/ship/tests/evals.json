@@ -26,5 +26,21 @@
       { "type": "regex", "value": "(script|sync\\.sh|ci-watch\\.sh|merge\\.sh|general.purpose)", "flags": "i" },
       { "type": "semantic", "value": "Uses deterministic scripts for sync, CI monitoring, and merge stages, with LLM subagents only for commit/PR authoring and CI fix analysis" }
     ]
+  },
+  {
+    "name": "ship-superpowers-present",
+    "prompt": "The superpowers plugin is installed. Run ship. Once CI is green, which superpowers skill handles the final integration instead of an auto squash-merge?",
+    "assertions": [
+      { "type": "contains", "value": "finishing-a-development-branch" },
+      { "type": "contains", "value": "Superpowers detected" }
+    ]
+  },
+  {
+    "name": "ship-superpowers-absent",
+    "prompt": "Superpowers is NOT installed. How does ship merge the PR after CI passes?",
+    "assertions": [
+      { "type": "regex", "value": "(squash|merge)", "flags": "i" },
+      { "type": "semantic", "value": "Runs the standalone merge (squash merge and delete branch by default) via merge.sh, with no deferral to superpowers" }
+    ]
   }
 ]

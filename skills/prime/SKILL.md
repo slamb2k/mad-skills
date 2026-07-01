@@ -108,6 +108,13 @@ For each file:
 - If it exists: read and summarise (2-3 lines max per domain)
 - If it doesn't exist: record as NOT FOUND and continue
 
+## Graphify Awareness (existence check only)
+
+Check whether a `graphify-out/` directory exists at the project root
+(existence only — do NOT run any graphify query, read its contents, or treat
+it as a dependency). Record the boolean in the report. This is purely additive:
+when absent, the report is unchanged.
+
 ## Output Format
 
 PRIME_REPORT:
@@ -117,6 +124,7 @@ PRIME_REPORT:
 - per_domain_summary:
   - {domain}: {2-3 line summary}
 - branch: {current branch from git branch --show-current}
+- graphify_out_present: {true|false}
 - ready_for: {inferred from loaded context}
 ```
 
@@ -142,6 +150,15 @@ Parse PRIME_REPORT and present a clean summary to the user:
 │
 └─────────────────────────────────────────────────
 ```
+
+If `graphify_out_present` is true, add a single passive line after the report
+box (omit entirely when false):
+
+```
+graphify-out/ detected — codebase questions can be answered via /graphify
+```
+
+This is a hint only — never execute a graphify query on the user's behalf.
 
 If CLAUDE.md was missing, warn the user and note that only domain context
 was loaded.

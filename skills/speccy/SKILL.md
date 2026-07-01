@@ -66,6 +66,11 @@ in `references/spec-template.md`.
 Interview prompts and question guidelines: `references/interview-guide.md`
 Spec template and writing guidelines: `references/spec-template.md`
 
+## Flags
+
+Parse optional flags from the request:
+- `--no-superpowers`: Force the standalone interview even when Superpowers is installed
+
 ## Pre-flight
 
 Before starting, check all dependencies in this table:
@@ -73,6 +78,7 @@ Before starting, check all dependencies in this table:
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | prime | skill | `ls .claude/skills/prime/SKILL.md ~/.claude/skills/prime/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md 2>/dev/null` | no | fallback | Context loading; falls back to manual project scan |
+| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Defers Stage 2 interview to superpowers:brainstorming when present; see references/superpowers-deferral.md |
 
 For each row, in order:
 1. Test file existence (check both paths for symlinked skills)
@@ -134,6 +140,15 @@ Group gaps into interview categories:
 
 Conduct multiple rounds of questions using `AskUserQuestion`. Continue until
 all knowledge gaps are resolved.
+
+**Superpowers deferral (soft dependency):** When Superpowers is detected (per the
+pre-flight check) and the `--no-superpowers` flag is not set, announce
+`⚡ Superpowers detected — deferring requirements interview to superpowers:brainstorming`
+and use `superpowers:brainstorming` for requirements/gap exploration in place of
+(or ahead of) the multi-round interview below. In ALL cases — deferred or
+standalone — speccy still writes `specs/{slug}.md` and the pending-build marker
+(see `references/superpowers-deferral.md`). When Superpowers is absent or
+`--no-superpowers` is set, run the standalone interview unchanged.
 
 ### Question Rules
 

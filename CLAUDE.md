@@ -6,6 +6,40 @@ MAD Skills provides 10 skills covering the full development lifecycle. When this
 plugin is installed, use these skills proactively — don't wait for the user to
 invoke them by name if the situation clearly calls for one.
 
+### Positioning: Complementary to Superpowers
+
+MAD Skills is the **deterministic ops/infra spine** — scaffolding, tooling, CI,
+IaC, container pipelines, ambient governance (session-guard), and dual-platform
+(GitHub + Azure DevOps) support. Superpowers has no equivalent for that layer,
+and MAD Skills is designed to compose *underneath* Superpowers' methodology
+rather than compete with it.
+
+Where the two overlap on **methodology** (plan → build → finish), MAD Skills
+defers to Superpowers **when it is installed**, and falls back to its own
+pipeline **when it is absent**. Superpowers is a **soft/recommended dependency**
+(runtime-detected, like claude-mem) — never required.
+
+- `/speccy` uses `superpowers:brainstorming` for requirements exploration, but
+  still owns the `specs/*.md` artifact + pending-build marker.
+- `/build` keeps its explore, 3× code-review, and verify stages, but routes the
+  plan/implement core to `superpowers:executing-plans` /
+  `superpowers:subagent-driven-development`.
+- `/ship` keeps sync + branch + commit + CI-poll + auto-fix, but hands the final
+  integration to `superpowers:finishing-a-development-branch` (merge/PR/cleanup
+  options) instead of silently auto-merging.
+- `/prime` surfaces a passive hint if `graphify-out/` exists (query via
+  `/graphify`) — hint only, no dependency.
+
+Each of `/speccy`, `/build`, `/ship` accepts `--no-superpowers` to force the
+standalone pipeline. When Superpowers is absent, all skills behave exactly as
+their standalone descriptions below.
+
+> **Implemented:** this deferral behavior is specified in
+> `specs/superpowers-complementary-layer.md`. Detection runs through the on-disk
+> glob helper `scripts/lib/superpowers.js` and the shared contract in
+> `references/superpowers-deferral.md`, wired into `/speccy`, `/build`, `/ship`,
+> and the `/prime` graphify hint.
+
 ### When to Use Each Skill
 
 | Situation | Skill | Example Invocation |
@@ -59,6 +93,10 @@ Skills call each other where it makes sense:
 - `/build` invokes `/ship` at the end to merge the completed feature
 - `/speccy` writes specs to `specs/`, `/build` reads them via file path detection
   (e.g., `/build specs/user-auth.md` reads the file as its plan)
+- When Superpowers is installed, `/speccy`, `/build`, and `/ship` auto-defer their
+  methodology stages to it (see **Positioning: Complementary to Superpowers**),
+  announcing the deferral in one line and preserving the `specs/` → `/build` →
+  session-guard handoff contract
 
 ### Output Formatting
 
@@ -173,7 +211,8 @@ mad-skills/
 │   ├── build-manifests.js   # Generate skills/manifest.json
 │   ├── package-skills.js    # Package .skill archives
 │   └── lib/                 # Shared helpers
-│       └── frontmatter.js   # YAML frontmatter parser (validate + manifests)
+│       ├── frontmatter.js   # YAML frontmatter parser (validate + manifests)
+│       └── superpowers.js   # Superpowers detection helper (soft-dep, on-disk glob)
 ├── hooks/                   # Session guard (Node.js)
 │   ├── hooks.json           # Plugin hook definitions
 │   ├── session-guard.cjs    # Entry point (check/remind subcommands)
@@ -293,6 +332,17 @@ decision must be explicitly recorded and revisited.
   "Known Issues", or to memory for future session awareness
 - At the start of new work, check for outstanding items from previous sessions
 - Never close a task with unacknowledged open questions
+
+## Recommended Companion Plugins
+
+MAD Skills detects these at runtime and integrates when present. None are
+required — every skill degrades gracefully to its standalone behavior.
+
+| Plugin | Role | How MAD Skills uses it | Install |
+|--------|------|------------------------|---------|
+| **superpowers** | Methodology (plan → build → finish) | `/speccy`, `/build`, `/ship` defer their overlapping stages to it (see **Positioning** above). On-disk glob detection via `scripts/lib/superpowers.js`. | `claude plugin install superpowers` |
+| **claude-mem** | Persistent cross-session memory | `/ship` reads it for "What's Next"; `/brace` recommends it. | `claude plugin install claude-mem` |
+| **graphify** | Codebase knowledge graph | `/prime` surfaces a passive hint if `graphify-out/` exists (query via `/graphify`). Hint only, no dependency. | — |
 
 ## Memory
 

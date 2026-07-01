@@ -24,5 +24,14 @@
       { "type": "contains", "value": "██" },
       { "type": "semantic", "value": "Recognizes 'dashboard' and 'routing' as valid domain-specific contexts and describes loading files relevant to those domains" }
     ]
+  },
+  {
+    "name": "prime-graphify-hint",
+    "prompt": "Prime me for this project. The repository root contains a graphify-out/ directory alongside CLAUDE.md and specs/.",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/graphify" },
+      { "type": "semantic", "value": "Detects the graphify-out/ directory by existence only and surfaces a passive hint that codebase questions can be answered via /graphify, without running any graphify query" }
+    ]
   }
 ]
