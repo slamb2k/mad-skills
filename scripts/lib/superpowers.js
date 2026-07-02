@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const ANCHOR = "using-superpowers/SKILL.md";
-const MAX_DEPTH = 5;
+const MAX_DEPTH = 7;
 
 function anchorExists(dir) {
   try {
