@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - run: npm ci
@@ -55,7 +55,7 @@ jobs:
       - uses: actions/setup-node@v4
         if: steps.gate.outputs.enabled == 'true'
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - run: npm ci
@@ -142,7 +142,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
           registry-url: "https://registry.npmjs.org"
 
@@ -193,8 +193,6 @@ jobs:
       # Publish BEFORE any git write, and only if this version is not already on
       # npm — so a publish failure leaves git untouched and a re-run is clean.
       - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           PKG=$(node -p "require('./package.json').name")
           VERSION="${{ steps.version.outputs.version }}"
