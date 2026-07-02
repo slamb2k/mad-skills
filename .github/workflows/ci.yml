@@ -217,7 +217,9 @@ jobs:
             git commit -m "chore(release): v${{ steps.version.outputs.version }} [skip ci]"
           fi
           git tag -f "v${{ steps.version.outputs.version }}"
-          git pull --rebase origin main
+          # prepublishOnly regenerates manifests, leaving the tree dirty — autostash
+          # so the rebase doesn't choke on unstaged changes.
+          git pull --rebase --autostash origin main
           git push origin HEAD:main
           git push origin "v${{ steps.version.outputs.version }}"
 
