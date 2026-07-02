@@ -138,6 +138,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -150,46 +151,79 @@ jobs:
       - name: Build manifests
         run: npm run build:manifests
 
-      - name: Bump version, commit, tag
+      # Compute the next version and detect whether a prior run already tagged it.
+      # If the tag exists, we enter "recovery mode": skip the git bump/commit/push
+      # (already done) but still publish/release whatever is missing (idempotent).
+      - name: Compute release version
         id: version
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main --tags --quiet
 
           NEW_VERSION=$(node -p "
-            const pkg = require('./package.json');
-            const parts = pkg.version.split('.');
+            const parts = require('./package.json').version.split('.');
             parts[2] = parseInt(parts[2]) + 1;
             parts.join('.');
           ")
+          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${NEW_VERSION}" >> "$GITHUB_OUTPUT"
 
+          if git ls-remote --exit-code --tags origin "refs/tags/v${NEW_VERSION}" >/dev/null 2>&1; then
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::v${NEW_VERSION} already tagged on origin — recovery mode (git bump/tag/push skipped)."
+          else
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Always applied to the working tree (never committed in recovery mode) so
+      # the npm tarball and .skill artifacts carry the correct version.
+      - name: Apply version bump
+        run: |
           node -e "
             const fs = require('fs');
             for (const file of ['package.json', '.claude-plugin/plugin.json']) {
               const content = JSON.parse(fs.readFileSync(file, 'utf-8'));
-              content.version = '${NEW_VERSION}';
+              content.version = '${{ steps.version.outputs.version }}';
               fs.writeFileSync(file, JSON.stringify(content, null, 2) + '\n');
             }
           "
-
           npm install --package-lock-only
 
-          git add package.json package-lock.json .claude-plugin/plugin.json
-          git commit -m "chore(release): v${NEW_VERSION} [skip ci]"
-          git tag "v${NEW_VERSION}"
-          git push origin main --tags
-
-          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "tag=v${NEW_VERSION}" >> "$GITHUB_OUTPUT"
-
+      # Publish BEFORE any git write, and only if this version is not already on
+      # npm — so a publish failure leaves git untouched and a re-run is clean.
       - name: Publish to npm
-        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          PKG=$(node -p "require('./package.json').name")
+          VERSION="${{ steps.version.outputs.version }}"
+          if npm view "${PKG}@${VERSION}" version >/dev/null 2>&1; then
+            echo "::notice::${PKG}@${VERSION} already on npm — skipping publish."
+          else
+            npm publish --provenance --access public
+          fi
 
       - name: Build .skill packages
         run: npm run build:skills -- --outdir ./dist
 
+      # Only writes git history for a genuinely new version. Rebase guards against
+      # a moved main; the tag/commit guards keep re-runs from colliding.
+      - name: Commit, tag, and push
+        if: steps.version.outputs.tag_exists == 'false'
+        run: |
+          git add package.json package-lock.json .claude-plugin/plugin.json
+          if git diff --cached --quiet; then
+            echo "No version changes to commit."
+          else
+            git commit -m "chore(release): v${{ steps.version.outputs.version }} [skip ci]"
+          fi
+          git tag -f "v${{ steps.version.outputs.version }}"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      # Idempotent: action-gh-release updates the release if it already exists.
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
