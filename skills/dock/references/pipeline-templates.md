@@ -203,11 +203,14 @@ stages:
               docker buildx build --target production \
                 --provenance=true --sbom=true --push \
                 -t $(registry)/$(imageName):$(Build.SourceVersion) .
+            condition: ne(variables.exists, 'true')
+            displayName: Build, provenance, push
+
+          - script: |
               DIG=$(docker buildx imagetools inspect $(registry)/$(imageName):$(Build.SourceVersion) --format '{{.Manifest.Digest}}')
               echo "##vso[task.setvariable variable=digestRef;isOutput=true]$(registry)/$(imageName)@$DIG"
             name: build
-            condition: ne(variables.exists, 'true')
-            displayName: Build, provenance, push
+            displayName: Resolve digest (both paths)
 
           - script: cosign sign --yes $(build.digestRef)
             condition: ne(variables.exists, 'true')
