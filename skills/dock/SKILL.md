@@ -280,6 +280,14 @@ with development overrides (volume mounts, hot reload, debug ports).
 Detect CI system from Phase 1 (GitHub Actions / Azure Pipelines / GitLab CI).
 Read the appropriate template from `references/pipeline-templates.md`.
 
+For GitHub Actions and Azure Pipelines, the templates are **hardened by default**
+— read `references/hardening.md` for the OIDC auth, keyless cosign signing,
+idempotency guards, and digest-pinned promotion these templates implement. The
+generated workflow MUST include `id-token: write`, `provenance: true`, a cosign
+`sign` in the build job and `verify` in every promotion job, an existence guard
+before build, and deploy steps that reference the image by `@sha256:` digest.
+(GitLab CI remains credential-based.)
+
 Generate a workflow that implements:
 
 **On pull request:**
@@ -349,6 +357,14 @@ If the detected framework doesn't already have a health endpoint, add a comment
 in the generated workflow noting that a `/healthz` or `/health` endpoint is
 recommended for deployment readiness probes.
 
+### 3.7 — Deployment Setup Guide (deploy/SETUP.md)
+
+Because the pipelines are secure by default, first-run requires one-time
+cloud-side trust. Generate `deploy/SETUP.md` from the **Generated deploy/SETUP.md**
+section of `references/hardening.md`, substituting the target repo (`OWNER/REPO`),
+chosen registry, and cloud identifiers. This file lists the federated-credential
+/ IAM-trust steps and the cosign verification command.
+
 ---
 
 ## Phase 4: Verify
@@ -366,6 +382,9 @@ Also validate generated workflow files:
 - GitHub Actions: check YAML syntax
 - Azure Pipelines: check YAML syntax
 - GitLab CI: check YAML syntax
+- Confirm the generated GitHub/Azure workflow sets `id-token: write`, contains a
+  cosign `sign`+`verify` pair, and references deploy images by `@sha256:` digest.
+  These are required — flag their absence as a generation error.
 
 Present the user with a summary of all generated files before writing.
 
@@ -395,6 +414,11 @@ After all files are generated and verified, present:
 │     PR    → build + test
 │     Merge → build + test → push → deploy dev → smoke
 │     Tag   → retag (no rebuild) → staging → e2e → prod
+│
+│  🔐 Required cloud setup
+│     • Configure federated identity (see deploy/SETUP.md)
+│     • {registry-specific: IAM role / ACR federated cred / GCP WIP}
+│     • First run fails until trust is configured — this is expected
 │
 │  🔗 Links
 │     Dockerfile:  {path}
