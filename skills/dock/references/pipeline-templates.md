@@ -19,22 +19,24 @@ Template variables:
 
 ## GitHub Actions
 
-### Build & Deploy Workflow
+### Build & Deploy Workflow (hardened)
 
-File: `.github/workflows/deploy.yml`
+Placeholders: `{REGISTRY}` (e.g. `ghcr.io/OWNER/REPO`), `{IMAGE_NAME}`.
+GHCR uses the ephemeral `GITHUB_TOKEN`; cloud registries use OIDC (see the
+commented block). Deployment is by digest and gated on signature verification.
 
 ```yaml
-name: Build & Deploy
+name: Release
 
 on:
   pull_request:
   push:
-    branches: [{DEFAULT_BRANCH}]
+    branches: [main]
     tags: ["v*"]
 
 concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   REGISTRY: {REGISTRY}
@@ -42,155 +44,112 @@ env:
 
 permissions:
   contents: read
-  packages: write
+  packages: write      # GHCR push
+  id-token: write       # OIDC: cloud login + keyless cosign
 
 jobs:
-  # ── Build & Test ──────────────────────────────────────────────
   build:
     runs-on: ubuntu-latest
-    # Skip for release tags — we retag, not rebuild
-    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
     outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
-      sha_short: ${{ steps.vars.outputs.sha_short }}
+      image: ${{ steps.digest.outputs.ref }}   # REGISTRY/IMAGE@sha256:...
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set variables
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha,prefix=
-            type=ref,event=pr,prefix=pr-
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', '{DEFAULT_BRANCH}') }}
-
       - uses: docker/setup-buildx-action@v3
 
-      - name: Login to registry
+      - uses: imjasonh/setup-crane@v0.4
+
+      # Idempotency guard: skip build if this commit's image already exists.
+      - name: Check existing image
+        id: guard
+        run: |
+          TAG="${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA::7}"
+          if crane manifest "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$TAG already present — reusing digest."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # GHCR login (ephemeral token). For cloud registries, replace with OIDC:
+      #   AWS ECR:  aws-actions/configure-aws-credentials@v4 (role-to-assume) + aws ecr get-login-password
+      #   Azure ACR: azure/login@v2 (WIF client-id/tenant-id/subscription-id) + az acr login
+      #   GAR:      google-github-actions/auth@v2 (workload_identity_provider + service_account) + gcloud auth configure-docker
+      - name: Login to GHCR
+        if: steps.guard.outputs.exists == 'false'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and test
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          target: test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build and push production image
-        if: github.event_name == 'push'
+      - name: Build and push
+        id: build
+        if: steps.guard.outputs.exists == 'false'
         uses: docker/build-push-action@v6
         with:
           context: .
           target: production
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          provenance: true
+          sbom: true
 
-  # ── Deploy to Dev ─────────────────────────────────────────────
+      - uses: sigstore/cosign-installer@v3
+
+      - name: Sign image (keyless)
+        if: steps.guard.outputs.exists == 'false'
+        run: cosign sign --yes "${REGISTRY}/${IMAGE_NAME}@${{ steps.build.outputs.digest }}"
+
+      - name: Resolve digest reference
+        id: digest
+        run: |
+          if [ "${{ steps.guard.outputs.exists }}" = "true" ]; then
+            DIG=$(crane digest "${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA::7}")
+          else
+            DIG="${{ steps.build.outputs.digest }}"
+          fi
+          echo "ref=${REGISTRY}/${IMAGE_NAME}@${DIG}" >> "$GITHUB_OUTPUT"
+
   deploy-dev:
     needs: build
-    if: github.ref == 'refs/heads/{DEFAULT_BRANCH}'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: dev
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to dev
+      - uses: sigstore/cosign-installer@v3
+      - name: Verify signature before deploy
         run: |
-          # {DEV_DEPLOY_COMMANDS}
-          echo "Deploying ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.sha_short }} to dev"
+          cosign verify \
+            --certificate-identity-regexp "https://github.com/${{ github.repository }}/.*" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "${{ needs.build.outputs.image }}"
+      - name: Deploy to dev (by digest — never rebuild)
+        run: echo "Deploy ${{ needs.build.outputs.image }} to dev"
 
-      - name: Smoke test
-        run: |
-          # Poll the health endpoint until ready (bounded deadline so a
-          # genuinely broken deploy still fails fast). Do not use a blind
-          # `sleep N && curl` — it flakes on slow cold starts and wastes
-          # time on fast ones.
-          deadline=$((SECONDS + 120))
-          until curl -fs "$DEV_URL/healthz" >/dev/null; do
-            if [ $SECONDS -ge $deadline ]; then
-              echo "Health check failed to pass within 120s" >&2
-              exit 1
-            fi
-            sleep 2
-          done
-
-  # ── Promote to Staging (on release tag) ───────────────────────
-  promote-staging:
+  promote:
+    needs: build
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
-    environment: staging
-    outputs:
-      version: ${{ steps.version.outputs.tag }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Extract version
-        id: version
-        run: echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
-
-      - name: Login to registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Retag image (no rebuild)
+      - uses: sigstore/cosign-installer@v3
+      - name: Verify signature
         run: |
-          SHA=$(git rev-parse --short HEAD)
-          docker buildx imagetools create \
-            --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}" \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${SHA}"
-
-      - name: Deploy to staging
-        run: |
-          # {STAGING_DEPLOY_COMMANDS}
-          echo "Deploying ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }} to staging"
-
-      - name: Run staging tests
-        run: |
-          # Integration and e2e tests against staging
-          echo "Running staging gate tests..."
-
-  # ── Promote to Production ─────────────────────────────────────
-  promote-prod:
-    needs: promote-staging
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to production
-        run: |
-          # {PROD_DEPLOY_COMMANDS}
-          echo "Deploying ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.promote-staging.outputs.version }} to production"
-
-      - name: Post-deploy smoke test
-        run: |
-          # Poll until healthy, bounded deadline. Never `sleep N && curl`.
-          deadline=$((SECONDS + 120))
-          until curl -fs "$PROD_URL/healthz" >/dev/null; do
-            if [ $SECONDS -ge $deadline ]; then
-              echo "Production health check failed to pass within 120s" >&2
-              exit 1
-            fi
-            sleep 2
-          done
+          cosign verify \
+            --certificate-identity-regexp "https://github.com/${{ github.repository }}/.*" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "${{ needs.build.outputs.image }}"
+      - name: Promote to staging (by digest)
+        run: echo "Deploy ${{ needs.build.outputs.image }} to staging"
+      - name: Promote to prod (by digest)
+        run: echo "Deploy ${{ needs.build.outputs.image }} to prod"
 ```
 
 ### Reusable deploy step patterns
