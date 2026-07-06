@@ -486,7 +486,7 @@ done
 
 - [ ] **Step 3: Create `skills/hoist/SKILL.md`** with this structure (fill the banner with an ANSI-shadow rendering of "HOIST" like the other skills; keep 8 taglines):
 
-```markdown
+````markdown
 ---
 name: hoist
 description: >-
@@ -503,8 +503,30 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion, Agent
 
 # Hoist - Non-Container Release Pipelines
 
-When this skill is invoked, IMMEDIATELY output the banner below ... (ANSI-shadow
-"HOIST" banner + 8 taglines, matching the style of skills/dock/SKILL.md).
+When this skill is invoked, IMMEDIATELY output the banner below before doing anything else.
+Pick ONE tagline at random — vary your choice each time.
+CRITICAL: Reproduce the banner EXACTLY character-for-character. The first line of the art has 4 leading characters (one invisible braille-blank + 3 spaces) — you MUST preserve them.
+
+```
+{tagline}
+
+⠀   ██╗██╗  ██╗ ██████╗ ██╗███████╗████████╗
+   ██╔╝██║  ██║██╔═══██╗██║██╔════╝╚══██╔══╝
+  ██╔╝ ███████║██║   ██║██║███████╗   ██║
+ ██╔╝  ██╔══██║██║   ██║██║╚════██║   ██║
+██╔╝   ██║  ██║╚██████╔╝██║███████║   ██║
+╚═╝    ╚═╝  ╚═╝ ╚═════╝ ╚═╝╚══════╝   ╚═╝
+```
+
+Taglines:
+- 📦 Up and away — published!
+- 🏗️ Hoisting your release skyward!
+- 🚀 From main to registry in one pull!
+- 🪝 Latched on, lifting off!
+- ⬆️ Straight to the top shelf!
+- 🎁 Wrapped, signed, and shipped!
+- 🛎️ Release, served fresh!
+- 🔖 Tag it and bag it!
 
 ## Flags
 - `--skip-interview`: detected + platform-aware defaults
@@ -554,7 +576,7 @@ section pointing at deploy/SETUP.md.
 Complements /dock (containers) — pick whichever fits. Runs after /rig; /ship's
 merge can trigger the generated auto-bump release. Only the serverless target may
 reference /keel for cloud identity.
-```
+````
 
 - [ ] **Step 4: Content check — no MISSING.**
 - [ ] **Step 5:** `npm run validate && npm run lint` — must pass (validator checks frontmatter fields, dependency table, banner presence).
@@ -680,6 +702,6 @@ Claude-Session: https://claude.ai/code/session_013sN7Nj3DxZaBExyPiBepmh"
 - Five phases → Task 6. ✅
 - Evals → Task 7. Registration (manifest + CLAUDE.md) → Task 8. ✅
 
-**Placeholder scan:** `{DEFAULT_BRANCH}`, `{PKG_NAME}`, `{ARTIFACT}`, `OWNER/REPO`, `<resolved>` are intentional generator placeholders consistent with `/dock`. The SKILL.md banner is specified as "render ANSI-shadow HOIST like other skills" — the implementer must produce the actual art (Task 6); this is the one place a fresh implementer must generate content rather than transcribe, and Step 5's validator gate (`██` present + structure valid) catches a missing/malformed banner.
+**Placeholder scan:** `{DEFAULT_BRANCH}`, `{PKG_NAME}`, `{ARTIFACT}`, `OWNER/REPO`, `<resolved>` are intentional generator placeholders consistent with `/dock`. The SKILL.md banner art is now pre-rendered verbatim in Task 6 Step 3 (ANSI-shadow "HOIST" with the leading slash-diagonal) — pure transcription, no implementer generation. Step 5's validator gate (`██` present + structure valid) still guards against a mangled paste.
 
 **Type/name consistency:** reference anchors produced in Tasks 1/2/3/4/5 (`## Trusted Publishing (OIDC)`, `## GitHub Actions`, `## Azure Pipelines`, `## Detection Prompt`, `## Interview Questions`, `## Generated deploy/SETUP.md`) are exactly the strings SKILL.md (Task 6) and the content-checks reference. Secret names in Task 1 (`CARGO_REGISTRY_TOKEN`, etc.) match Task 5's SETUP body.
