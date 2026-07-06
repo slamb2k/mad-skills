@@ -382,9 +382,10 @@ Also validate generated workflow files:
 - GitHub Actions: check YAML syntax
 - Azure Pipelines: check YAML syntax
 - GitLab CI: check YAML syntax
-- Confirm the generated GitHub/Azure workflow sets `id-token: write`, contains a
-  cosign `sign`+`verify` pair, and references deploy images by `@sha256:` digest.
-  These are required — flag their absence as a generation error.
+- For the GitHub workflow, confirm it sets `id-token: write`; for Azure Pipelines,
+  confirm it authenticates via a Workload Identity Federation service connection
+  (`azureSubscription`). Both must contain a cosign `sign`+`verify` pair and
+  reference deploy images by `@sha256:` digest. Flag any absence as a generation error.
 
 Present the user with a summary of all generated files before writing.
 

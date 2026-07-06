@@ -31,7 +31,7 @@ name: Release
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [{DEFAULT_BRANCH}]
     tags: ["v*"]
 
 concurrency:
@@ -63,7 +63,7 @@ jobs:
       - name: Check existing image
         id: guard
         run: |
-          TAG="${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA::7}"
+          TAG="${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}"
           if crane manifest "$TAG" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
             echo "::notice::$TAG already present — reusing digest."
@@ -76,7 +76,7 @@ jobs:
       #   Azure ACR: azure/login@v2 (WIF client-id/tenant-id/subscription-id) + az acr login
       #   GAR:      google-github-actions/auth@v2 (workload_identity_provider + service_account) + gcloud auth configure-docker
       - name: Login to GHCR
-        if: steps.guard.outputs.exists == 'false'
+        if: steps.guard.outputs.exists == 'false' && github.event_name == 'push'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -90,7 +90,7 @@ jobs:
         with:
           context: .
           target: production
-          push: true
+          push: ${{ github.event_name == 'push' }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
@@ -100,14 +100,14 @@ jobs:
       - uses: sigstore/cosign-installer@v3
 
       - name: Sign image (keyless)
-        if: steps.guard.outputs.exists == 'false'
+        if: steps.guard.outputs.exists == 'false' && github.event_name == 'push'
         run: cosign sign --yes "${REGISTRY}/${IMAGE_NAME}@${{ steps.build.outputs.digest }}"
 
       - name: Resolve digest reference
         id: digest
         run: |
           if [ "${{ steps.guard.outputs.exists }}" = "true" ]; then
-            DIG=$(crane digest "${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA::7}")
+            DIG=$(crane digest "${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}")
           else
             DIG="${{ steps.build.outputs.digest }}"
           fi
@@ -115,7 +115,7 @@ jobs:
 
   deploy-dev:
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/{DEFAULT_BRANCH}'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -225,10 +225,11 @@ stages:
         variables:
           digestRef: $[ stageDependencies.Build.BuildSignPush.outputs['build.digestRef'] ]
         steps:
+          # Set identity + issuer to your signing identity — see deploy/SETUP.md.
           - script: |
               cosign verify \
-                --certificate-identity-regexp ".*" \
-                --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+                --certificate-identity-regexp "<CERT_IDENTITY_REGEXP>" \
+                --certificate-oidc-issuer "<OIDC_ISSUER>" \
                 $(digestRef)
             displayName: Verify signature (by sha256 digest)
           - script: echo "Deploy $(digestRef) to staging then prod (no rebuild)"
