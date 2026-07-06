@@ -2,7 +2,7 @@
 
 ## Skill Usage Guide
 
-MAD Skills provides 10 skills covering the full development lifecycle. When this
+MAD Skills provides 12 skills covering the full development lifecycle. When this
 plugin is installed, use these skills proactively — don't wait for the user to
 invoke them by name if the situation clearly calls for one.
 
@@ -53,6 +53,7 @@ their standalone descriptions below.
 | Syncing with origin/main or cleaning up branches | `/sync` | `/sync` or `/sync --no-cleanup` |
 | Provisioning cloud infrastructure (IaC) | `/keel` | `/keel` or `/keel --tool terraform` |
 | Setting up container deployment pipelines | `/dock` | `/dock` or `/dock --skip-interview` |
+| Releasing a non-container package/app | `/hoist` | `/hoist` or `/hoist --skip-interview` |
 | Generating web design variations | `/distil` | `/distil 3 --port 5173` |
 
 ### Lifecycle Ordering
@@ -66,7 +67,9 @@ Skills produce artifacts that downstream skills consume. The recommended order:
 
 - **Setup:** `/brace` creates project structure, `/rig` adds hooks + CI
 - **Develop:** `/speccy` designs features, `/build` implements them, `/ship` merges PRs
-- **Deploy:** `/keel` provisions infrastructure, `/dock` deploys containers to it
+- **Deploy:** `/keel` provisions infrastructure, `/dock` deploys containers to it;
+  `/hoist` is the non-container counterpart to `/dock` (publish packages, binaries,
+  static sites, or serverless functions directly — no image build)
 - **Utility:** `/sync` keeps your branch current, `/prime` loads project context
 
 ### Proactive Skill Suggestions
@@ -79,6 +82,7 @@ Suggest or invoke these skills when you observe:
 - User says "ship it", "create a PR", or work is complete → `/ship`
 - User mentions infrastructure, cloud, Terraform, Bicep → `/keel`
 - User mentions Docker, deployment, containers, pipelines → `/dock`
+- User mentions publishing a package, npm/PyPI release, GitHub Release, or Pages deploy → `/hoist`
 - User needs latest from main or wants to clean branches → `/sync`
 - User is about to do significant work and needs context → `/prime`
 - User wants to explore design directions for a web UI → `/distil`
@@ -164,7 +168,7 @@ their behavior accordingly. Both GitHub and Azure DevOps are first-class:
 | Branch protection | Branch protection rules | Branch policies |
 | PR workflow | `gh pr create/merge` | `az repos pr create` / REST API |
 
-Skills that are platform-aware: `/ship`, `/brace`, `/rig`, `/dock`, `/keel`.
+Skills that are platform-aware: `/ship`, `/brace`, `/rig`, `/dock`, `/keel`, `/hoist`.
 Skills that are platform-agnostic: `/sync`, `/prime`, `/speccy`, `/build`, `/distil`.
 
 ### Script-Based Execution
@@ -183,7 +187,7 @@ Guidance for contributing to the mad-skills repository itself.
 
 ### Repository Overview
 
-**MAD Skills** is a skill framework for Claude Code. It ships 10 skills
+**MAD Skills** is a skill framework for Claude Code. It ships 12 skills
 covering the full development lifecycle with first-class support for both
 GitHub and Azure DevOps platforms. Skills are installed via
 `npx skills add slamb2k/mad-skills` or as a Claude Code plugin, and invoked
@@ -193,12 +197,14 @@ as slash commands.
 
 ```
 mad-skills/
-├── skills/                  # Skill definitions (10 skills)
+├── skills/                  # Skill definitions (12 skills)
 │   ├── brace/               # Project scaffold initialization
 │   ├── build/               # Context-isolated feature dev pipeline
 │   ├── distil/              # Web design variation generator
 │   ├── dock/                # Container release pipelines
+│   ├── hoist/               # Non-container release pipelines
 │   ├── keel/                # Infrastructure as Code pipelines
+│   ├── launch/              # Full idea-to-merged-PR pipeline (explicit-only)
 │   ├── prime/               # Project context loading
 │   ├── rig/                 # Repo bootstrapping (hooks, CI, templates)
 │   ├── ship/                # Full PR lifecycle
@@ -306,7 +312,7 @@ Use Explore for codebase scanning and general-purpose for complex logic.
 ### Testing
 
 ```bash
-npm run validate          # Structure checks for all 10 skills
+npm run validate          # Structure checks for all 12 skills
 npm run lint              # SKILL.md format checks
 npm run eval              # Eval assertions (requires API key)
 ```
