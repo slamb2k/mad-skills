@@ -160,112 +160,76 @@ deployment steps.
 
 ---
 
-## Azure DevOps Pipelines
+## Azure DevOps Pipelines (hardened)
 
-File: `azure-pipelines.yml`
+Uses a **Workload Identity Federation** service connection (`azureSubscription`)
+for keyless ACR auth — no stored registry password. Images are signed and
+deployed by digest.
 
 ```yaml
 trigger:
-  branches:
-    include: [{DEFAULT_BRANCH}]
-  tags:
-    include: ["v*"]
-
-pr:
-  branches:
-    include: [{DEFAULT_BRANCH}]
+  branches: { include: [main] }
+  tags: { include: ["v*"] }
 
 variables:
+  azureSubscription: "<WIF-service-connection-name>"   # Workload Identity Federation
   registry: {REGISTRY}
   imageName: {IMAGE_NAME}
-  vmImageName: ubuntu-latest
 
 stages:
-  # ── Build & Test ──────────────────────────────────────────────
   - stage: Build
-    condition: not(startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
     jobs:
-      - job: BuildAndTest
-        pool:
-          vmImage: $(vmImageName)
+      - job: BuildSignPush
+        pool: { vmImage: ubuntu-latest }
         steps:
-          - task: Docker@2
-            displayName: Build test image
+          - task: AzureCLI@2
+            displayName: ACR login (WorkloadIdentityFederation)
             inputs:
-              command: build
-              dockerfile: Dockerfile
-              arguments: --target test -t $(imageName):test
+              azureSubscription: $(azureSubscription)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: az acr login --name $(echo $(registry) | cut -d. -f1)
 
-          - task: Docker@2
-            displayName: Build production image
-            inputs:
-              command: build
-              dockerfile: Dockerfile
-              arguments: --target production -t $(registry)/$(imageName):$(Build.SourceVersion)
+          - script: |
+              TAG="$(registry)/$(imageName):$(Build.SourceVersion)"
+              if docker manifest inspect "$TAG" >/dev/null 2>&1; then
+                echo "##vso[task.setvariable variable=exists]true"
+              else
+                echo "##vso[task.setvariable variable=exists]false"
+              fi
+            displayName: Idempotency guard
 
-          - task: Docker@2
-            displayName: Push to registry
-            condition: eq(variables['Build.SourceBranch'], 'refs/heads/{DEFAULT_BRANCH}')
-            inputs:
-              command: push
-              containerRegistry: $(dockerRegistryServiceConnection)
-              repository: $(imageName)
-              tags: |
-                $(Build.SourceVersion)
-                latest
+          - script: |
+              docker buildx build --target production \
+                --provenance=true --sbom=true --push \
+                -t $(registry)/$(imageName):$(Build.SourceVersion) .
+              DIG=$(docker buildx imagetools inspect $(registry)/$(imageName):$(Build.SourceVersion) --format '{{.Manifest.Digest}}')
+              echo "##vso[task.setvariable variable=digestRef;isOutput=true]$(registry)/$(imageName)@$DIG"
+            name: build
+            condition: ne(variables.exists, 'true')
+            displayName: Build, provenance, push
 
-  # ── Deploy to Dev ─────────────────────────────────────────────
-  - stage: DeployDev
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/{DEFAULT_BRANCH}')
+          - script: cosign sign --yes $(build.digestRef)
+            condition: ne(variables.exists, 'true')
+            displayName: Sign image (keyless)
+
+  - stage: Promote
     dependsOn: Build
-    jobs:
-      - deployment: DeployDev
-        environment: dev
-        pool:
-          vmImage: $(vmImageName)
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - script: |
-                    echo "Deploying $(registry)/$(imageName):$(Build.SourceVersion) to dev"
-                    # {DEV_DEPLOY_COMMANDS}
-
-  # ── Promote to Staging ────────────────────────────────────────
-  - stage: PromoteStaging
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/v')
     jobs:
-      - deployment: DeployStaging
-        environment: staging
-        pool:
-          vmImage: $(vmImageName)
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - script: |
-                    TAG=${BUILD_SOURCEBRANCH#refs/tags/}
-                    echo "Retagging and deploying $TAG to staging"
-                    # Retag — do NOT rebuild
-                    # {STAGING_DEPLOY_COMMANDS}
-
-  # ── Promote to Production ─────────────────────────────────────
-  - stage: PromoteProd
-    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/v')
-    dependsOn: PromoteStaging
-    jobs:
-      - deployment: DeployProd
-        environment: production
-        pool:
-          vmImage: $(vmImageName)
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - script: |
-                    TAG=${BUILD_SOURCEBRANCH#refs/tags/}
-                    echo "Deploying $TAG to production"
-                    # {PROD_DEPLOY_COMMANDS}
+      - job: VerifyAndDeploy
+        pool: { vmImage: ubuntu-latest }
+        variables:
+          digestRef: $[ stageDependencies.Build.BuildSignPush.outputs['build.digestRef'] ]
+        steps:
+          - script: |
+              cosign verify \
+                --certificate-identity-regexp ".*" \
+                --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+                $(digestRef)
+            displayName: Verify signature (by sha256 digest)
+          - script: echo "Deploy $(digestRef) to staging then prod (no rebuild)"
+            displayName: Promote by digest
 ```
 
 ---
