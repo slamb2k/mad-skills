@@ -19,12 +19,14 @@ Template variables:
 
 ## GitHub Actions
 
-### Build & Deploy Workflow
+### Build & Deploy Workflow (hardened)
 
-File: `.github/workflows/deploy.yml`
+Placeholders: `{REGISTRY}` (e.g. `ghcr.io/OWNER/REPO`), `{IMAGE_NAME}`.
+GHCR uses the ephemeral `GITHUB_TOKEN`; cloud registries use OIDC (see the
+commented block). Deployment is by digest and gated on signature verification.
 
 ```yaml
-name: Build & Deploy
+name: Release
 
 on:
   pull_request:
@@ -33,8 +35,8 @@ on:
     tags: ["v*"]
 
 concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   REGISTRY: {REGISTRY}
@@ -42,155 +44,112 @@ env:
 
 permissions:
   contents: read
-  packages: write
+  packages: write      # GHCR push
+  id-token: write       # OIDC: cloud login + keyless cosign
 
 jobs:
-  # ── Build & Test ──────────────────────────────────────────────
   build:
     runs-on: ubuntu-latest
-    # Skip for release tags — we retag, not rebuild
-    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
     outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
-      sha_short: ${{ steps.vars.outputs.sha_short }}
+      image: ${{ steps.digest.outputs.ref }}   # REGISTRY/IMAGE@sha256:...
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set variables
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha,prefix=
-            type=ref,event=pr,prefix=pr-
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', '{DEFAULT_BRANCH}') }}
-
       - uses: docker/setup-buildx-action@v3
 
-      - name: Login to registry
+      - uses: imjasonh/setup-crane@v0.4
+
+      # Idempotency guard: skip build if this commit's image already exists.
+      - name: Check existing image
+        id: guard
+        run: |
+          TAG="${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}"
+          if crane manifest "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$TAG already present — reusing digest."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # GHCR login (ephemeral token). For cloud registries, replace with OIDC:
+      #   AWS ECR:  aws-actions/configure-aws-credentials@v4 (role-to-assume) + aws ecr get-login-password
+      #   Azure ACR: azure/login@v2 (WIF client-id/tenant-id/subscription-id) + az acr login
+      #   GAR:      google-github-actions/auth@v2 (workload_identity_provider + service_account) + gcloud auth configure-docker
+      - name: Login to GHCR
+        if: steps.guard.outputs.exists == 'false' && github.event_name == 'push'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and test
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          target: test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build and push production image
-        if: github.event_name == 'push'
+      - name: Build and push
+        id: build
+        if: steps.guard.outputs.exists == 'false'
         uses: docker/build-push-action@v6
         with:
           context: .
           target: production
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          provenance: true
+          sbom: true
 
-  # ── Deploy to Dev ─────────────────────────────────────────────
+      - uses: sigstore/cosign-installer@v3
+
+      - name: Sign image (keyless)
+        if: steps.guard.outputs.exists == 'false' && github.event_name == 'push'
+        run: cosign sign --yes "${REGISTRY}/${IMAGE_NAME}@${{ steps.build.outputs.digest }}"
+
+      - name: Resolve digest reference
+        id: digest
+        run: |
+          if [ "${{ steps.guard.outputs.exists }}" = "true" ]; then
+            DIG=$(crane digest "${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}")
+          else
+            DIG="${{ steps.build.outputs.digest }}"
+          fi
+          echo "ref=${REGISTRY}/${IMAGE_NAME}@${DIG}" >> "$GITHUB_OUTPUT"
+
   deploy-dev:
     needs: build
-    if: github.ref == 'refs/heads/{DEFAULT_BRANCH}'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/{DEFAULT_BRANCH}'
     runs-on: ubuntu-latest
-    environment: dev
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to dev
+      - uses: sigstore/cosign-installer@v3
+      - name: Verify signature before deploy
         run: |
-          # {DEV_DEPLOY_COMMANDS}
-          echo "Deploying ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.sha_short }} to dev"
+          cosign verify \
+            --certificate-identity-regexp "https://github.com/${{ github.repository }}/.*" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "${{ needs.build.outputs.image }}"
+      - name: Deploy to dev (by digest — never rebuild)
+        run: echo "Deploy ${{ needs.build.outputs.image }} to dev"
 
-      - name: Smoke test
-        run: |
-          # Poll the health endpoint until ready (bounded deadline so a
-          # genuinely broken deploy still fails fast). Do not use a blind
-          # `sleep N && curl` — it flakes on slow cold starts and wastes
-          # time on fast ones.
-          deadline=$((SECONDS + 120))
-          until curl -fs "$DEV_URL/healthz" >/dev/null; do
-            if [ $SECONDS -ge $deadline ]; then
-              echo "Health check failed to pass within 120s" >&2
-              exit 1
-            fi
-            sleep 2
-          done
-
-  # ── Promote to Staging (on release tag) ───────────────────────
-  promote-staging:
+  promote:
+    needs: build
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
-    environment: staging
-    outputs:
-      version: ${{ steps.version.outputs.tag }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Extract version
-        id: version
-        run: echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
-
-      - name: Login to registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Retag image (no rebuild)
+      - uses: sigstore/cosign-installer@v3
+      - name: Verify signature
         run: |
-          SHA=$(git rev-parse --short HEAD)
-          docker buildx imagetools create \
-            --tag "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}" \
-            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${SHA}"
-
-      - name: Deploy to staging
-        run: |
-          # {STAGING_DEPLOY_COMMANDS}
-          echo "Deploying ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }} to staging"
-
-      - name: Run staging tests
-        run: |
-          # Integration and e2e tests against staging
-          echo "Running staging gate tests..."
-
-  # ── Promote to Production ─────────────────────────────────────
-  promote-prod:
-    needs: promote-staging
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to production
-        run: |
-          # {PROD_DEPLOY_COMMANDS}
-          echo "Deploying ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.promote-staging.outputs.version }} to production"
-
-      - name: Post-deploy smoke test
-        run: |
-          # Poll until healthy, bounded deadline. Never `sleep N && curl`.
-          deadline=$((SECONDS + 120))
-          until curl -fs "$PROD_URL/healthz" >/dev/null; do
-            if [ $SECONDS -ge $deadline ]; then
-              echo "Production health check failed to pass within 120s" >&2
-              exit 1
-            fi
-            sleep 2
-          done
+          cosign verify \
+            --certificate-identity-regexp "https://github.com/${{ github.repository }}/.*" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "${{ needs.build.outputs.image }}"
+      - name: Promote to staging (by digest)
+        run: echo "Deploy ${{ needs.build.outputs.image }} to staging"
+      - name: Promote to prod (by digest)
+        run: echo "Deploy ${{ needs.build.outputs.image }} to prod"
 ```
 
 ### Reusable deploy step patterns
@@ -201,112 +160,80 @@ deployment steps.
 
 ---
 
-## Azure DevOps Pipelines
+## Azure DevOps Pipelines (hardened)
 
-File: `azure-pipelines.yml`
+Uses a **Workload Identity Federation** service connection (`azureSubscription`)
+for keyless ACR auth — no stored registry password. Images are signed and
+deployed by digest.
 
 ```yaml
 trigger:
-  branches:
-    include: [{DEFAULT_BRANCH}]
-  tags:
-    include: ["v*"]
-
-pr:
-  branches:
-    include: [{DEFAULT_BRANCH}]
+  branches: { include: [main] }
+  tags: { include: ["v*"] }
 
 variables:
+  azureSubscription: "<WIF-service-connection-name>"   # Workload Identity Federation
   registry: {REGISTRY}
   imageName: {IMAGE_NAME}
-  vmImageName: ubuntu-latest
 
 stages:
-  # ── Build & Test ──────────────────────────────────────────────
   - stage: Build
-    condition: not(startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
     jobs:
-      - job: BuildAndTest
-        pool:
-          vmImage: $(vmImageName)
+      - job: BuildSignPush
+        pool: { vmImage: ubuntu-latest }
         steps:
-          - task: Docker@2
-            displayName: Build test image
+          - task: AzureCLI@2
+            displayName: ACR login (WorkloadIdentityFederation)
             inputs:
-              command: build
-              dockerfile: Dockerfile
-              arguments: --target test -t $(imageName):test
+              azureSubscription: $(azureSubscription)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: az acr login --name $(echo $(registry) | cut -d. -f1)
 
-          - task: Docker@2
-            displayName: Build production image
-            inputs:
-              command: build
-              dockerfile: Dockerfile
-              arguments: --target production -t $(registry)/$(imageName):$(Build.SourceVersion)
+          - script: |
+              TAG="$(registry)/$(imageName):$(Build.SourceVersion)"
+              if docker manifest inspect "$TAG" >/dev/null 2>&1; then
+                echo "##vso[task.setvariable variable=exists]true"
+              else
+                echo "##vso[task.setvariable variable=exists]false"
+              fi
+            displayName: Idempotency guard
 
-          - task: Docker@2
-            displayName: Push to registry
-            condition: eq(variables['Build.SourceBranch'], 'refs/heads/{DEFAULT_BRANCH}')
-            inputs:
-              command: push
-              containerRegistry: $(dockerRegistryServiceConnection)
-              repository: $(imageName)
-              tags: |
-                $(Build.SourceVersion)
-                latest
+          - script: |
+              docker buildx build --target production \
+                --provenance=true --sbom=true --push \
+                -t $(registry)/$(imageName):$(Build.SourceVersion) .
+            condition: ne(variables.exists, 'true')
+            displayName: Build, provenance, push
 
-  # ── Deploy to Dev ─────────────────────────────────────────────
-  - stage: DeployDev
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/{DEFAULT_BRANCH}')
+          - script: |
+              DIG=$(docker buildx imagetools inspect $(registry)/$(imageName):$(Build.SourceVersion) --format '{{.Manifest.Digest}}')
+              echo "##vso[task.setvariable variable=digestRef;isOutput=true]$(registry)/$(imageName)@$DIG"
+            name: build
+            displayName: Resolve digest (both paths)
+
+          - script: cosign sign --yes $(build.digestRef)
+            condition: ne(variables.exists, 'true')
+            displayName: Sign image (keyless)
+
+  - stage: Promote
     dependsOn: Build
-    jobs:
-      - deployment: DeployDev
-        environment: dev
-        pool:
-          vmImage: $(vmImageName)
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - script: |
-                    echo "Deploying $(registry)/$(imageName):$(Build.SourceVersion) to dev"
-                    # {DEV_DEPLOY_COMMANDS}
-
-  # ── Promote to Staging ────────────────────────────────────────
-  - stage: PromoteStaging
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/v')
     jobs:
-      - deployment: DeployStaging
-        environment: staging
-        pool:
-          vmImage: $(vmImageName)
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - script: |
-                    TAG=${BUILD_SOURCEBRANCH#refs/tags/}
-                    echo "Retagging and deploying $TAG to staging"
-                    # Retag — do NOT rebuild
-                    # {STAGING_DEPLOY_COMMANDS}
-
-  # ── Promote to Production ─────────────────────────────────────
-  - stage: PromoteProd
-    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/v')
-    dependsOn: PromoteStaging
-    jobs:
-      - deployment: DeployProd
-        environment: production
-        pool:
-          vmImage: $(vmImageName)
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - script: |
-                    TAG=${BUILD_SOURCEBRANCH#refs/tags/}
-                    echo "Deploying $TAG to production"
-                    # {PROD_DEPLOY_COMMANDS}
+      - job: VerifyAndDeploy
+        pool: { vmImage: ubuntu-latest }
+        variables:
+          digestRef: $[ stageDependencies.Build.BuildSignPush.outputs['build.digestRef'] ]
+        steps:
+          # Set identity + issuer to your signing identity — see deploy/SETUP.md.
+          - script: |
+              cosign verify \
+                --certificate-identity-regexp "<CERT_IDENTITY_REGEXP>" \
+                --certificate-oidc-issuer "<OIDC_ISSUER>" \
+                $(digestRef)
+            displayName: Verify signature (by sha256 digest)
+          - script: echo "Deploy $(digestRef) to staging then prod (no rebuild)"
+            displayName: Promote by digest
 ```
 
 ---

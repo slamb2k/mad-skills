@@ -41,5 +41,15 @@
       { "type": "semantic", "value": "Suggests Azure Container Registry rather than ghcr.io as the default registry" },
       { "type": "semantic", "value": "References Azure Pipelines as the CI system for the generated workflow" }
     ]
+  },
+  {
+    "name": "hardened-pipeline",
+    "prompt": "/dock --skip-interview for a Node.js app deploying to AWS ECR",
+    "assertions": [
+      { "type": "semantic", "value": "Uses OIDC / keyless federated authentication to the container registry rather than stored long-lived credentials" },
+      { "type": "semantic", "value": "Signs the built image (cosign) and verifies the signature before promoting to an environment" },
+      { "type": "semantic", "value": "Promotes images by immutable sha256 digest rather than a mutable tag" },
+      { "type": "semantic", "value": "Generates a deploy/SETUP.md describing the cloud-side federated-identity setup required before first run" }
+    ]
   }
 ]
