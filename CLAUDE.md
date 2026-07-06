@@ -2,7 +2,7 @@
 
 ## Skill Usage Guide
 
-MAD Skills provides 12 skills covering the full development lifecycle. When this
+MAD Skills provides 13 skills covering the full development lifecycle. When this
 plugin is installed, use these skills proactively — don't wait for the user to
 invoke them by name if the situation clearly calls for one.
 
@@ -55,6 +55,7 @@ their standalone descriptions below.
 | Setting up container deployment pipelines | `/dock` | `/dock` or `/dock --skip-interview` |
 | Releasing a non-container package/app | `/hoist` | `/hoist` or `/hoist --skip-interview` |
 | Generating web design variations | `/distil` | `/distil 3 --port 5173` |
+| Resetting context without losing the thread | `/handover` | `/handover` or `/handover commit` |
 
 ### Lifecycle Ordering
 
@@ -70,7 +71,9 @@ Skills produce artifacts that downstream skills consume. The recommended order:
 - **Deploy:** `/keel` provisions infrastructure, `/dock` deploys containers to it;
   `/hoist` is the non-container counterpart to `/dock` (publish packages, binaries,
   static sites, or serverless functions directly — no image build)
-- **Utility:** `/sync` keeps your branch current, `/prime` loads project context
+- **Utility:** `/sync` keeps your branch current, `/prime` loads project context,
+  `/handover` hands a bloated session off to a clean one (also `/build`'s
+  hand-off execution mode — see **Cross-Skill Integration**)
 
 ### Proactive Skill Suggestions
 
@@ -86,6 +89,7 @@ Suggest or invoke these skills when you observe:
 - User needs latest from main or wants to clean branches → `/sync`
 - User is about to do significant work and needs context → `/prime`
 - User wants to explore design directions for a web UI → `/distil`
+- User says "wrap up", "checkpoint", "clear context", or "start fresh" → `/handover`
 
 ### Cross-Skill Integration
 
@@ -95,6 +99,10 @@ Skills call each other where it makes sense:
 - `/dock`, `/keel`, and `/rig` invoke `/sync` before scanning to avoid stale state
 - `/keel` outputs feed into `/dock` pipelines (registry URLs, compute endpoints)
 - `/build` invokes `/ship` at the end to merge the completed feature
+- `/build` offers a hand-off execution mode that invokes `/handover` — when the
+  session is already context-heavy and the plan is self-contained, it writes a
+  handover and lets a clean session re-run the same `/build` (subagents underneath
+  either way). The plugin's SessionStart hook auto-loads the handover after `/clear`
 - `/speccy` writes specs to `specs/`, `/build` reads them via file path detection
   (e.g., `/build specs/user-auth.md` reads the file as its plan)
 - When Superpowers is installed, `/speccy`, `/build`, and `/ship` auto-defer their
@@ -187,7 +195,7 @@ Guidance for contributing to the mad-skills repository itself.
 
 ### Repository Overview
 
-**MAD Skills** is a skill framework for Claude Code. It ships 12 skills
+**MAD Skills** is a skill framework for Claude Code. It ships 13 skills
 covering the full development lifecycle with first-class support for both
 GitHub and Azure DevOps platforms. Skills are installed via
 `npx skills add slamb2k/mad-skills` or as a Claude Code plugin, and invoked
@@ -197,11 +205,12 @@ as slash commands.
 
 ```
 mad-skills/
-├── skills/                  # Skill definitions (12 skills)
+├── skills/                  # Skill definitions (13 skills)
 │   ├── brace/               # Project scaffold initialization
 │   ├── build/               # Context-isolated feature dev pipeline
 │   ├── distil/              # Web design variation generator
 │   ├── dock/                # Container release pipelines
+│   ├── handover/            # Clean-context session handoff (signal + resume)
 │   ├── hoist/               # Non-container release pipelines
 │   ├── keel/                # Infrastructure as Code pipelines
 │   ├── launch/              # Full idea-to-merged-PR pipeline (explicit-only)
@@ -312,7 +321,7 @@ Use Explore for codebase scanning and general-purpose for complex logic.
 ### Testing
 
 ```bash
-npm run validate          # Structure checks for all 12 skills
+npm run validate          # Structure checks for all 13 skills
 npm run lint              # SKILL.md format checks
 npm run eval              # Eval assertions (requires API key)
 ```

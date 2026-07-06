@@ -1,6 +1,6 @@
 {
-  "generated": "2026-07-06T03:59:57.375Z",
-  "count": 12,
+  "generated": "2026-07-06T04:30:54.992Z",
+  "count": 13,
   "skills": [
     {
       "name": "brace",
@@ -16,7 +16,7 @@
       "name": "build",
       "directory": "build",
       "description": "Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.",
-      "lines": 468,
+      "lines": 532,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": false,
@@ -38,6 +38,16 @@
       "description": ">- Generate container-based release pipelines that build once and promote immutable artifacts through environments (dev → staging → prod). Detects your stack, interviews for infrastructure choices, then outputs deterministic CI/CD files (Dockerfile, workflows, deployment manifests) that run without an LLM. Use when setting up deployment pipelines, containerizing an app, creating release workflows, or connecting CI to container-friendly infrastructure (Azure Container Apps, AWS Fargate, Google Cloud Run, Kubernetes, Dokku, Coolify, CapRover, etc.).",
       "lines": 457,
       "hasScripts": false,
+      "hasReferences": true,
+      "hasAssets": false,
+      "hasTests": true
+    },
+    {
+      "name": "handover",
+      "directory": "handover",
+      "description": "Persist a session handover document and signal the next fresh session to resume from it. Use when the user types /handover, says they want to hand off, checkpoint, wrap up, clear context, or start fresh while preserving state, or asks to carry work into a new session with clean optimised context. Captures everything a brand-new session needs — task, status, next steps, key files, decisions, gotchas, git state — writes it to disk, arms a one-shot signal, and tells the user to /clear so the next session auto-loads it.",
+      "lines": 165,
+      "hasScripts": true,
       "hasReferences": true,
       "hasAssets": false,
       "hasTests": true

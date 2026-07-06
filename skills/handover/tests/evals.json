@@ -1,0 +1,35 @@
+{
+  "skill": "handover",
+  "cases": [
+    {
+      "name": "explicit slash invocation",
+      "prompt": "/handover",
+      "expect_skill": "handover",
+      "assertions": [
+        "Writes a handover document to HANDOVER.md in the repo root by default",
+        "Arms the one-shot signal via scripts/handover.sh signal with an absolute path",
+        "Tells the user to type /clear to start the fresh session themselves"
+      ]
+    },
+    {
+      "name": "natural language wrap-up",
+      "prompt": "Let's wrap up and start fresh with a clean context window without losing where we are.",
+      "expect_skill": "handover",
+      "assertions": [
+        "Recognizes the intent to reset context while preserving state",
+        "Captures task, status, next steps, key files, decisions, and git state",
+        "Does not attempt to run /clear itself — leaves that to the user"
+      ]
+    },
+    {
+      "name": "committed checkpoint variant",
+      "prompt": "/handover commit",
+      "expect_skill": "handover",
+      "assertions": [
+        "Writes to docs/handovers/HANDOVER-<timestamp>.md instead of the ignored repo-root file",
+        "Does not add the file to .git/info/exclude",
+        "Notes the user will want to commit the checkpoint"
+      ]
+    }
+  ]
+}

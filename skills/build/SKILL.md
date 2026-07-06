@@ -93,7 +93,7 @@ Before starting, check all dependencies in this table:
 | feature-dev:code-architect | agent | — | no | fallback | Uses general-purpose agent |
 | feature-dev:code-reviewer | agent | — | no | fallback | Uses general-purpose agent |
 | superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Routes Stage 4 impl core to superpowers:executing-plans / subagent-driven-development when present; see references/superpowers-deferral.md |
-| handover | skill | `ls .claude/skills/handover/SKILL.md ~/.claude/skills/handover/SKILL.md 2>/dev/null` | no | fallback | Powers the "hand off to a clean session" execution mode; if absent, that option is not offered |
+| handover | skill | `ls .claude/skills/handover/SKILL.md ~/.claude/skills/handover/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/handover/SKILL.md 2>/dev/null` | no | fallback | Powers the "hand off to a clean session" execution mode; ships with mad-skills, so normally present |
 
 For each row, in order:
 1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
