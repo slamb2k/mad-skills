@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-06T04:30:54.992Z",
+  "generated": "2026-07-07T07:40:22.053Z",
   "count": 13,
   "skills": [
     {
@@ -16,7 +16,7 @@
       "name": "build",
       "directory": "build",
       "description": "Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.",
-      "lines": 532,
+      "lines": 533,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": false,
@@ -43,10 +43,10 @@
       "hasTests": true
     },
     {
-      "name": "handover",
-      "directory": "handover",
-      "description": "Persist a session handover document and signal the next fresh session to resume from it. Use when the user types /handover, says they want to hand off, checkpoint, wrap up, clear context, or start fresh while preserving state, or asks to carry work into a new session with clean optimised context. Captures everything a brand-new session needs — task, status, next steps, key files, decisions, gotchas, git state — writes it to disk, arms a one-shot signal, and tells the user to /clear so the next session auto-loads it.",
-      "lines": 165,
+      "name": "ferry",
+      "directory": "ferry",
+      "description": "Ferry a session's live state across a context reset — persist a cargo document and signal the next fresh session to resume from it. Use when the user types /ferry, says they want to hand off, checkpoint, wrap up, clear context, or start fresh while preserving state, or asks to carry work into a new session with clean optimised context. Captures everything a brand-new session needs — task, status, next steps, key files, decisions, gotchas, git state — writes it to disk as cargo.md, arms a one-shot signal, and tells the user to /clear so the next session auto-loads it.",
+      "lines": 166,
       "hasScripts": true,
       "hasReferences": true,
       "hasAssets": false,

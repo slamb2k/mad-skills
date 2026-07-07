@@ -4,7 +4,7 @@
       "matcher": "startup|clear|compact",
       "hooks": [
         { "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; node \"$_R/hooks/session-guard.cjs\" check", "timeout": 30 },
-        { "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; bash \"$_R/skills/handover/scripts/handover.sh\" load", "timeout": 10 }
+        { "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; bash \"$_R/skills/ferry/scripts/ferry.sh\" load", "timeout": 10 }
       ]
     }],
     "UserPromptSubmit": [{
