@@ -1,0 +1,36 @@
+[
+  {
+    "name": "banner-display",
+    "prompt": "/hoist",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "semantic", "value": "Displays an ASCII art banner for the hoist skill before doing anything else" }
+    ]
+  },
+  {
+    "name": "npm-trusted-publishing",
+    "prompt": "/hoist --skip-interview for an npm library",
+    "assertions": [
+      { "type": "semantic", "value": "Uses npm OIDC trusted publishing with no stored NODE_AUTH_TOKEN" },
+      { "type": "semantic", "value": "Publishes with provenance (npm publish --provenance)" },
+      { "type": "semantic", "value": "Guards publish with a version-already-exists check so re-runs are idempotent" }
+    ]
+  },
+  {
+    "name": "binaries-release",
+    "prompt": "/hoist for a Go CLI that ships cross-platform binaries",
+    "assertions": [
+      { "type": "semantic", "value": "Builds cross-platform binaries in a matrix and produces SHA256SUMS checksums" },
+      { "type": "semantic", "value": "Attaches the artifacts to a GitHub Release" }
+    ]
+  },
+  {
+    "name": "auto-bump-approval",
+    "prompt": "/hoist an npm package, auto-bump on merge to main with an approval gate before publishing",
+    "assertions": [
+      { "type": "semantic", "value": "Auto-computes the next version and publishes on merge to the default branch" },
+      { "type": "semantic", "value": "Runs the publish step behind an environment approval gate requiring a human reviewer" },
+      { "type": "semantic", "value": "Generates a deploy/SETUP.md describing the required one-time setup" }
+    ]
+  }
+]
