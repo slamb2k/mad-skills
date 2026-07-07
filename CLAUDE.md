@@ -101,8 +101,8 @@ Skills call each other where it makes sense:
 - `/build` invokes `/ship` at the end to merge the completed feature
 - `/build` offers a hand-off execution mode that invokes `/ferry` — when the
   session is already context-heavy and the plan is self-contained, it writes a
-  cargo doc and lets a clean session re-run the same `/build` (subagents underneath
-  either way). The plugin's SessionStart hook auto-loads the cargo after `/clear`
+  waybill and lets a clean session re-run the same `/build` (subagents underneath
+  either way). The plugin's SessionStart hook auto-loads the waybill after `/clear`
 - `/speccy` writes specs to `specs/`, `/build` reads them via file path detection
   (e.g., `/build specs/user-auth.md` reads the file as its plan)
 - When Superpowers is installed, `/speccy`, `/build`, and `/ship` auto-defer their
@@ -210,7 +210,7 @@ mad-skills/
 │   ├── build/               # Context-isolated feature dev pipeline
 │   ├── distil/              # Web design variation generator
 │   ├── dock/                # Container release pipelines
-│   ├── ferry/               # Clean-context session handoff — cargo doc (signal + resume)
+│   ├── ferry/               # Clean-context session handoff — waybill (signal + resume)
 │   ├── hoist/               # Non-container release pipelines
 │   ├── keel/                # Infrastructure as Code pipelines
 │   ├── launch/              # Full idea-to-merged-PR pipeline (explicit-only)
