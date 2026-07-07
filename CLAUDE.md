@@ -55,7 +55,7 @@ their standalone descriptions below.
 | Setting up container deployment pipelines | `/dock` | `/dock` or `/dock --skip-interview` |
 | Releasing a non-container package/app | `/hoist` | `/hoist` or `/hoist --skip-interview` |
 | Generating web design variations | `/distil` | `/distil 3 --port 5173` |
-| Resetting context without losing the thread | `/handover` | `/handover` or `/handover commit` |
+| Resetting context without losing the thread | `/ferry` | `/ferry` or `/ferry commit` |
 
 ### Lifecycle Ordering
 
@@ -72,7 +72,7 @@ Skills produce artifacts that downstream skills consume. The recommended order:
   `/hoist` is the non-container counterpart to `/dock` (publish packages, binaries,
   static sites, or serverless functions directly — no image build)
 - **Utility:** `/sync` keeps your branch current, `/prime` loads project context,
-  `/handover` hands a bloated session off to a clean one (also `/build`'s
+  `/ferry` hands a bloated session off to a clean one (also `/build`'s
   hand-off execution mode — see **Cross-Skill Integration**)
 
 ### Proactive Skill Suggestions
@@ -89,7 +89,7 @@ Suggest or invoke these skills when you observe:
 - User needs latest from main or wants to clean branches → `/sync`
 - User is about to do significant work and needs context → `/prime`
 - User wants to explore design directions for a web UI → `/distil`
-- User says "wrap up", "checkpoint", "clear context", or "start fresh" → `/handover`
+- User says "wrap up", "checkpoint", "clear context", or "start fresh" → `/ferry`
 
 ### Cross-Skill Integration
 
@@ -99,10 +99,10 @@ Skills call each other where it makes sense:
 - `/dock`, `/keel`, and `/rig` invoke `/sync` before scanning to avoid stale state
 - `/keel` outputs feed into `/dock` pipelines (registry URLs, compute endpoints)
 - `/build` invokes `/ship` at the end to merge the completed feature
-- `/build` offers a hand-off execution mode that invokes `/handover` — when the
+- `/build` offers a hand-off execution mode that invokes `/ferry` — when the
   session is already context-heavy and the plan is self-contained, it writes a
-  handover and lets a clean session re-run the same `/build` (subagents underneath
-  either way). The plugin's SessionStart hook auto-loads the handover after `/clear`
+  cargo doc and lets a clean session re-run the same `/build` (subagents underneath
+  either way). The plugin's SessionStart hook auto-loads the cargo after `/clear`
 - `/speccy` writes specs to `specs/`, `/build` reads them via file path detection
   (e.g., `/build specs/user-auth.md` reads the file as its plan)
 - When Superpowers is installed, `/speccy`, `/build`, and `/ship` auto-defer their
@@ -210,7 +210,7 @@ mad-skills/
 │   ├── build/               # Context-isolated feature dev pipeline
 │   ├── distil/              # Web design variation generator
 │   ├── dock/                # Container release pipelines
-│   ├── handover/            # Clean-context session handoff (signal + resume)
+│   ├── ferry/               # Clean-context session handoff — cargo doc (signal + resume)
 │   ├── hoist/               # Non-container release pipelines
 │   ├── keel/                # Infrastructure as Code pipelines
 │   ├── launch/              # Full idea-to-merged-PR pipeline (explicit-only)

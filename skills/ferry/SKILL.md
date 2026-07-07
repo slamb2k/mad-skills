@@ -1,11 +1,11 @@
 ---
-name: handover
-description: Persist a session handover document and signal the next fresh session to resume from it. Use when the user types /handover, says they want to hand off, checkpoint, wrap up, clear context, or start fresh while preserving state, or asks to carry work into a new session with clean optimised context. Captures everything a brand-new session needs — task, status, next steps, key files, decisions, gotchas, git state — writes it to disk, arms a one-shot signal, and tells the user to /clear so the next session auto-loads it.
+name: ferry
+description: Ferry a session's live state across a context reset — persist a cargo document and signal the next fresh session to resume from it. Use when the user types /ferry, says they want to hand off, checkpoint, wrap up, clear context, or start fresh while preserving state, or asks to carry work into a new session with clean optimised context. Captures everything a brand-new session needs — task, status, next steps, key files, decisions, gotchas, git state — writes it to disk as cargo.md, arms a one-shot signal, and tells the user to /clear so the next session auto-loads it.
 argument-hint: repo, tmp, commit (optional target; default repo)
 allowed-tools: Bash, Read, Write
 ---
 
-# Handover - Clean-Context Session Handoff
+# Ferry - Clean-Context Session Handoff
 
 When this skill is invoked, IMMEDIATELY output the banner below before doing anything else.
 Pick ONE tagline at random — vary your choice each time.
@@ -14,45 +14,46 @@ CRITICAL: Reproduce the banner EXACTLY character-for-character, preserving all l
 ```
 {tagline}
 
-██╗  ██╗ █████╗ ███╗   ██╗██████╗  ██████╗ ██╗   ██╗███████╗██████╗
-██║  ██║██╔══██╗████╗  ██║██╔══██╗██╔═══██╗██║   ██║██╔════╝██╔══██╗
-███████║███████║██╔██╗ ██║██║  ██║██║   ██║██║   ██║█████╗  ██████╔╝
-██╔══██║██╔══██║██║╚██╗██║██║  ██║██║   ██║╚██╗ ██╔╝██╔══╝  ██╔══██╗
-██║  ██║██║  ██║██║ ╚████║██████╔╝╚██████╔╝ ╚████╔╝ ███████╗██║  ██║
-╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝  ╚═════╝   ╚═══╝  ╚══════╝╚═╝  ╚═╝
+███████╗███████╗██████╗ ██████╗ ██╗   ██╗
+██╔════╝██╔════╝██╔══██╗██╔══██╗╚██╗ ██╔╝
+█████╗  █████╗  ██████╔╝██████╔╝ ╚████╔╝
+██╔══╝  ██╔══╝  ██╔══██╗██╔══██╗  ╚██╔╝
+██║     ███████╗██║  ██║██║  ██║   ██║
+╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝
 ```
 
 Taglines:
-- 🪂 Packing the parachute for a clean landing...
-- 🧳 Bagging up the context, checking out...
-- 🤝 Passing the baton to a fresh runner!
-- 📦 Boxing up everything the next session needs!
-- 🧹 Clearing the desk, leaving a tidy note!
-- 🛟 Nobody loses the thread on my watch!
-- 🌅 Fresh session, same mission!
+- ⛴️ Loading the cargo for the crossing...
+- 🧳 All aboard — carrying the context across!
+- 🤝 Passing the manifest to a fresh crew!
+- 📦 Cargo secured, casting off to a clean session!
+- 🌊 Ferrying the thread over calm water!
+- 🛟 Nobody's work goes overboard on my watch!
+- 🌅 New session on the far shore, same voyage!
 
 ---
 
 ## What this does
 
-Capture the live state of this session into a handover document, arm a one-shot
-signal, and hand the user off to a clean session that will automatically resume
-from the document. The point is to **reset the context window without losing the
-thread** — the next session starts lean but fully briefed.
+Ferry the live state of this session across a context reset: capture it into a
+**cargo document** (`cargo.md`), arm a one-shot signal, and hand the user off to
+a clean session that will automatically resume from the cargo. The point is to
+**reset the context window without losing the thread** — the next session starts
+lean but fully briefed.
 
 Long sessions accumulate noise: dead ends, superseded plans, stale file reads. A
 fresh session is faster and sharper, but naively starting over loses hard-won
-context. `/handover` distills only what the *next* session needs, persists it, and
-signals that session to pick it up — once. It will not re-read old handovers on
+context. `/ferry` distills only what the *next* session needs, persists it, and
+signals that session to pick it up — once. It will not re-read old cargo on
 unrelated future sessions, because the signal is consumed on first read.
 
 ## Usage
 
 ```
-/handover            # default: HANDOVER.md in repo root, kept OUT of git
-/handover repo       # same as default (explicit)
-/handover tmp        # write under /tmp — never touches the repo at all
-/handover commit     # write docs/handovers/HANDOVER-<timestamp>.md, meant to be committed
+/ferry            # default: cargo.md in repo root, kept OUT of git
+/ferry repo       # same as default (explicit)
+/ferry tmp        # write under /tmp — never touches the repo at all
+/ferry commit     # write docs/ferry/cargo-<timestamp>.md, meant to be committed
 ```
 
 Read the argument from what the user typed. If none given, use `repo`.
@@ -87,24 +88,24 @@ date +%Y-%m-%d-%H%M
 
 Then pick the path based on the argument:
 
-- **`repo`** (default): `<repo_root>/HANDOVER.md`. If not inside a git repo, use the
+- **`repo`** (default): `<repo_root>/cargo.md`. If not inside a git repo, use the
   current working directory instead. After writing, keep it out of version control
-  by appending `HANDOVER.md` to `<repo_root>/.git/info/exclude` if it's a git repo
+  by appending `cargo.md` to `<repo_root>/.git/info/exclude` if it's a git repo
   and not already listed there. This is a *local* ignore — it never modifies the
   tracked `.gitignore`, so it won't show up in anyone else's checkout or your diffs.
-- **`tmp`**: `/tmp/claude-handover/<key>/HANDOVER.md` where `<key>` is
+- **`tmp`**: `/tmp/claude-ferry/<key>/cargo.md` where `<key>` is
   `printf '%s' "$(pwd)" | cksum | cut -d' ' -f1`. Create the directory first.
   Nothing is written inside the repo.
-- **`commit`**: `<repo_root>/docs/handovers/HANDOVER-<timestamp>.md`. Create the
-  `docs/handovers/` directory if needed. Do **not** ignore it — this variant exists
-  precisely so the handover lands in git history as a durable checkpoint. Mention to
+- **`commit`**: `<repo_root>/docs/ferry/cargo-<timestamp>.md`. Create the
+  `docs/ferry/` directory if needed. Do **not** ignore it — this variant exists
+  precisely so the cargo lands in git history as a durable checkpoint. Mention to
   the user that they'll want to commit it.
 
-### 2. Write the handover document
+### 2. Write the cargo document
 
 This is the core of the skill — the document quality determines whether the next
 session is productive or lost. Follow the structure in
-`references/handover-template.md`. Read that file now if you haven't.
+`references/cargo-template.md`. Read that file now if you haven't.
 
 Fill it from the **actual conversation and repo state**, not generic boilerplate.
 Be concrete: real file paths, real function names, real commands, real decisions.
@@ -128,22 +129,22 @@ dead end is a genuine landmine worth a warning.
 After the document is written, run (using the `PLUGIN_ROOT` resolved in pre-flight):
 
 ```bash
-bash "$PLUGIN_ROOT/skills/handover/scripts/handover.sh" signal "<absolute_path_to_handover>"
+bash "$PLUGIN_ROOT/skills/ferry/scripts/ferry.sh" signal "<absolute_path_to_cargo>"
 ```
 
 This drops a signal keyed to the current project directory. The next session's
 `SessionStart` hook — shipped with this plugin in `hooks/hooks.json` — detects it,
-injects the handover as context, and deletes the signal so it fires exactly once.
+injects the cargo as context, and deletes the signal so it fires exactly once.
 Use the **absolute** path.
 
 ### 4. Hand off to a fresh session
 
-Tell the user plainly that the handover is ready and they should start the fresh
+Tell the user plainly that the cargo is ready and they should start the fresh
 session themselves. You **cannot** trigger `/clear` programmatically — it is a
 user-only command — so the final step is theirs. Say something like:
 
-> Handover written to `<path>` and the next session is armed. Type **`/clear`**
-> (or **`/new`**) now — the fresh session will automatically load this handover and
+> Cargo written to `<path>` and the next session is armed. Type **`/clear`**
+> (or **`/new`**) now — the fresh session will automatically load this cargo and
 > pick up where we left off. Nothing else gets auto-loaded; the signal is consumed
 > on first read.
 
@@ -155,10 +156,10 @@ need to take.
 - **`/clear` is the user's to type.** No skill, hook, or command can clear the
   context window automatically. Always end by asking them to do it.
 - **The signal is one-shot and project-scoped.** It's keyed to the working
-  directory and deleted on first read, so handovers never leak into unrelated
-  sessions. A `HANDOVER.md` left sitting in a repo is inert unless re-armed.
+  directory and deleted on first read, so cargo never leaks into unrelated
+  sessions. A `cargo.md` left sitting in a repo is inert unless re-armed.
 - **Don't pollute git by default.** Only the `commit` variant is meant to be
   tracked. `repo` mode relies on `.git/info/exclude`; `tmp` mode stays entirely
   outside the repo.
-- **If `/handover` is run again later**, overwrite the existing document and
+- **If `/ferry` is run again later**, overwrite the existing document and
   re-arm the signal — the latest state wins.

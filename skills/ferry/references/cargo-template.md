@@ -1,4 +1,4 @@
-# Handover document template
+# Cargo document template
 
 Fill every section that applies. Drop sections that genuinely don't (e.g. no open
 questions). Lead with what unblocks action; a fresh session should be able to make
@@ -6,12 +6,12 @@ its **next move within the first minute** of reading this.
 
 Write concretely. "Fix the bug in the parser" is useless; "`parseImportFile()` in
 `src/import.js:42` throws on empty `days` — needs a guard before the `Object.entries`
-loop" is a handover. Prefer absolute or repo-relative file paths with line numbers.
+loop" is cargo worth carrying. Prefer absolute or repo-relative file paths with line numbers.
 
 ---
 
 ```markdown
-# Handover — <short task title>
+# Cargo — <short task title>
 
 **Date:** <YYYY-MM-DD HH:MM>  ·  **Branch:** <git branch>  ·  **Repo:** <path>
 
@@ -83,7 +83,7 @@ ticket numbers, people involved.
   think it works but didn't check, say "assumed — not yet run". A fresh session has
   no way to tell otherwise and false confidence is expensive.
 - **Link, don't paste:** point to files and line ranges rather than dumping large
-  code blocks. The next session can read them on demand; bloating the handover just
+  code blocks. The next session can read them on demand; bloating the cargo just
   refills the context window you're trying to clear.
 - **Keep it skimmable:** headers, short bullets, code spans for paths/commands. A
   wall of prose defeats the purpose.
