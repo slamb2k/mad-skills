@@ -6,7 +6,7 @@
       "prompt": "/ferry",
       "expect_skill": "ferry",
       "assertions": [
-        "Writes a cargo document to cargo.md in the repo root by default",
+        "Writes a waybill document to waybill.md in the repo root by default",
         "Arms the one-shot signal via scripts/ferry.sh signal with an absolute path",
         "Tells the user to type /clear to start the fresh session themselves"
       ]
@@ -26,7 +26,7 @@
       "prompt": "/ferry commit",
       "expect_skill": "ferry",
       "assertions": [
-        "Writes to docs/ferry/cargo-<timestamp>.md instead of the ignored repo-root file",
+        "Writes to docs/ferry/waybill-<timestamp>.md instead of the ignored repo-root file",
         "Does not add the file to .git/info/exclude",
         "Notes the user will want to commit the checkpoint"
       ]

@@ -208,7 +208,7 @@ So there is exactly one execution-mode decision, and subagents are always on
 underneath either choice:
 
 - **Run here now** — orchestrate the build in this session, stages in subagents.
-- **Hand off to a clean session** — ferry the state across (write a cargo doc),
+- **Hand off to a clean session** — ferry the state across (write a waybill),
   arm the resume signal, and let a fresh session run the *same* `/build` with its
   own subagents.
 
@@ -230,9 +230,9 @@ the run-now decision.
      orchestrator would start bloated. A fresh `/build` invocation in an empty
      session does not need this — just run here now.
    - **Plan is self-contained** — PLAN is a spec file or a complete written plan
-     that a cargo doc can capture losslessly. If the plan leans on nuance from
+     that a waybill can capture losslessly. If the plan leans on nuance from
      *this* conversation (decisions made live, things looked at together), the
-     cargo is lossy — prefer run-here-now so that context isn't thrown away.
+     waybill is lossy — prefer run-here-now so that context isn't thrown away.
 
    If **both** hold, ask via `AskUserQuestion`:
    ```
@@ -246,7 +246,7 @@ the run-now decision.
    If either condition fails, don't ask — run here now.
 
 **If handing off:** capture the resolved PLAN and any Stage-2 clarifications
-gathered so far, then invoke the `ferry` skill. The cargo document's
+gathered so far, then invoke the `ferry` skill. The waybill's
 "next steps" MUST be a single resume action: re-run this exact build in the
 fresh session, e.g. `/build {original PLAN argument}` (plus any active flags,
 minus `--handoff`). Include the resolved plan content and PROJECT_CONFIG so the
