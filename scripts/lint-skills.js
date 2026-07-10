@@ -25,6 +25,22 @@ function lint(skillName, content) {
   // don't get spurious "trailing whitespace" warnings on every line.
   const lines = content.replace(/\r\n/g, "\n").split("\n");
   const issues = [];
+
+  // Banner house-style: the ASCII banner must carry the leading "/" prefix
+  // (a staircase of box-drawing chars starting with U+2800 + 3 spaces + "██╗"),
+  // so it renders as "/NAME" like every other mad-skills banner. Catches a
+  // hand-written banner that forgot the slash.
+  const bannerSlash = /^⠀ {3}██╗/m;
+  if (!bannerSlash.test(content)) {
+    const bannerLine = lines.findIndex((l) => /[█╗╔╝═║]/.test(l));
+    issues.push({
+      line: bannerLine >= 0 ? bannerLine + 1 : 1,
+      severity: "error",
+      message:
+        'Banner missing the "/" prefix staircase (first art line must start with U+2800 + "   ██╗")',
+    });
+  }
+
   let inCodeBlock = false;
   let inFrontmatter = false;
   let frontmatterClosed = false;
