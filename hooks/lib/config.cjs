@@ -53,14 +53,4 @@ module.exports = {
   pythonFiles: ['pyproject.toml', 'requirements.txt', 'setup.py'],
 
   taskList: { minCommits: 20, minFiles: 30 },
-
-  pluginHealth: {
-    claudeMem: {
-      maxObservations: 20,
-      maxSessionCount: 5,
-      recommendedSkipTools: [
-        'Read', 'Glob', 'Grep', 'ToolSearch', 'Agent', 'WebSearch', 'WebFetch',
-      ],
-    },
-  },
 };

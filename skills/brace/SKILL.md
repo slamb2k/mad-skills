@@ -1,7 +1,7 @@
 ---
 name: brace
-description: 'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project CLAUDE.md with development workflow and guardrails, .gitignore, and branch protection. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: "init project", "setup brace", "brace", "initialize", "bootstrap", "scaffold".'
-argument-hint: "[--force] [--skip-plugin-tuning]"
+description: 'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project CLAUDE.md with development workflow and guardrails, .gitignore, and branch protection. Idempotent — safe to run on existing projects. Triggers: "init project", "setup brace", "brace", "initialize", "bootstrap", "scaffold".'
+argument-hint: "[--force]"
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ---
 
@@ -75,7 +75,6 @@ Report format: `references/report-template.md`
 
 Parse optional flags from the request:
 - `--force` — Overwrite existing files without prompting
-- `--skip-plugin-tuning` — Skip Phase 7 plugin performance tuning
 
 ---
 
@@ -85,7 +84,6 @@ Before starting, check all dependencies in this table:
 
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
-| claude-mem | plugin | — | no | ask | `claude plugin install claude-mem` |
 | oh-my-claudecode | plugin | — | no | ask | `claude plugin install oh-my-claudecode` |
 | superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | ask | `claude plugin install superpowers` |
 
@@ -102,13 +100,12 @@ For each row, in order:
 
 **Plugin detection:** For plugin dependencies (Type = plugin), check
 `~/.claude/settings.json` → `enabledPlugins` for a key containing the plugin
-name set to `true`. Store results as `PLUGIN_STATE` (`claude_mem_installed`,
-`omc_installed`) for use in Phase 4 and Phase 7.
+name set to `true`.
 
 **Superpowers detection differs:** Superpowers is a soft dependency detected via
 the on-disk glob helper `scripts/lib/superpowers.js` (anchor file
 `using-superpowers/SKILL.md`), **not** the `enabledPlugins` settings.json check
-used for claude-mem and OMC — see `references/superpowers-deferral.md`.
+used for OMC — see `references/superpowers-deferral.md`.
 
 1. Capture **FLAGS** from the user's request
 
@@ -258,11 +255,6 @@ Before sending the prompt, substitute these variables:
 - `{GITIGNORE_CONTENT}` — read from `assets/gitignore-template`
 - `{GLOBAL_PREFERENCES_CONTENT}` — read from `assets/global-preferences-template.md`
   (the section between BEGIN TEMPLATE and END TEMPLATE)
-- `{PLUGIN_ROLE_SEPARATION}` — if both claude-mem AND oh-my-claudecode are
-  detected as enabled (from Phase 7 PLUGIN_REPORT, or by checking
-  `~/.claude/settings.json`), substitute with the content from
-  `references/plugin-tuning-steps.md#plugin-role-separation-content`.
-  Otherwise, substitute with an empty string.
 
 Parse SCAFFOLD_REPORT. If status is "failed", report to user and stop.
 
@@ -331,83 +323,6 @@ project" vs "Apply protection — solo project" for each platform).
 
 Include result in the final report under a "🔒 Branch protection" section,
 labelled with the chosen variant (team / solo / skipped).
-
----
-
-## Phase 7: Plugin Performance Tuning
-
-**Skip this phase if `--skip-plugin-tuning` flag is set.**
-
-Detect companion Claude Code plugins and recommend performance optimisations.
-This phase modifies user-level settings files (`~/.claude/settings.json`,
-`~/.claude-mem/settings.json`) — not repo-level files.
-
-If `--force` is set, apply all recommendations without prompting.
-
-**Plugin presence guards:** Only audit plugins detected as installed during
-pre-flight (`PLUGIN_STATE`). Skip M1/M2/M3 if claude-mem is absent. Skip M2
-if OMC is absent (M2 requires both). The `{PLUGIN_ROLE_SEPARATION}` content
-in CLAUDE.md is only injected when both claude-mem and OMC are confirmed
-enabled.
-
-If no companion plugins are installed at all, output:
-```
-━━ 7 · Plugin Performance ━━━━━━━━━━━━━━━━━━━━
-  ⏭️ No companion plugins installed — skipping
-```
-and skip to the report.
-
-### Detection
-
-Launch **Bash** subagent (**haiku**):
-
-```
-Task(
-  subagent_type: "Bash",
-  model: "haiku",
-  description: "Detect installed plugins and audit performance",
-  prompt: <read from references/phase-prompts.md#phase-7>
-)
-```
-
-Parse PLUGIN_REPORT.
-
-### Present Findings
-
-If PLUGIN_REPORT contains zero findings, output:
-```
-━━ 7 · Plugin Performance ━━━━━━━━━━━━━━━━━━━━
-  ⏭️ No plugin optimisations needed
-```
-Skip to the report.
-
-Otherwise, present findings with **AskUserQuestion**:
-
-Options:
-- "Apply all recommendations (Recommended)"
-- "Let me choose which to apply"
-- "Skip plugin tuning"
-
-If "Let me choose", present individual findings as multi-select.
-
-### Audit Rules
-
-| Code | Check | Condition | Severity |
-|------|-------|-----------|----------|
-| M1 | claude-mem: read-only tools | SKIP_TOOLS missing Read/Glob/Grep/ToolSearch/Agent/WebSearch/WebFetch | medium |
-| M2 | claude-mem: high context | observations > 10 or sessions > 3, AND OMC also enabled | medium |
-| M3 | claude-mem: provider=claude | provider is "claude" (SDK spawn known-broken) | low |
-
-### Apply Approved Changes
-
-For each approved finding, follow the procedures in
-`references/plugin-tuning-steps.md`. Each script is idempotent — re-reads
-the target file before writing and checks current value before modifying.
-
-If both claude-mem AND oh-my-claudecode are detected as enabled, also inject
-the Plugin Role Separation section into the project CLAUDE.md (see
-`references/plugin-tuning-steps.md#plugin-role-separation-content`).
-Skip if section already exists (idempotent).
 
 ---
 

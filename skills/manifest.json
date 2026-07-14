@@ -1,12 +1,12 @@
 {
-  "generated": "2026-07-07T11:08:58.617Z",
+  "generated": "2026-07-14T02:01:03.882Z",
   "count": 13,
   "skills": [
     {
       "name": "brace",
       "directory": "brace",
-      "description": "'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project CLAUDE.md with development workflow and guardrails, .gitignore, and branch protection. Recommends claude-mem for persistent memory. Idempotent — safe to run on existing projects. Triggers: \"init project\", \"setup brace\", \"brace\", \"initialize\", \"bootstrap\", \"scaffold\".'",
-      "lines": 436,
+      "description": "'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project CLAUDE.md with development workflow and guardrails, .gitignore, and branch protection. Idempotent — safe to run on existing projects. Triggers: \"init project\", \"setup brace\", \"brace\", \"initialize\", \"bootstrap\", \"scaffold\".'",
+      "lines": 351,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": true,
@@ -106,7 +106,7 @@
       "name": "ship",
       "directory": "ship",
       "description": "\"Ship changes through the full PR lifecycle. Use after completing feature work to commit, push, create PR, wait for checks, and merge. Handles the entire workflow: syncs with main, creates feature branch if needed, groups commits logically with semantic messages, creates detailed PR, monitors CI, fixes issues, squash merges, and cleans up. Invoke when work is ready to ship.\"",
-      "lines": 499,
+      "lines": 500,
       "hasScripts": true,
       "hasReferences": true,
       "hasAssets": false,

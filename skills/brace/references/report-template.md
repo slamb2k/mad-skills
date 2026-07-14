@@ -27,13 +27,6 @@ Present this summary after verification completes.
 │     {✅} tools/memory/     Legacy memory scripts
 │     {✅} memory/           Legacy memory directory
 │
-│  🔌 Plugin Tuning (only if Phase 7 ran)
-│     {✅|⏭️} claude-mem SKIP_TOOLS: {optimised / already optimal / not installed / skipped / N/A}
-│     {✅|⏭️} claude-mem context: {reduced / already optimal / not installed / skipped / N/A}
-│     {✅|⏭️} claude-mem provider: {switched / already optimal / not installed / skipped / N/A}
-│     {⏭️}    oh-my-claudecode: {installed / not installed}
-│     {✅|⏭️} Plugin role separation: {injected / already present / not applicable / skipped}
-│
 │  ⚠️ Notes
 │     {any warnings or skipped items}
 │
