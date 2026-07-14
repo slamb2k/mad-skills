@@ -17,7 +17,7 @@ rather than compete with it.
 Where the two overlap on **methodology** (plan → build → finish), MAD Skills
 defers to Superpowers **when it is installed**, and falls back to its own
 pipeline **when it is absent**. Superpowers is a **soft/recommended dependency**
-(runtime-detected, like claude-mem) — never required.
+(runtime-detected, like graphify) — never required.
 
 - `/speccy` uses `superpowers:brainstorming` for requirements exploration, but
   still owns the `specs/*.md` artifact + pending-build marker.
@@ -356,20 +356,12 @@ required — every skill degrades gracefully to its standalone behavior.
 | Plugin | Role | How MAD Skills uses it | Install |
 |--------|------|------------------------|---------|
 | **superpowers** | Methodology (plan → build → finish) | `/speccy`, `/build`, `/ship` defer their overlapping stages to it (see **Positioning** above). On-disk glob detection via `scripts/lib/superpowers.js`. | `claude plugin install superpowers` |
-| **claude-mem** | Persistent cross-session memory | `/ship` reads it for "What's Next"; `/brace` recommends it. | `claude plugin install claude-mem` |
 | **graphify** | Codebase knowledge graph | `/prime` surfaces a passive hint if `graphify-out/` exists (query via `/graphify`). Hint only, no dependency. | — |
 
 ## Memory
 
-For persistent memory across sessions, install the **claude-mem** plugin:
-```
-claude plugin install claude-mem
-```
-
-claude-mem automatically captures context via lifecycle hooks and provides
-MCP tools for search, timeline, and observation management. Claude Code's
-built-in auto memory (`~/.claude/projects/<project>/memory/MEMORY.md`)
-handles curated facts.
+Claude Code's built-in auto-memory persists curated facts across sessions with
+no plugin required — see `~/.claude/projects/<project>/memory/MEMORY.md`.
 
 ## Guardrails
 

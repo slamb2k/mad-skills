@@ -1,7 +1,7 @@
 # Superpowers Deferral Contract
 
 Shared deferral behavior for `speccy`, `build`, and `ship`. Superpowers is a
-soft/recommended dependency (runtime-detected, like claude-mem) — never required.
+soft/recommended dependency (runtime-detected, like graphify) — never required.
 When it is absent, every skill runs its standalone pipeline unchanged.
 
 ## Detection

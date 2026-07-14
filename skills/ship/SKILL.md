@@ -452,8 +452,9 @@ sources (in priority order):
    in the current session
 2. **Session context** — review the conversation so far for any stated plans,
    follow-up items, or deferred work the user mentioned
-3. **Memory** — if the `claude-mem` plugin is available, search for recent
-   checkpoints or plans related to this project
+3. **Memory** — check Claude Code's built-in auto-memory
+   (`~/.claude/projects/<project>/memory/MEMORY.md`) for recent checkpoints or
+   plans related to this project
 
 Summarize the result as 1–3 short bullet points for the `⚡ Next` section of
 the report. If nothing is found, omit the section entirely — do not fabricate

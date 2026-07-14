@@ -43,15 +43,8 @@ BEGIN TEMPLATE
 
 ## Memory
 
-For persistent memory across sessions, install the **claude-mem** plugin:
-```
-claude plugin install claude-mem
-```
-
-claude-mem automatically captures context via lifecycle hooks and provides
-MCP tools for search, timeline, and observation management. Claude Code's
-built-in auto memory (`~/.claude/projects/<project>/memory/MEMORY.md`)
-handles curated facts.
+Claude Code's built-in auto-memory persists curated facts across sessions with
+no plugin required — see `~/.claude/projects/<project>/memory/MEMORY.md`.
 
 For the methodology layer (plan → build → finish), install the **superpowers**
 plugin:
@@ -62,8 +55,6 @@ claude plugin install superpowers
 mad-skills defers its overlapping `/speccy`, `/build`, and `/ship` stages to
 superpowers when it is present, and falls back to its own standalone pipeline
 when it is absent.
-
-{PLUGIN_ROLE_SEPARATION}
 
 {UNIVERSAL_PRINCIPLES}
 
