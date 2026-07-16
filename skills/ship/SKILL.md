@@ -497,3 +497,13 @@ If any stage failed, add:
 │     {error description}
 │     {suggested resolution}
 ```
+
+After presenting the report (PR merged, tree clean, not an active cycle),
+resurface any deferred lifecycle step:
+```bash
+_R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
+node "$_R/hooks/session-guard.cjs" lifecycle-checkpoint
+```
+If the command prints a `LIFECYCLE_OFFER_BEGIN…END` block, present that offer to
+the user via AskUserQuestion as instructed inside the block. If it prints nothing
+(or `LIFECYCLE_OFFER_NONE`), do not mention the lifecycle engine.

@@ -27,6 +27,7 @@ const { getBanner } = require('./lib/banner.cjs');
 const { checkGit } = require('./lib/git-checks.cjs');
 const { checkTaskList } = require('./lib/task-checks.cjs');
 const { checkStaleness } = require('./lib/staleness.cjs');
+const lifecycle = require('./lib/lifecycle.cjs');
 
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const CLAUDE_MD = join(PROJECT_DIR, 'CLAUDE.md');
@@ -105,6 +106,11 @@ function checkBackground() {
 
   // 4) Pending build check
   checkPendingBuild(PROJECT_DIR, output);
+
+  // 4b) Lifecycle recommendation (ambient drift surface). SessionStart = one
+  // session — bump the counter once so cooldowns advance.
+  lifecycle.bumpSession(PROJECT_DIR);
+  checkLifecycle(PROJECT_DIR, output);
 
   // 5) Staleness summary
   if (output.score >= config.staleness.threshold) {
@@ -278,7 +284,53 @@ function checkPendingBuild(projectDir, output) {
   output.add(`[SESSION GUARD] → Run: /build ${specPath}`);
 }
 
+// ─── lifecycle recommendation check ───────────────────────────────────
+
+function checkLifecycle(projectDir, output) {
+  try {
+    const { offer } = lifecycle.evaluate(projectDir, { surface: 'session-guard' });
+    if (!offer) return;
+
+    const passive = offer.reArm === 'drift' || offer.presentation === 'drift';
+    if (passive) {
+      output.blank();
+      output.add(`[SESSION GUARD] 🧭 Lifecycle: ${offer.prompt}`);
+      output.add(`[SESSION GUARD] → Consider: ${offer.offers}`);
+      output.add(`[SESSION GUARD] LIFECYCLE_DISMISS: to stop this, run: node ${__filename} lifecycle-dismiss ${offer.id}`);
+      return;
+    }
+
+    // Causal (first) offer — prompt for consent.
+    output.add(`[SESSION GUARD] 🧭 Lifecycle: the next step (${offer.offers}) is available.`);
+    output.add(`[SESSION GUARD] LIFECYCLE_DISMISS: "Not now" → run: node ${__filename} lifecycle-dismiss ${offer.id}`);
+    output.add(`[SESSION GUARD] LIFECYCLE_MUTE: "Never" → run: node ${__filename} lifecycle-mute ${offer.id}`);
+    output.addQuestion(
+      offer.prompt,
+      'single_select',
+      [
+        `"Set it up now" — invoke ${offer.offers}`,
+        '"Not now" — skip; re-offer only when the project changes',
+        '"Never" — mute this recommendation for this project',
+      ],
+      'low',
+    );
+  } catch { /* CON-003: degrade to silence */ }
+}
+
 // ─── helpers ───────────────────────────────────────────────────────────
+
+/** Print a lifecycle offer block to stdout (shared by lifecycle-complete/-checkpoint). */
+function printOffer(offer) {
+  if (offer) {
+    console.log('LIFECYCLE_OFFER_BEGIN');
+    console.log(`The next lifecycle step is available: ${offer.offers}`);
+    console.log(offer.prompt);
+    console.log(`Present this to the user with AskUserQuestion: options "Set it up now" (invoke ${offer.offers}) / "Not now" (run: node ${__filename} lifecycle-dismiss ${offer.id}) / "Never" (run: node ${__filename} lifecycle-mute ${offer.id}).`);
+    console.log('LIFECYCLE_OFFER_END');
+  } else {
+    console.log('LIFECYCLE_OFFER_NONE');
+  }
+}
 
 /** Save check results to state file (used by background worker, no stdout). */
 function saveState(output) {
@@ -323,8 +375,82 @@ switch (command) {
     console.log(`Rig prompt dismissed for ${PROJECT_DIR}`);
     break;
   }
+  case 'lifecycle-dismiss': {
+    try {
+      const rec = process.argv[3];
+      const lc = lifecycle.loadLifecyclePrefs(PROJECT_DIR);
+      const sig = lifecycle.computeSignature(PROJECT_DIR);
+      lc.recs = lc.recs || {};
+      lc.recs[rec] = {
+        status: 'dismissed',
+        dismissedSlice: lifecycle.sliceFor(sig, rec),
+        dismissedTier: lifecycle.tier(sig),
+        dismissedMetric: sig.size,
+        lastOfferedSession: lifecycle.currentSession(PROJECT_DIR),
+      };
+      lifecycle.saveLifecyclePrefs(PROJECT_DIR, lc);
+      console.log(`Lifecycle recommendation '${rec}' dismissed for ${PROJECT_DIR}`);
+    } catch (e) { console.error(`lifecycle-dismiss failed: ${e.message}`); }
+    break;
+  }
+  case 'lifecycle-mute': {
+    try {
+      const rec = process.argv[3];
+      const lc = lifecycle.loadLifecyclePrefs(PROJECT_DIR);
+      lc.recs = lc.recs || {};
+      lc.recs[rec] = { status: 'muted' };
+      lifecycle.saveLifecyclePrefs(PROJECT_DIR, lc);
+      console.log(`Lifecycle recommendation '${rec}' muted for ${PROJECT_DIR}`);
+    } catch (e) { console.error(`lifecycle-mute failed: ${e.message}`); }
+    break;
+  }
+  case 'lifecycle-mute-all': {
+    try {
+      const lc = lifecycle.loadLifecyclePrefs(PROJECT_DIR);
+      lc.mutedAll = true;
+      lifecycle.saveLifecyclePrefs(PROJECT_DIR, lc);
+      console.log(`All lifecycle recommendations muted for ${PROJECT_DIR}`);
+    } catch (e) { console.error(`lifecycle-mute-all failed: ${e.message}`); }
+    break;
+  }
+  case 'lifecycle-unmute': {
+    try {
+      const rec = process.argv[3];
+      const lc = lifecycle.loadLifecyclePrefs(PROJECT_DIR);
+      if (rec === 'all') {
+        lc.mutedAll = false;
+      } else if (lc.recs) {
+        delete lc.recs[rec];
+      }
+      lifecycle.saveLifecyclePrefs(PROJECT_DIR, lc);
+      console.log(`Lifecycle recommendation '${rec}' unmuted for ${PROJECT_DIR}`);
+    } catch (e) { console.error(`lifecycle-unmute failed: ${e.message}`); }
+    break;
+  }
+  case 'lifecycle-complete': {
+    try {
+      const raw = process.argv[3];
+      // dock/hoist both satisfy the single 'release' rec — normalize so the
+      // marker is written as .mad/state/release.json (where selectOffer looks).
+      const skill = (raw === 'dock' || raw === 'hoist') ? 'release' : raw;
+      const ranAt = new Date().toISOString();
+      const sig = lifecycle.computeSignature(PROJECT_DIR);
+      lifecycle.writeMarker(PROJECT_DIR, skill, lifecycle.sliceFor(sig, skill), ranAt);
+      const { offer } = lifecycle.evaluate(PROJECT_DIR, { surface: 'skill-completion', sourceSkill: skill });
+      printOffer(offer);
+    } catch (e) { console.error(`lifecycle-complete failed: ${e.message}`); }
+    break;
+  }
+  case 'lifecycle-checkpoint': {
+    // AC-007: resurface a deferred offer at end of /ship — no marker written.
+    try {
+      const { offer } = lifecycle.evaluate(PROJECT_DIR, { surface: 'session-guard' });
+      printOffer(offer);
+    } catch (e) { console.error(`lifecycle-checkpoint failed: ${e.message}`); }
+    break;
+  }
   default:
     console.error(`Session Guard v${config.version}`);
-    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig>');
+    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint>');
     process.exit(1);
 }
