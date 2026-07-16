@@ -75,12 +75,17 @@ function tier(sig) {
 }
 
 function rigged(sig) {
-  return sig.hasCI && covers(sig.ciCoveredLanguages, sig.components);
+  // An Azure DevOps pipeline counts as rigged on its own: /rig scaffolds
+  // GitHub Actions, and the per-language coverage regexes below are
+  // GitHub-Actions-shaped — they can't read ADO task YAML (and an ADO pipeline
+  // may package a prebuilt artifact with no language-setup step to detect), so
+  // parsing coverage from it would false-nag /rig on a fully-CI'd ADO repo.
+  return sig.hasCI && (sig.hasAdoPipeline || covers(sig.ciCoveredLanguages, sig.components));
 }
 
 function emptySignature() {
   return {
-    size: 0, hasScaffold: false, components: [], hasCI: false, hasLefthook: false,
+    size: 0, hasScaffold: false, components: [], hasCI: false, hasAdoPipeline: false, hasLefthook: false,
     ciCoveredLanguages: [], hasDockerfile: false, releaseTargets: [], hasIaC: false,
     iacTargets: [], envs: [], hasGraphifyOut: false, hasSuperpowers: false,
     hasServer: false, hasCompose: false, pkgBin: false, pkgLib: false, hasStatic: false,
@@ -149,6 +154,7 @@ function _compute(projectDir) {
     f === 'azure-pipelines.yml',
   );
   sig.hasCI = workflowFiles.length > 0;
+  sig.hasAdoPipeline = workflowFiles.some(f => f === 'azure-pipelines.yml');
 
   const ci = new Set();
   const rel = new Set();
@@ -315,7 +321,7 @@ const REGISTRY = [
     // ponytail: lefthook is a bonus signal, not mandatory — a repo whose CI
     // covers its languages is rigged enough; requiring lefthook would
     // false-nag /rig on mad-skills itself (GUD-001, §10 silence).
-    satisfied: s => s.hasCI && covers(s.ciCoveredLanguages, s.components),
+    satisfied: rigged,
     slice: s => s.components.map(c => c.language).sort(),
     prompt: s => `Code but no CI covering ${uncovered(s).join(', ') || 'your components'} — set up /rig?`,
   },
@@ -325,7 +331,11 @@ const REGISTRY = [
     priority: 30,
     kind: 'lifecycle',
     presentation: 'causal-then-drift',
-    requires: s => rigged(s) && (s.components.length > 0 || s.hasDockerfile) && s.releaseTargets.length === 0,
+    // ponytail: ADO repos excluded — release-target regexes are GitHub-shaped
+    // and can't read ADO deploy YAML (releaseTargets would read empty), so this
+    // would trade the /rig false-nag for a /dock one. ADO release detection is
+    // future work; until then, don't nag ADO repos about release pipelines.
+    requires: s => rigged(s) && !s.hasAdoPipeline && (s.components.length > 0 || s.hasDockerfile) && s.releaseTargets.length === 0,
     satisfied: s => s.releaseTargets.length > 0,
     slice: s => [...s.components.map(c => c.language), s.hasDockerfile ? 'docker' : ''].filter(Boolean).sort(),
     select: s => releaseSelect(s),

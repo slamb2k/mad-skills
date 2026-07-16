@@ -13,7 +13,7 @@ const { selectOffer, computeSignature, writeMarker, readMarker, evaluate } = lif
 // full default signature; override just what a test cares about
 function sig(overrides = {}) {
   return {
-    size: 0, hasScaffold: false, components: [], hasCI: false, hasLefthook: false,
+    size: 0, hasScaffold: false, components: [], hasCI: false, hasAdoPipeline: false, hasLefthook: false,
     ciCoveredLanguages: [], hasDockerfile: false, releaseTargets: [], hasIaC: false,
     iacTargets: [], envs: [], hasGraphifyOut: false, hasSuperpowers: false,
     hasServer: false, hasCompose: false, pkgBin: false, pkgLib: false, hasStatic: false,
@@ -71,6 +71,29 @@ test('AC-005 baseline: satisfied rig with no marker synthesises baseline, no off
   assert.equal(all.find(r => r.id === 'rig'), undefined);
   assert.notEqual(offer && offer.id, 'rig');
   assert.ok(needsBaseline.includes('rig'));
+});
+
+// ── ADO: an Azure DevOps pipeline counts as rigged even when the GitHub-shaped ──
+// coverage regexes misread its YAML (the Unfurl bug: node repo, hasCI via
+// azure-pipelines.yml, but ciCoveredLanguages parsed as ['python']).
+test('ADO pipeline satisfies rig despite miscomputed coverage — no /rig', () => {
+  const s = sig({ hasScaffold: true, hasSuperpowers: true, size: 111, hasCI: true, hasAdoPipeline: true, ciCoveredLanguages: ['python'], components: [comp('node'), comp('node', 'a'), comp('node', 'b')] });
+  const { offer, all } = selectOffer(base({ signature: s }));
+  assert.equal(all.find(r => r.id === 'rig'), undefined);
+  assert.notEqual(offer && offer.id, 'rig');
+});
+
+test('ADO repo is not nagged for a release pipeline (ADO deploy YAML unparseable)', () => {
+  const s = sig({ hasScaffold: true, hasSuperpowers: true, size: 111, hasCI: true, hasAdoPipeline: true, ciCoveredLanguages: ['python'], components: [comp('node')], releaseTargets: [] });
+  const { offer, all } = selectOffer(base({ signature: s }));
+  assert.equal(all.find(r => r.id === 'release'), undefined);
+  assert.notEqual(offer && offer.id, 'release');
+});
+
+test('fix is ADO-scoped: a GitHub repo whose CI misses its language still gets /rig', () => {
+  const s = sig({ hasScaffold: true, hasSuperpowers: true, size: 10, hasCI: true, hasAdoPipeline: false, ciCoveredLanguages: ['node'], components: [comp('go')] });
+  const { offer } = selectOffer(base({ signature: s }));
+  assert.equal(offer.id, 'rig');
 });
 
 // ── AC-006: suppression during active cycle ──
