@@ -28,6 +28,18 @@ const MANIFESTS = {
 const EXCLUDE_PREFIX = ['archive/', 'node_modules/', 'vendor/', '.git/'];
 const TIER_ORDER = { small: 0, medium: 1, large: 2 };
 const SERVER_DEPS = ['express', 'fastify', 'koa', 'hapi', '@nestjs/core', 'next'];
+// Server-framework markers per language — a match means "this component is a
+// service" (containerizable → /dock), regardless of what language it's in.
+const SERVER_MARKERS = {
+  python: /(fastapi|flask|django|uvicorn|gunicorn|starlette|aiohttp|tornado|sanic)/,
+  go: /(gin-gonic|labstack\/echo|gofiber\/fiber|go-chi\/chi|gorilla\/mux|net\/http)/,
+  ruby: /(rails|sinatra|\brack\b|puma)/,
+  rust: /(actix-web|\baxum\b|rocket|warp|tower-http)/,
+  dotnet: /(microsoft\.aspnetcore|microsoft\.net\.sdk\.web)/,
+};
+// Languages whose bare presence (no server, no Dockerfile) is a weak "publish
+// me" signal — a lone Go/Rust/Python/Ruby/dotnet tree is usually a package/CLI.
+const PUBLISHABLE_LANGS = ['python', 'rust', 'ruby', 'dotnet', 'go'];
 const INFRA_TARGETS = new Set(['ghcr', 'vercel']); // targets that imply cloud infra
 
 // ─── small helpers ─────────────────────────────────────────────────────
@@ -70,7 +82,7 @@ function emptySignature() {
     size: 0, hasScaffold: false, components: [], hasCI: false, hasLefthook: false,
     ciCoveredLanguages: [], hasDockerfile: false, releaseTargets: [], hasIaC: false,
     iacTargets: [], envs: [], hasGraphifyOut: false, hasSuperpowers: false,
-    hasServer: false, pkgBin: false, pkgMain: false, hasStatic: false,
+    hasServer: false, hasCompose: false, pkgBin: false, pkgLib: false, hasStatic: false,
   };
 }
 
@@ -215,10 +227,13 @@ function _compute(projectDir) {
     : null;
   if (rootPkg) {
     sig.pkgBin = !!rootPkg.bin;
-    sig.pkgMain = !!(rootPkg.main || rootPkg.exports);
-    const deps = { ...(rootPkg.dependencies || {}), ...(rootPkg.devDependencies || {}) };
-    sig.hasServer = SERVER_DEPS.some(d => d in deps);
+    // A publishable library — has an entry point and isn't marked private.
+    // A private app with a `main` is deployed, not published.
+    sig.pkgLib = !!((rootPkg.main || rootPkg.exports) && !rootPkg.private);
   }
+  sig.hasServer = detectServer(projectDir, sig.components);
+  sig.hasCompose = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml']
+    .some(f => existsSync(join(projectDir, f)));
   sig.hasStatic = ['index.html', join('public', 'index.html'), join('dist', 'index.html')]
     .some(f => existsSync(join(projectDir, f)));
 
@@ -231,15 +246,49 @@ function extOf(f) {
   return i >= 0 ? base.slice(i) : '';
 }
 
+// ─── server detection (cross-language, for release selection) ──────────
+
+function componentIsServer(projectDir, c) {
+  const p = join(projectDir, c.dir, c.manifest);
+  if (c.language === 'node') {
+    const pkg = readJson(p);
+    if (!pkg) return false;
+    const deps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+    return SERVER_DEPS.some(d => d in deps);
+  }
+  const re = SERVER_MARKERS[c.language];
+  if (!re) return false;
+  if (re.test((readText(p) || '').toLowerCase())) return true;
+  if (c.language === 'python') {
+    const reqs = readText(join(projectDir, c.dir, 'requirements.txt')) || '';
+    return re.test(reqs.toLowerCase());
+  }
+  return false;
+}
+
+function detectServer(projectDir, components) {
+  return components.some(c => safe(() => componentIsServer(projectDir, c)));
+}
+
 // ─── release selection (REQ-060) ───────────────────────────────────────
 
+// /dock when the project reads as a service to containerize; /hoist when it
+// reads as an installable package/CLI/static site; the sentinel only when a
+// project genuinely carries strong signals of BOTH.
 function releaseSelect(s) {
-  const container = s.hasDockerfile || s.hasServer;
-  const publishable = s.pkgBin || s.pkgMain || s.hasStatic ||
-    s.components.some(c => ['python', 'rust', 'ruby', 'dotnet', 'go'].includes(c.language));
-  if (container && !publishable) return '/dock';
-  if (publishable && !container) return '/hoist';
-  return '/dock or /hoist'; // AC-008 ambiguous sentinel
+  const container = s.hasDockerfile || s.hasCompose || s.hasServer;
+  // Strong publish intent: an explicit CLI, a publishable library, or a built
+  // static site. (Weak language signal handled separately below.)
+  const strongPublish = s.pkgBin || s.pkgLib || s.hasStatic;
+
+  if (container && !strongPublish) return '/dock';
+  if (strongPublish && !container) return '/hoist';
+  if (container && strongPublish) return '/dock or /hoist'; // genuinely both
+
+  // Neither strong signal: a lone Go/Rust/Python/Ruby/dotnet tree with no
+  // server and no container artifact is almost always a package/CLI → /hoist.
+  if (s.components.some(c => PUBLISHABLE_LANGS.includes(c.language))) return '/hoist';
+  return '/dock or /hoist'; // truly ambiguous (e.g. a bare node app)
 }
 
 // ─── registry (PAT-001: data, real arrow fns) ──────────────────────────
@@ -557,4 +606,6 @@ module.exports = {
   loadLifecyclePrefs, saveLifecyclePrefs, REGISTRY,
   // extras used by session-guard subcommands
   sliceFor, tier,
+  // exposed for release-selection tests
+  releaseSelect,
 };
