@@ -13,6 +13,7 @@ const { existsSync, writeFileSync, mkdirSync, readdirSync } = require('fs');
 const { join, dirname } = require('path');
 const { git, readText, readJson } = require('./utils.cjs');
 const state = require('./state.cjs');
+const { detectSuperpowers } = require('../../scripts/lib/superpowers-core.cjs');
 
 const COOLDOWN = 3; // sessions before the same dismissed rec may re-offer
 const CODE_EXT = new Set([
@@ -94,29 +95,6 @@ const _sigCache = new Map();
 
 function excluded(p) {
   return EXCLUDE_PREFIX.some(pre => p.startsWith(pre));
-}
-
-// Same on-disk anchor search as scripts/lib/superpowers.js (ESM, can't be
-// required from CJS) — soft-dep detection for the superpowers rec.
-const SP_ANCHOR = join('using-superpowers', 'SKILL.md');
-function _findAnchor(root, depth = 0) {
-  if (depth > 7) return false;
-  if (existsSync(join(root, SP_ANCHOR))) return true;
-  let entries;
-  try { entries = readdirSync(root, { withFileTypes: true }); } catch { return false; }
-  for (const e of entries) {
-    if (e.isDirectory() && _findAnchor(join(root, e.name), depth + 1)) return true;
-  }
-  return false;
-}
-function detectSuperpowers(projectDir) {
-  const home = process.env.HOME || '';
-  const roots = [
-    join(home, '.claude', 'plugins'),
-    join(home, '.claude', 'skills', 'superpowers'),
-    join(projectDir, '.claude', 'skills'),
-  ];
-  return roots.some(r => _findAnchor(r));
 }
 
 function computeSignature(projectDir) {
@@ -220,7 +198,7 @@ function _compute(projectDir) {
 
   // install-type + release-selection signals
   sig.hasGraphifyOut = existsSync(join(projectDir, 'graphify-out'));
-  sig.hasSuperpowers = detectSuperpowers(projectDir);
+  sig.hasSuperpowers = detectSuperpowers({ cwd: projectDir }).installed;
 
   const rootPkg = sig.components.some(c => c.dir === '.' && c.language === 'node')
     ? readJson(join(projectDir, 'package.json'))
