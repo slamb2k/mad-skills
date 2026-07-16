@@ -13,7 +13,7 @@ const { existsSync, writeFileSync, mkdirSync, readdirSync } = require('fs');
 const { join, dirname } = require('path');
 const { git, readText, readJson } = require('./utils.cjs');
 const state = require('./state.cjs');
-const { detectSuperpowers } = require('../../scripts/lib/superpowers-core.cjs');
+const { detectSuperpowers } = require('./superpowers-core.cjs');
 
 const COOLDOWN = 3; // sessions before the same dismissed rec may re-offer
 const CODE_EXT = new Set([
