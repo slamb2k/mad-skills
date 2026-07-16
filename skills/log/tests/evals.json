@@ -1,7 +1,7 @@
 [
   {
     "name": "banner-and-tagline",
-    "prompt": "/followups",
+    "prompt": "/log",
     "assertions": [
       { "type": "contains", "value": "██" },
       { "type": "regex", "value": "(Nothing gets lost|backlog, remembered|good ideas|Tidying the follow-up|come back to|Capture, remind)" },
@@ -13,13 +13,13 @@
     "prompt": "show me the follow-ups backlog",
     "assertions": [
       { "type": "contains", "value": "██" },
-      { "type": "regex", "value": "(followups-list|FOLLOWUPS.md|open)", "flags": "i" },
-      { "type": "semantic", "value": "Describes listing the open ledger items grouped by category via the followups-list subcommand, and treats an empty ledger as nothing to show" }
+      { "type": "regex", "value": "(log-list|LOG.md|open)", "flags": "i" },
+      { "type": "semantic", "value": "Describes listing the open ledger items grouped by category via the log-list subcommand, and treats an empty ledger as nothing to show" }
     ]
   },
   {
     "name": "review-consent",
-    "prompt": "/followups review",
+    "prompt": "/log review",
     "assertions": [
       { "type": "contains", "value": "██" },
       { "type": "semantic", "value": "Makes clear that free-text items are only resolved after explicit user confirmation, while linked items may auto-resolve silently" }

@@ -56,8 +56,8 @@ their standalone descriptions below.
 | Releasing a non-container package/app | `/hoist` | `/hoist` or `/hoist --skip-interview` |
 | Generating web design variations | `/distil` | `/distil 3 --port 5173` |
 | Resetting context without losing the thread | `/ferry` | `/ferry` or `/ferry commit` |
-| Seeing every applicable lifecycle step on demand | `/next` | `/next` |
-| Reviewing the durable backlog of captured follow-ups | `/followups` | `/followups` or `/followups review` |
+| Seeing every applicable lifecycle step on demand | `/waypoint` | `/waypoint` |
+| Reviewing the durable backlog of captured follow-ups | `/log` | `/log` or `/log review` |
 
 ### Lifecycle Ordering
 
@@ -92,8 +92,8 @@ Suggest or invoke these skills when you observe:
 - User is about to do significant work and needs context → `/prime`
 - User wants to explore design directions for a web UI → `/distil`
 - User says "wrap up", "checkpoint", "clear context", or "start fresh" → `/ferry`
-- User asks "what's next", "next steps", or wants the lifecycle overview → `/next`
-- User wants to see or clean up captured follow-ups/deferred ideas → `/followups`
+- User asks "what's next", "next steps", or wants the lifecycle overview → `/waypoint`
+- User wants to see or clean up captured follow-ups/deferred ideas → `/log`
 
 ### Cross-Skill Integration
 
@@ -215,13 +215,13 @@ mad-skills/
 │   ├── distil/              # Web design variation generator
 │   ├── dock/                # Container release pipelines
 │   ├── ferry/               # Clean-context session handoff — waybill (signal + resume)
-│   ├── followups/           # Follow-ups Ledger — durable backlog (capture + resurface)
+│   ├── log/                 # Follow-ups Ledger — durable backlog (capture + resurface)
 │   ├── hoist/               # Non-container release pipelines
 │   ├── keel/                # Infrastructure as Code pipelines
 │   ├── launch/              # Full idea-to-merged-PR pipeline (explicit-only)
 │   ├── prime/               # Project context loading
 │   ├── rig/                 # Repo bootstrapping (hooks, CI, templates)
-│   ├── next/                # Lifecycle overview — on-demand "what's next"
+│   ├── waypoint/            # Lifecycle overview — on-demand "what's next"
 │   ├── ship/                # Full PR lifecycle
 │   ├── speccy/              # Interview-driven spec builder
 │   └── sync/                # Repo sync with origin/main

@@ -3,7 +3,7 @@
 /**
  * Follow-ups Ledger.
  *
- * A committed `FOLLOWUPS.md` at the repo root is the single source of truth:
+ * A committed `LOG.md` at the repo root is the single source of truth:
  * parse it on read, rewrite it on mutation, never keep a parallel store
  * (REQ-004). Pure markdown parse/serialize/dedupe/cap logic is IO-free and
  * drives every acceptance test; `read`/`write`/`capture`/`resolve`/… are the
@@ -21,7 +21,7 @@ const { git, readText } = require('./utils.cjs');
 
 // ─── constants ──────────────────────────────────────────────────────────
 
-const FILENAME = 'FOLLOWUPS.md';
+const FILENAME = 'LOG.md';
 const CAP = 20;            // REQ-020: soft cap on open items
 const ARCHIVE_MAX = 30;    // REQ-022: bounded archive
 const DEDUPE_THRESHOLD = 0.6; // REQ-011: token-set Jaccard for "closely matches"
@@ -62,7 +62,7 @@ const STOPWORDS = new Set([
 
 const HEADER = `# Follow-ups
 
-<!-- Managed by MAD Skills /followups. Hand-edits are preserved; keep the
+<!-- Managed by MAD Skills /log. Hand-edits are preserved; keep the
      \`- [ ]\` checkbox shape and category headings. -->
 `;
 
@@ -128,7 +128,7 @@ function toCategory(cat) {
 // ─── parse (pure) ───────────────────────────────────────────────────────
 
 /**
- * Parse FOLLOWUPS.md text into a flat item array (file order preserved).
+ * Parse LOG.md text into a flat item array (file order preserved).
  * Malformed item lines are skipped, never thrown on (CON-002). Items under
  * the Archive heading are treated as resolved/dismissed.
  */
@@ -207,7 +207,7 @@ function serializeItem(item) {
   return line;
 }
 
-/** Render the full FOLLOWUPS.md text from an item array. */
+/** Render the full LOG.md text from an item array. */
 function serialize(items) {
   const out = [HEADER];
   for (const cat of CATEGORIES) {
@@ -274,7 +274,7 @@ function capEvict(items, cap, when) {
 
 // ─── IO wrappers ────────────────────────────────────────────────────────
 
-/** Parse FOLLOWUPS.md (CON-002 safe). Returns { items, path }. */
+/** Parse LOG.md (CON-002 safe). Returns { items, path }. */
 function read(projectDir) {
   const path = ledgerPath(projectDir);
   const items = safe(() => parse(readText(path)), []);
@@ -461,7 +461,7 @@ function commitMerged(projectDir, sha) {
 
 /**
  * Free-text open items that look done or stale — a cheap signal for the
- * assisted-review flow. NEVER mutates (REQ-032/AC-006): the /followups skill
+ * assisted-review flow. NEVER mutates (REQ-032/AC-006): the /log skill
  * adds Claude's judgment and the user confirms before anything is resolved.
  * Returns [{ item, reason }].
  */
@@ -474,7 +474,7 @@ function reviewCandidates(projectDir, opts = {}) {
     const out = [];
     open.forEach((it, i) => {
       if (it.link) return; // linked items are the deterministic track
-      const n = i + 1; // 1-based, matches followups-list / resolve <n>
+      const n = i + 1; // 1-based, matches log-list / resolve <n>
       const match = recent.find((s) => similarity(s, it.title) >= DEDUPE_THRESHOLD);
       if (match) { out.push({ item: it, n, reason: `likely done — recent commit: "${match}"` }); return; }
       if (daysBetween(it.date, when) >= (opts.staleDays || STALE_DAYS)) {

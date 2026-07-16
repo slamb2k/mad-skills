@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-16T09:46:58.153Z",
+  "generated": "2026-07-16T16:29:03.520Z",
   "count": 15,
   "skills": [
     {
@@ -16,7 +16,7 @@
       "name": "build",
       "directory": "build",
       "description": "Context-isolated feature development pipeline. Takes a detailed design/plan as argument and executes the full feature-dev lifecycle (explore, question, architect, implement, review, ship) inside subagents so the primary conversation stays compact. Use when you have a well-defined plan and want autonomous execution with minimal context window consumption.",
-      "lines": 563,
+      "lines": 464,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": false,
@@ -53,16 +53,6 @@
       "hasTests": true
     },
     {
-      "name": "followups",
-      "directory": "followups",
-      "description": "Review and manage the project's Follow-ups Ledger — the durable, committed backlog of ideas, deferred fixes, open questions, risks, and tech debt captured at the end of /build and /ship cycles so they survive /clear. Lists open items grouped by category, runs assisted cleanup, and resolves, dismisses, or adds items. Use when you want to see or act on captured follow-ups. Triggers: \"follow-ups\", \"/followups\", \"show the backlog\", \"what did we defer\", \"follow-up ledger\", \"review follow-ups\".",
-      "lines": 165,
-      "hasScripts": false,
-      "hasReferences": false,
-      "hasAssets": false,
-      "hasTests": true
-    },
-    {
       "name": "hoist",
       "directory": "hoist",
       "description": ">- Generate secure, low-infrastructure release pipelines that publish artifacts directly — language packages (npm, PyPI, crates, RubyGems, NuGet, Go), GitHub Releases with binaries, static sites/Pages, or serverless functions — without building a container image. OIDC/trusted publishing, provenance, idempotent publish guards, and three trigger models (auto-bump with optional approval, tag, manual). The non-container sibling of /dock. Use when releasing a package or app that doesn't ship as a container.",
@@ -93,10 +83,10 @@
       "hasTests": false
     },
     {
-      "name": "next",
-      "directory": "next",
-      "description": "Show every MAD Skills lifecycle step that applies to the current project right now, in stage order, on demand. Surfaces the full \"what's next\" overview from the lifecycle recommendation engine — brace, rig, dock/hoist, keel, envs, and install-type recs — bypassing the ambient anti-nag suppression since you're explicitly asking. Use when you want to see all recommended next steps at once, not just the single ambient offer. Triggers: \"what's next\", \"next steps\", \"/next\", \"show lifecycle steps\", \"what should I do next\".",
-      "lines": 121,
+      "name": "log",
+      "directory": "log",
+      "description": "Review and manage the project's Follow-ups Ledger — the durable, committed backlog of ideas, deferred fixes, open questions, risks, and tech debt captured at the end of /build and /ship cycles so they survive /clear. Lists open items grouped by category, runs assisted cleanup, and resolves, dismisses, or adds items. Use when you want to see or act on captured follow-ups. Triggers: \"follow-ups\", \"/log\", \"show the backlog\", \"what did we defer\", \"follow-up ledger\", \"review follow-ups\".",
+      "lines": 172,
       "hasScripts": false,
       "hasReferences": false,
       "hasAssets": false,
@@ -126,7 +116,7 @@
       "name": "ship",
       "directory": "ship",
       "description": "\"Ship changes through the full PR lifecycle. Use after completing feature work to commit, push, create PR, wait for checks, and merge. Handles the entire workflow: syncs with main, creates feature branch if needed, groups commits logically with semantic messages, creates detailed PR, monitors CI, fixes issues, squash merges, and cleans up. Invoke when work is ready to ship.\"",
-      "lines": 534,
+      "lines": 457,
       "hasScripts": true,
       "hasReferences": true,
       "hasAssets": false,
@@ -148,6 +138,16 @@
       "description": "Sync local repository with origin/main. Use before starting new work, after completing a PR, or when needing latest upstream changes. Safely stashes uncommitted changes, fetches and pulls origin/main, restores stash, and cleans up stale local branches (merged or with deleted remotes). Invoke when switching contexts or preparing for new feature work.",
       "lines": 164,
       "hasScripts": true,
+      "hasReferences": false,
+      "hasAssets": false,
+      "hasTests": true
+    },
+    {
+      "name": "waypoint",
+      "directory": "waypoint",
+      "description": "Show every MAD Skills lifecycle step that applies to the current project right now, in stage order, on demand. Surfaces the full \"what's next\" overview from the lifecycle recommendation engine — brace, rig, dock/hoist, keel, envs, and install-type recs — bypassing the ambient anti-nag suppression since you're explicitly asking. Use when you want to see all recommended next steps at once, not just the single ambient offer. Triggers: \"what's next\", \"next steps\", \"/waypoint\", \"show lifecycle steps\", \"what should I do next\".",
+      "lines": 121,
+      "hasScripts": false,
       "hasReferences": false,
       "hasAssets": false,
       "hasTests": true

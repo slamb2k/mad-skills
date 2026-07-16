@@ -1,11 +1,11 @@
 ---
-name: next
-description: Show every MAD Skills lifecycle step that applies to the current project right now, in stage order, on demand. Surfaces the full "what's next" overview from the lifecycle recommendation engine — brace, rig, dock/hoist, keel, envs, and install-type recs — bypassing the ambient anti-nag suppression since you're explicitly asking. Use when you want to see all recommended next steps at once, not just the single ambient offer. Triggers: "what's next", "next steps", "/next", "show lifecycle steps", "what should I do next".
+name: waypoint
+description: Show every MAD Skills lifecycle step that applies to the current project right now, in stage order, on demand. Surfaces the full "what's next" overview from the lifecycle recommendation engine — brace, rig, dock/hoist, keel, envs, and install-type recs — bypassing the ambient anti-nag suppression since you're explicitly asking. Use when you want to see all recommended next steps at once, not just the single ambient offer. Triggers: "what's next", "next steps", "/waypoint", "show lifecycle steps", "what should I do next".
 argument-hint: (no arguments)
 allowed-tools: Bash, AskUserQuestion
 ---
 
-# Next - Lifecycle Overview
+# Waypoint - Lifecycle Overview
 
 When this skill is invoked, IMMEDIATELY output the banner below before doing anything else.
 Pick ONE tagline at random — vary your choice each time.
@@ -14,12 +14,12 @@ CRITICAL: Reproduce the banner EXACTLY character-for-character. The first line o
 ```
 {tagline}
 
-⠀   ██╗███╗   ██╗███████╗██╗  ██╗████████╗
-   ██╔╝████╗  ██║██╔════╝╚██╗██╔╝╚══██╔══╝
-  ██╔╝ ██╔██╗ ██║█████╗   ╚███╔╝    ██║
- ██╔╝  ██║╚██╗██║██╔══╝   ██╔██╗    ██║
-██╔╝   ██║ ╚████║███████╗██╔╝ ██╗   ██║
-╚═╝    ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝   ╚═╝
+⠀   ██╗██╗    ██╗ █████╗ ██╗   ██╗██████╗  ██████╗ ██╗███╗   ██╗████████╗
+   ██╔╝██║    ██║██╔══██╗╚██╗ ██╔╝██╔══██╗██╔═══██╗██║████╗  ██║╚══██╔══╝
+  ██╔╝ ██║ █╗ ██║███████║ ╚████╔╝ ██████╔╝██║   ██║██║██╔██╗ ██║   ██║
+ ██╔╝  ██║███╗██║██╔══██║  ╚██╔╝  ██╔═══╝ ██║   ██║██║██║╚██╗██║   ██║
+██╔╝   ╚███╔███╔╝██║  ██║   ██║   ██║     ╚██████╔╝██║██║ ╚████║   ██║
+╚═╝     ╚══╝╚══╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝      ╚═════╝ ╚═╝╚═╝  ╚═══╝   ╚═╝
 ```
 
 Taglines:
@@ -72,7 +72,7 @@ dismissed]` where relevant). The body may be `none` when nothing applies.
 Render the parsed lines in a box for the user:
 
 ```
-┌─ Next · Lifecycle Overview ────────────────────
+┌─ Waypoint · Lifecycle Overview ────────────────
 │
 │  {n} step(s) available for this project:
 │
@@ -91,15 +91,15 @@ After the lifecycle overview, check the Follow-ups Ledger for open items:
 
 ```bash
 _R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
-node "$_R/hooks/session-guard.cjs" followups-hint
+node "$_R/hooks/session-guard.cjs" log-hint
 ```
 
 If it prints a `📌 N open follow-ups` line, append a **single** cross-reference
 line beneath the overview box — do **not** list the items inline (that's
-`/followups`' job):
+`/log`' job):
 
 ```
-  + {N} follow-ups → /followups
+  + {N} follow-ups → /log
 ```
 
 If it prints nothing (empty ledger), show no cross-reference at all.
@@ -115,6 +115,6 @@ step just invokes that skill — **never** run one without the user choosing it
 
 - This surfaces the engine's `all` list (plan step 7 of the lifecycle spec).
   Ambient single-offer behaviour lives in the Session Guard and the skills'
-  completion cascade — `/next` is the on-demand pull counterpart.
+  completion cascade — `/waypoint` is the on-demand pull counterpart.
 - Muted recommendations (`lifecycle-mute <rec>`) are intentionally **not** shown
   here; unmute with `node "$_R/hooks/session-guard.cjs" lifecycle-unmute <rec>`.

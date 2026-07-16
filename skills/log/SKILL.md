@@ -1,11 +1,11 @@
 ---
-name: followups
-description: Review and manage the project's Follow-ups Ledger — the durable, committed backlog of ideas, deferred fixes, open questions, risks, and tech debt captured at the end of /build and /ship cycles so they survive /clear. Lists open items grouped by category, runs assisted cleanup, and resolves, dismisses, or adds items. Use when you want to see or act on captured follow-ups. Triggers: "follow-ups", "/followups", "show the backlog", "what did we defer", "follow-up ledger", "review follow-ups".
+name: log
+description: Review and manage the project's Follow-ups Ledger — the durable, committed backlog of ideas, deferred fixes, open questions, risks, and tech debt captured at the end of /build and /ship cycles so they survive /clear. Lists open items grouped by category, runs assisted cleanup, and resolves, dismisses, or adds items. Use when you want to see or act on captured follow-ups. Triggers: "follow-ups", "/log", "show the backlog", "what did we defer", "follow-up ledger", "review follow-ups".
 argument-hint: [review | resolve <n> | dismiss <n> | add <text>]
 allowed-tools: Bash, AskUserQuestion
 ---
 
-# Followups - The Follow-ups Ledger
+# Log - The Follow-ups Ledger
 
 When this skill is invoked, IMMEDIATELY output the banner below before doing anything else.
 Pick ONE tagline at random — vary your choice each time.
@@ -14,12 +14,12 @@ CRITICAL: Reproduce the banner EXACTLY character-for-character. The first line o
 ```
 {tagline}
 
-⠀   ██╗███████╗ ██████╗ ██╗     ██╗      ██████╗ ██╗    ██╗██╗   ██╗██████╗ ███████╗
-   ██╔╝██╔════╝██╔═══██╗██║     ██║     ██╔═══██╗██║    ██║██║   ██║██╔══██╗██╔════╝
-  ██╔╝ █████╗  ██║   ██║██║     ██║     ██║   ██║██║ █╗ ██║██║   ██║██████╔╝███████╗
- ██╔╝  ██╔══╝  ██║   ██║██║     ██║     ██║   ██║██║███╗██║██║   ██║██╔═══╝ ╚════██║
-██╔╝   ██║     ╚██████╔╝███████╗███████╗╚██████╔╝╚███╔███╔╝╚██████╔╝██║     ███████║
-╚═╝    ╚═╝      ╚═════╝ ╚══════╝╚══════╝ ╚═════╝  ╚══╝╚══╝  ╚═════╝ ╚═╝     ╚══════╝
+⠀   ██╗██╗      ██████╗  ██████╗
+   ██╔╝██║     ██╔═══██╗██╔════╝
+  ██╔╝ ██║     ██║   ██║██║  ███╗
+ ██╔╝  ██║     ██║   ██║██║   ██║
+██╔╝   ███████╗╚██████╔╝╚██████╔╝
+╚═╝    ╚══════╝ ╚═════╝  ╚═════╝
 ```
 
 Taglines:
@@ -48,16 +48,16 @@ Status icons: ✅ done · ⏭️ skipped · ⚠️ degraded
 
 ## What this does
 
-The Follow-ups Ledger is a committed `FOLLOWUPS.md` at the repo root: the durable
+The Follow-ups Ledger is a committed `LOG.md` at the repo root: the durable
 backlog of ideas, deferred fixes, open questions, risks, and tech debt that
 `/build` and `/ship` capture at debrief so they **survive `/clear`**. This skill
 is the pull surface — list, clean up, and act on those items.
 
-It is the subjective, idea-oriented sibling of `/next`: `/next` computes what the
-project objectively needs next; `/followups` remembers what *you said you wanted
-to do*. `/next` only cross-references this ledger (one line); the items live here.
+It is the subjective, idea-oriented sibling of `/waypoint`: `/waypoint` computes what the
+project objectively needs next; `/log` remembers what *you said you wanted
+to do*. `/waypoint` only cross-references this ledger (one line); the items live here.
 
-All ledger operations go through `hooks/lib/followups.cjs` via `session-guard.cjs`
+All ledger operations go through `hooks/lib/log.cjs` via `session-guard.cjs`
 subcommands — a single source of truth. Every operation degrades to a no-op on a
 malformed file (a bad hand-edit never blocks you).
 
@@ -88,16 +88,16 @@ _R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
 ### list (default)
 
 ```bash
-node "$_R/hooks/session-guard.cjs" followups-list
+node "$_R/hooks/session-guard.cjs" log-list
 ```
-Prints a `FOLLOWUPS_LIST_BEGIN` … `FOLLOWUPS_LIST_END` block: category headings
+Prints a `LOG_LIST_BEGIN` … `LOG_LIST_END` block: category headings
 (`## Ideas`, etc.) and numbered items `N. {title} — {source} ({date}) [{link}]`.
-`FOLLOWUPS_LIST_EMPTY` means the ledger is empty — say the backlog is clear and
+`LOG_LIST_EMPTY` means the ledger is empty — say the backlog is clear and
 stop (no box).
 
 Render the parsed items in a box:
 ```
-┌─ Followups · Open Ledger ──────────────────────
+┌─ Log · Open Ledger ────────────────────────────
 │
 │  Ideas
 │   1. {title}   {source} · {date}
@@ -114,38 +114,38 @@ numbers shown here.
 ### review (assisted cleanup)
 
 ```bash
-node "$_R/hooks/session-guard.cjs" followups-review
+node "$_R/hooks/session-guard.cjs" log-review
 ```
 This runs **two tracks**:
 1. **Deterministic** — linked items whose link is satisfied (`task#` completed,
    `spec:` built/removed, `rec:` satisfied, `pr#`/`commit:` merged) are
    auto-resolved **silently**. If any were, the command prints
-   `FOLLOWUPS_AUTORESOLVED [...]` — mention them as already handled.
+   `LOG_AUTORESOLVED [...]` — mention them as already handled.
 2. **Assisted** — free-text items that look done or stale are printed in a
-   `FOLLOWUPS_REVIEW_BEGIN` … `FOLLOWUPS_REVIEW_END` block as
-   `N. {title} — {reason}`. `FOLLOWUPS_REVIEW_EMPTY` means nothing to review.
+   `LOG_REVIEW_BEGIN` … `LOG_REVIEW_END` block as
+   `N. {title} — {reason}`. `LOG_REVIEW_EMPTY` means nothing to review.
 
 For the assisted candidates, **you MUST get user confirmation before resolving
 anything** (REQ-032: never silently drop a free-text idea). Present them via
 `AskUserQuestion` — one multi-select of the candidate items, plus a "keep all"
 escape. For each item the user confirms, run:
 ```bash
-node "$_R/hooks/session-guard.cjs" followups-resolve <n>
+node "$_R/hooks/session-guard.cjs" log-resolve <n>
 ```
 Anything the user does not confirm stays open.
 
-**Task-linked items (task#):** `followups-review` runs as a plain Node process
+**Task-linked items (task#):** `log-review` runs as a plain Node process
 and cannot see the harness task state, so it does not auto-resolve `task#` links.
-After running it, scan the `followups-list` output for items annotated
+After running it, scan the `log-list` output for items annotated
 `[task#<id>]`; for each, call `TaskGet <id>` — if the task is `completed`,
 resolve that item silently (it's the deterministic track, no confirmation
-needed): `node "$_R/hooks/session-guard.cjs" followups-resolve <n>`.
+needed): `node "$_R/hooks/session-guard.cjs" log-resolve <n>`.
 
 ### resolve / dismiss
 
 ```bash
-node "$_R/hooks/session-guard.cjs" followups-resolve <n>   # done
-node "$_R/hooks/session-guard.cjs" followups-dismiss <n>   # not done, not wanted
+node "$_R/hooks/session-guard.cjs" log-resolve <n>   # done
+node "$_R/hooks/session-guard.cjs" log-dismiss <n>   # not done, not wanted
 ```
 Both move the item to the Archive section and drop it from the open list/counts.
 Confirm the archived title to the user.
@@ -153,7 +153,7 @@ Confirm the archived title to the user.
 ### add
 
 ```bash
-node "$_R/hooks/session-guard.cjs" followups-add "<text>" --category <ideas|fixes|questions|risks|debt> --link <link>
+node "$_R/hooks/session-guard.cjs" log-add "<text>" --category <ideas|fixes|questions|risks|debt> --link <link>
 ```
 `--category` (default `ideas`) and `--link` are optional. Source is `manual`,
 date is today. Confirm the added item.
@@ -167,5 +167,5 @@ date is today. Confirm the added item.
 - Capture is automatic at `/build` and `/ship` debrief — you rarely `add`
   manually. The cold-start hint (`📌 N open follow-ups`) fires on a genuine
   Claude Code launch/reconnect, never on `/clear`.
-- `FOLLOWUPS.md` is committed and hand-editable. Keep the `- [ ]` checkbox shape
+- `LOG.md` is committed and hand-editable. Keep the `- [ ]` checkbox shape
   and the category headings; the module normalizes the rest on the next write.

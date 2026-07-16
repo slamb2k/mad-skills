@@ -1,6 +1,6 @@
 # Follow-ups
 
-<!-- Managed by MAD Skills /followups. Hand-edits are preserved; keep the
+<!-- Managed by MAD Skills /log. Hand-edits are preserved; keep the
      `- [ ]` checkbox shape and category headings. -->
 
 ## Ideas
@@ -10,7 +10,7 @@
 - [ ] ADO release-target detection: /dock is suppressed for ADO repos because release-target regexes are GitHub-shaped — parse azure-pipelines deploy YAML so ADO repos can still be offered a release pipeline — /next ADO fix (2026-07-16)
 
 ## Open questions
-- [ ] task# auto-resolution is injected-only in tests — add an integration test that drives the /followups review TaskGet path — /build debrief #89 (2026-07-16)
+- [ ] task# auto-resolution is injected-only in tests — add an integration test that drives the /log review TaskGet path — /build debrief #89 (2026-07-16)
 
 ## Risks
 

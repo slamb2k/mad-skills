@@ -9,7 +9,7 @@
     }, {
       "matcher": "startup|resume",
       "hooks": [
-        { "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; node \"$_R/hooks/session-guard.cjs\" followups-hint", "timeout": 10 }
+        { "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; node \"$_R/hooks/session-guard.cjs\" log-hint", "timeout": 10 }
       ]
     }],
     "UserPromptSubmit": [{
