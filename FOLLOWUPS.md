@@ -15,6 +15,6 @@
 
 ## Tech debt
 - [ ] rec: link resolves only skill-marker names — couple to lifecycle.evaluate for drift-based rec ids like rig-refresh — /build debrief #89 (2026-07-16)
-- [ ] build/ship SKILL.md exceed the 500-line soft lint warning — move the follow-ups capture wiring to references/ — /build debrief #89 (2026-07-16)
 
 ## Archive
+- [x] build/ship SKILL.md exceed the 500-line soft lint warning — move the follow-ups capture wiring to references/ — /build debrief #89 (2026-07-16) <!-- resolved:2026-07-16 -->
