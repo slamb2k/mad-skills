@@ -83,6 +83,15 @@ provenance where supported; the version-exists guard; publish-before-tag).
 Box report with target, trigger model, generated files, and a 🔐 Required setup
 section pointing at deploy/SETUP.md.
 
+After presenting the report, record lifecycle completion and surface the next step:
+```bash
+_R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
+node "$_R/hooks/session-guard.cjs" lifecycle-complete hoist
+```
+If the command prints a `LIFECYCLE_OFFER_BEGIN…END` block, present that offer to
+the user via AskUserQuestion as instructed inside the block. If it prints nothing
+(or `LIFECYCLE_OFFER_NONE`), do not mention the lifecycle engine.
+
 ## Integration
 Complements /dock (containers) — pick whichever fits. Runs after /rig; /ship's
 merge can trigger the generated auto-bump release. Only the serverless target may
