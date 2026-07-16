@@ -358,7 +358,12 @@ function sliceFor(sig, recId) {
 
 // ─── pure selection ────────────────────────────────────────────────────
 
-function selectOffer({ signature, prefs, markers, session, activeCycle }) {
+// `pull: true` is the on-demand /next mode — the user is explicitly asking
+// "what's next", so anti-nag push-gates (active-cycle suppression, global mute,
+// per-rec cooldown/dismissal watermark) are bypassed. Per-rec `muted` is still
+// honoured (a hard "never show me this"). Default off — every AC test omits it,
+// so their behaviour is unchanged.
+function selectOffer({ signature, prefs, markers, session, activeCycle, pull }) {
   const recsPref = (prefs && prefs.recs) || {};
   const mk = markers || {};
   const eligible = [];
@@ -366,7 +371,7 @@ function selectOffer({ signature, prefs, markers, session, activeCycle }) {
 
   // Baseline synthesis (objective repo state) runs regardless of suppression;
   // only the offer/all output is gated below (AC-006/REQ-031, AC-010).
-  const suppressed = activeCycle || (prefs && prefs.mutedAll);
+  const suppressed = !pull && (activeCycle || (prefs && prefs.mutedAll));
 
   for (const rec of REGISTRY) {
     if (!safe(() => rec.requires(signature))) continue;
@@ -390,8 +395,9 @@ function selectOffer({ signature, prefs, markers, session, activeCycle }) {
     }
     // else: not satisfied -> causal "you haven't done this yet"
 
-    // dismissal / cooldown gate (REQ-030, AC-002/AC-003/AC-012)
-    if (pref && pref.status === 'dismissed') {
+    // dismissal / cooldown gate (REQ-030, AC-002/AC-003/AC-012) — skipped in
+    // pull mode so /next lists steps the user previously dismissed.
+    if (!pull && pref && pref.status === 'dismissed') {
       const cooldownElapsed = (session - (pref.lastOfferedSession || 0)) >= COOLDOWN;
       if (rec.tierBased) {
         const curTier = tier(signature);
@@ -520,8 +526,33 @@ function evaluate(projectDir, { surface, sourceSkill } = {}) {
   }
 }
 
+// ─── /next overview (plan step 7) ──────────────────────────────────────
+
+// On-demand pull: every applicable-but-not-done step, ordered by lifecycle
+// stage, annotated with the user's per-rec status. Read-only — never
+// synthesises markers or mutates state (a query must not have side effects).
+function next(projectDir) {
+  try {
+    const signature = computeSignature(projectDir);
+    const prefs = loadLifecyclePrefs(projectDir);
+    const markers = readAllMarkers(projectDir);
+    const session = prefs.sessionCount || 0;
+    const { all } = selectOffer({
+      signature, prefs, markers, session, activeCycle: false, pull: true,
+    });
+    const recsPref = (prefs && prefs.recs) || {};
+    const annotated = (all || []).map(r => ({
+      ...r,
+      status: (recsPref[r.id] && recsPref[r.id].status) || 'available',
+    }));
+    return { all: annotated };
+  } catch {
+    return { all: [] }; // CON-003
+  }
+}
+
 module.exports = {
-  computeSignature, selectOffer, evaluate, isActiveCycle,
+  computeSignature, selectOffer, evaluate, next, isActiveCycle,
   readMarker, writeMarker, readAllMarkers, currentSession, bumpSession,
   loadLifecyclePrefs, saveLifecyclePrefs, REGISTRY,
   // extras used by session-guard subcommands
