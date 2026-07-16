@@ -1,0 +1,28 @@
+[
+  {
+    "name": "banner-and-tagline",
+    "prompt": "/next",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(Charting the course|road from here|What's next|ship's manifest|Peering down|green lights)" },
+      { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
+    ]
+  },
+  {
+    "name": "overview-intent",
+    "prompt": "What lifecycle steps should I do next on this project?",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(lifecycle|next step)", "flags": "i" },
+      { "type": "semantic", "value": "Describes querying the lifecycle recommendation engine for all applicable next steps, read-only, without running any skill automatically" }
+    ]
+  },
+  {
+    "name": "read-only-consent",
+    "prompt": "/next",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "semantic", "value": "Makes clear it only lists/offers steps and never runs a skill without the user explicitly choosing to" }
+    ]
+  }
+]

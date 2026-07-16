@@ -449,8 +449,26 @@ switch (command) {
     } catch (e) { console.error(`lifecycle-checkpoint failed: ${e.message}`); }
     break;
   }
+  case 'lifecycle-next': {
+    // /next overview (plan step 7): on-demand list of every applicable step,
+    // bypassing anti-nag suppression. Read-only.
+    try {
+      const { all } = lifecycle.next(PROJECT_DIR);
+      console.log('LIFECYCLE_NEXT_BEGIN');
+      if (!all.length) {
+        console.log('none — no lifecycle steps are applicable right now.');
+      } else {
+        for (const r of all) {
+          const tag = r.status === 'dismissed' ? ' [previously dismissed]' : '';
+          console.log(`${r.offers} — ${r.prompt}${tag}`);
+        }
+      }
+      console.log('LIFECYCLE_NEXT_END');
+    } catch (e) { console.error(`lifecycle-next failed: ${e.message}`); }
+    break;
+  }
   default:
     console.error(`Session Guard v${config.version}`);
-    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint>');
+    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint|lifecycle-next>');
     process.exit(1);
 }

@@ -244,3 +244,57 @@ test('perf smoke: computeSignature returns an object on this repo', () => {
   assert.equal(typeof s, 'object');
   assert.ok(Array.isArray(s.components));
 });
+
+// ── /next pull mode (plan step 7) ──────────────────────────────────────
+
+// pull bypasses active-cycle suppression: a dirty feature branch hides ambient
+// offers, but an explicit /next still lists them.
+test('pull: lists eligible steps even during an active cycle', () => {
+  const s = sig({ hasScaffold: true, hasSuperpowers: true, size: 10, components: [comp('node')] });
+  const suppressed = selectOffer(base({ signature: s, activeCycle: true }));
+  assert.deepEqual(suppressed.all, [], 'ambient suppressed during active cycle');
+  const pulled = selectOffer(base({ signature: s, activeCycle: true, pull: true }));
+  assert.ok(pulled.all.find(r => r.id === 'rig'), 'pull surfaces rig anyway');
+});
+
+// pull bypasses the dismissal/cooldown watermark (a dismissed step still lists).
+test('pull: lists a dismissed step that ambient mode would suppress', () => {
+  const s = sig({ hasScaffold: true, hasSuperpowers: true, size: 10, components: [comp('node')] });
+  const prefs = { recs: { rig: { status: 'dismissed', dismissedSlice: ['node'], lastOfferedSession: 41 } } };
+  const ambient = selectOffer(base({ signature: s, prefs, session: 42 }));
+  assert.equal(ambient.all.find(r => r.id === 'rig'), undefined, 'ambient suppresses dismissed rig');
+  const pulled = selectOffer(base({ signature: s, prefs, session: 42, pull: true }));
+  assert.ok(pulled.all.find(r => r.id === 'rig'), 'pull lists dismissed rig');
+});
+
+// pull bypasses global mute too (explicit query overrides mutedAll)...
+test('pull: mutedAll hides ambient but not /next; per-rec mute still hidden', () => {
+  const s = sig({ hasScaffold: true, hasSuperpowers: true, size: 10, components: [comp('node')] });
+  const mutedAll = selectOffer(base({ signature: s, prefs: { mutedAll: true } }));
+  assert.deepEqual(mutedAll.all, [], 'mutedAll suppresses ambient');
+  const pulled = selectOffer(base({ signature: s, prefs: { mutedAll: true }, pull: true }));
+  assert.ok(pulled.all.find(r => r.id === 'rig'), 'pull overrides global mute');
+  // ...but a hard per-rec mute is honoured even under pull
+  const perRecMuted = selectOffer(base({ signature: s, prefs: { recs: { rig: { status: 'muted' } } }, pull: true }));
+  assert.equal(perRecMuted.all.find(r => r.id === 'rig'), undefined, 'per-rec mute honoured under pull');
+});
+
+// next() annotates status and stays read-only (never writes a baseline marker).
+test('next: annotates status and does not mutate markers', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'CLAUDE.md'), '# x\n');
+    fs.mkdirSync(path.join(dir, 'specs'));
+    fs.writeFileSync(path.join(dir, 'specs', 'a.md'), 'x\n');
+    fs.writeFileSync(path.join(dir, 'package.json'), '{"name":"x"}\n');
+    fs.writeFileSync(path.join(dir, 'index.js'), 'x\n');
+    commitAll(dir);
+    const { all } = lifecycle.next(dir);
+    const rig = all.find(r => r.id === 'rig');
+    assert.ok(rig, 'rig applicable (scaffold + component, no CI)');
+    assert.equal(rig.status, 'available');
+    assert.equal(readMarker(dir, 'rig'), null, 'next() wrote no marker');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
