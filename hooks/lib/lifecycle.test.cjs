@@ -16,7 +16,7 @@ function sig(overrides = {}) {
     size: 0, hasScaffold: false, components: [], hasCI: false, hasLefthook: false,
     ciCoveredLanguages: [], hasDockerfile: false, releaseTargets: [], hasIaC: false,
     iacTargets: [], envs: [], hasGraphifyOut: false, hasSuperpowers: false,
-    hasServer: false, pkgBin: false, pkgMain: false, hasStatic: false,
+    hasServer: false, hasCompose: false, pkgBin: false, pkgLib: false, hasStatic: false,
     ...overrides,
   };
 }
@@ -294,6 +294,76 @@ test('next: annotates status and does not mutate markers', () => {
     assert.ok(rig, 'rig applicable (scaffold + component, no CI)');
     assert.equal(rig.status, 'available');
     assert.equal(readMarker(dir, 'rig'), null, 'next() wrote no marker');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// ── release-selection heuristic (REQ-060 / AC-008 + tuning) ────────────
+
+const { releaseSelect } = lifecycle;
+
+test('release: node CLI (bin) -> /hoist', () => {
+  assert.equal(releaseSelect(sig({ components: [comp('node')], pkgBin: true })), '/hoist');
+});
+
+test('release: node service with Dockerfile -> /dock', () => {
+  assert.equal(releaseSelect(sig({ components: [comp('node')], hasDockerfile: true })), '/dock');
+});
+
+test('release: publishable node library (main, not private) -> /hoist', () => {
+  assert.equal(releaseSelect(sig({ components: [comp('node')], pkgLib: true })), '/hoist');
+});
+
+// tuning: a service in a non-node language is now detected and routed to /dock
+// instead of falling through to /hoist on its language alone.
+test('release tuning: python service (hasServer, no Dockerfile) -> /dock', () => {
+  assert.equal(releaseSelect(sig({ components: [comp('python')], hasServer: true })), '/dock');
+});
+
+test('release tuning: go service (hasServer) -> /dock, not /hoist', () => {
+  assert.equal(releaseSelect(sig({ components: [comp('go')], hasServer: true })), '/dock');
+});
+
+// tuning: a lone package language with no server/Dockerfile is still /hoist.
+test('release tuning: bare python package (no server) -> /hoist', () => {
+  assert.equal(releaseSelect(sig({ components: [comp('python')] })), '/hoist');
+});
+
+test('release tuning: bare go module (no server) -> /hoist', () => {
+  assert.equal(releaseSelect(sig({ components: [comp('go')] })), '/hoist');
+});
+
+// tuning: docker-compose is a container signal.
+test('release tuning: docker-compose service -> /dock', () => {
+  assert.equal(releaseSelect(sig({ components: [comp('node')], hasCompose: true })), '/dock');
+});
+
+// tuning: genuine both-signals stays ambiguous (CLI that also ships a container).
+test('release tuning: node CLI + Dockerfile -> ambiguous sentinel', () => {
+  assert.equal(releaseSelect(sig({ components: [comp('node')], pkgBin: true, hasDockerfile: true })), '/dock or /hoist');
+});
+
+// tuning: a private node app with a main is NOT a publishable lib -> not /hoist
+// on that basis; with a server it is a service -> /dock.
+test('release tuning: private node app with server -> /dock', () => {
+  assert.equal(releaseSelect(sig({ components: [comp('node')], hasServer: true, pkgLib: false })), '/dock');
+});
+
+test('release tuning: static site build (no server) -> /hoist', () => {
+  assert.equal(releaseSelect(sig({ components: [comp('node')], hasStatic: true })), '/hoist');
+});
+
+// integration: computeSignature detects a python server via requirements.txt
+test('computeSignature: python flask app detected as server', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'pyproject.toml'), '[project]\nname="x"\n');
+    fs.writeFileSync(path.join(dir, 'requirements.txt'), 'flask==3.0\n');
+    fs.writeFileSync(path.join(dir, 'app.py'), 'x\n');
+    commitAll(dir);
+    const s = computeSignature(dir);
+    assert.equal(s.hasServer, true, 'flask in requirements.txt -> hasServer');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
