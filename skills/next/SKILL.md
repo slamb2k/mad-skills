@@ -85,6 +85,25 @@ Render the parsed lines in a box for the user:
 If the body was `none`, say plainly that the project is fully caught up — no
 lifecycle steps apply right now — and stop.
 
+### 2a. Cross-reference the Follow-ups Ledger (REQ-041)
+
+After the lifecycle overview, check the Follow-ups Ledger for open items:
+
+```bash
+_R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
+node "$_R/hooks/session-guard.cjs" followups-hint
+```
+
+If it prints a `📌 N open follow-ups` line, append a **single** cross-reference
+line beneath the overview box — do **not** list the items inline (that's
+`/followups`' job):
+
+```
+  + {N} follow-ups → /followups
+```
+
+If it prints nothing (empty ledger), show no cross-reference at all.
+
 ### 3. Offer to act (optional)
 
 If one or more steps are listed, ask via `AskUserQuestion` whether to run one

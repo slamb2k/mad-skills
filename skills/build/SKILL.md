@@ -439,24 +439,54 @@ Invoke the `/ship` skill:
 
 3. **If no items found, skip to Final Report.**
 
-4. Present numbered summary via AskUserQuestion grouped by category.
-   Each item shows: `[category] summary (effort)`.
+4. **Auto-capture into the Follow-ups Ledger (REQ-010 — always, not skippable).**
+   Every surfaced item goes into the committed `FOLLOWUPS.md` so it survives
+   `/clear`. This is frictionless by design — the old "note it and forget it"
+   evaporation is the exact failure being fixed; capture is not gated on a
+   choice. The ledger dedupes on entry, so re-surfaced items don't pile up.
+
+   Build a JSON array (map each item's category to a ledger category —
+   `unresolved_risk`/`deferred_fix`/`open_question`/`assumption`/`tech_debt` are
+   accepted verbatim) and capture it:
+   ```bash
+   _R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
+   node "$_R/hooks/session-guard.cjs" followups-capture \
+     '[{"title":"…","category":"deferred_fix","source":"/build debrief"}, …]'
+   ```
+   Note any `evicted:[…]` in the output — mention evictions to the user (never
+   silent, GUD-002).
+
+5. **Display the existing open ledger (REQ-044)** alongside the new items, so the
+   user reviews the whole backlog at the checkpoint where they're most likely to
+   act:
+   ```bash
+   node "$_R/hooks/session-guard.cjs" followups-list
+   ```
+
+6. Present numbered summary via AskUserQuestion grouped by category.
+   Each item shows: `[category] summary (effort)`. All items are already captured
+   in the ledger; this choice is about what to do *now*:
 
    Options:
    - **"Fix now"** → create a task list of resolution activities for
-     each item; present for user confirmation, then work through them
+     each item; present for user confirmation, then work through them. When
+     fixed, resolve the matching ledger item:
+     `node "$_R/hooks/session-guard.cjs" followups-resolve <n>`.
    - **"Create tasks for future sessions"** → use `TaskCreate` for each
      item as a persistent task, with category as prefix and suggested
-     action as description
-   - **"Note and continue"** → acknowledge items without formal tracking;
-     log to memory (if exists) or as source file comments. No further action.
+     action as description. For each, **link the ledger item to the task**
+     (REQ-012) so it auto-resolves when the task completes — re-capture that
+     item with a link (dedupe attaches it to the existing entry):
+     `node "$_R/hooks/session-guard.cjs" followups-capture '[{"title":"<same title>","source":"/build debrief","link":"task#<id>"}]'`.
+   - **"Leave in the ledger"** → items stay captured in `FOLLOWUPS.md`; resurface
+     later via `/followups`. No further action now (nothing is lost).
    - **"Let me choose per item"** → present each individually with full
      description, evidence, and impact. Options per item:
-     "Fix now" / "Create task" / "Explain more" / "Note and continue".
+     "Fix now" / "Create task" / "Explain more" / "Leave in the ledger".
      "Explain more" reads source files cited in evidence, provides
      expanded context, then re-presents the item for decision.
 
-5. After resolution, include debrief summary in the Final Report.
+7. After resolution, include debrief summary in the Final Report.
 
 ---
 

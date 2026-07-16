@@ -6,6 +6,11 @@
         { "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; node \"$_R/hooks/session-guard.cjs\" check", "timeout": 30 },
         { "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; bash \"$_R/skills/ferry/scripts/ferry.sh\" load", "timeout": 10 }
       ]
+    }, {
+      "matcher": "startup|resume",
+      "hooks": [
+        { "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; node \"$_R/hooks/session-guard.cjs\" followups-hint", "timeout": 10 }
+      ]
     }],
     "UserPromptSubmit": [{
       "hooks": [{ "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; node \"$_R/hooks/session-guard.cjs\" remind", "timeout": 10 }]
