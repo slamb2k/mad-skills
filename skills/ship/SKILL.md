@@ -441,7 +441,7 @@ is automatic and deduped — don't ask permission to capture, only decide what t
 
 ```bash
 _R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
-node "$_R/hooks/session-guard.cjs" followups-capture \
+node "$_R/hooks/session-guard.cjs" log-capture \
   '[{"title":"…","category":"ideas","source":"/ship #<pr>"}, …]'
 ```
 
@@ -450,7 +450,7 @@ If a captured item is also turned into a `TaskCreate` task, re-capture it with a
 show the current open ledger and mention any evictions:
 
 ```bash
-node "$_R/hooks/session-guard.cjs" followups-list
+node "$_R/hooks/session-guard.cjs" log-list
 ```
 
 If no follow-ups were surfaced and the ledger is empty, show nothing (AC-008).

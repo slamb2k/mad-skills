@@ -1,7 +1,7 @@
 [
   {
     "name": "banner-and-tagline",
-    "prompt": "/next",
+    "prompt": "/waypoint",
     "assertions": [
       { "type": "contains", "value": "██" },
       { "type": "regex", "value": "(Charting the course|road from here|What's next|ship's manifest|Peering down|green lights)" },
@@ -19,7 +19,7 @@
   },
   {
     "name": "read-only-consent",
-    "prompt": "/next",
+    "prompt": "/waypoint",
     "assertions": [
       { "type": "contains", "value": "██" },
       { "type": "semantic", "value": "Makes clear it only lists/offers steps and never runs a skill without the user explicitly choosing to" }

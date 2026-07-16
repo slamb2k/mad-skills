@@ -395,7 +395,7 @@ function sliceFor(sig, recId) {
 
 // ─── pure selection ────────────────────────────────────────────────────
 
-// `pull: true` is the on-demand /next mode — the user is explicitly asking
+// `pull: true` is the on-demand /waypoint mode — the user is explicitly asking
 // "what's next", so anti-nag push-gates (active-cycle suppression, global mute,
 // per-rec cooldown/dismissal watermark) are bypassed. Per-rec `muted` is still
 // honoured (a hard "never show me this"). Default off — every AC test omits it,
@@ -433,7 +433,7 @@ function selectOffer({ signature, prefs, markers, session, activeCycle, pull }) 
     // else: not satisfied -> causal "you haven't done this yet"
 
     // dismissal / cooldown gate (REQ-030, AC-002/AC-003/AC-012) — skipped in
-    // pull mode so /next lists steps the user previously dismissed.
+    // pull mode so /waypoint lists steps the user previously dismissed.
     if (!pull && pref && pref.status === 'dismissed') {
       const cooldownElapsed = (session - (pref.lastOfferedSession || 0)) >= COOLDOWN;
       if (rec.tierBased) {
@@ -563,7 +563,7 @@ function evaluate(projectDir, { surface, sourceSkill } = {}) {
   }
 }
 
-// ─── /next overview (plan step 7) ──────────────────────────────────────
+// ─── /waypoint overview (plan step 7) ──────────────────────────────────────
 
 // On-demand pull: every applicable-but-not-done step, ordered by lifecycle
 // stage, annotated with the user's per-rec status. Read-only — never

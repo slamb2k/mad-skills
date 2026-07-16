@@ -28,7 +28,7 @@ const { checkGit } = require('./lib/git-checks.cjs');
 const { checkTaskList } = require('./lib/task-checks.cjs');
 const { checkStaleness } = require('./lib/staleness.cjs');
 const lifecycle = require('./lib/lifecycle.cjs');
-const followups = require('./lib/followups.cjs');
+const ledger = require('./lib/log.cjs');
 
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const CLAUDE_MD = join(PROJECT_DIR, 'CLAUDE.md');
@@ -451,7 +451,7 @@ switch (command) {
     break;
   }
   case 'lifecycle-next': {
-    // /next overview (plan step 7): on-demand list of every applicable step,
+    // /waypoint overview (plan step 7): on-demand list of every applicable step,
     // bypassing anti-nag suppression. Read-only.
     try {
       const { all } = lifecycle.next(PROJECT_DIR);
@@ -468,83 +468,83 @@ switch (command) {
     } catch (e) { console.error(`lifecycle-next failed: ${e.message}`); }
     break;
   }
-  case 'followups-hint': {
+  case 'log-hint': {
     // Passive cold-start line — gated to startup|resume by the hooks.json
     // matcher, silent on an empty ledger (REQ-042/043, AC-007/008).
     try {
-      const n = followups.count(PROJECT_DIR);
-      if (n > 0) console.log(`[SESSION GUARD] 📌 ${n} open follow-up${n === 1 ? '' : 's'} — /followups to review`);
-    } catch (e) { console.error(`followups-hint failed: ${e.message}`); }
+      const n = ledger.count(PROJECT_DIR);
+      if (n > 0) console.log(`[SESSION GUARD] 📌 ${n} open follow-up${n === 1 ? '' : 's'} — /log to review`);
+    } catch (e) { console.error(`log-hint failed: ${e.message}`); }
     break;
   }
-  case 'followups-list': {
-    // Numbered open ledger grouped by category — the /followups pull surface.
+  case 'log-list': {
+    // Numbered open ledger grouped by category — the /log pull surface.
     try {
-      const open = followups.openItems(PROJECT_DIR);
-      if (!open.length) { console.log('FOLLOWUPS_LIST_EMPTY'); break; }
-      console.log('FOLLOWUPS_LIST_BEGIN');
+      const open = ledger.openItems(PROJECT_DIR);
+      if (!open.length) { console.log('LOG_LIST_EMPTY'); break; }
+      console.log('LOG_LIST_BEGIN');
       let n = 0;
       let cat = null;
       for (const it of open) {
-        if (it.category !== cat) { cat = it.category; console.log(`## ${followups.HEADINGS[cat]}`); }
+        if (it.category !== cat) { cat = it.category; console.log(`## ${ledger.HEADINGS[cat]}`); }
         const link = it.link ? ` [${it.link}]` : '';
         console.log(`${++n}. ${it.title} — ${it.source} (${it.date})${link}`);
       }
-      console.log('FOLLOWUPS_LIST_END');
-    } catch (e) { console.error(`followups-list failed: ${e.message}`); }
+      console.log('LOG_LIST_END');
+    } catch (e) { console.error(`log-list failed: ${e.message}`); }
     break;
   }
-  case 'followups-capture': {
+  case 'log-capture': {
     // Auto-capture from /build & /ship debrief; arg is a JSON array of items.
     try {
       const items = JSON.parse(process.argv[3] || '[]');
-      const r = followups.capture(PROJECT_DIR, items);
-      console.log(`FOLLOWUPS_CAPTURED added:${r.added} deduped:${r.deduped.length} evicted:${JSON.stringify(r.evicted)}`);
-    } catch (e) { console.error(`followups-capture failed: ${e.message}`); }
+      const r = ledger.capture(PROJECT_DIR, items);
+      console.log(`LOG_CAPTURED added:${r.added} deduped:${r.deduped.length} evicted:${JSON.stringify(r.evicted)}`);
+    } catch (e) { console.error(`log-capture failed: ${e.message}`); }
     break;
   }
-  case 'followups-resolve': {
+  case 'log-resolve': {
     try {
-      const it = followups.resolve(PROJECT_DIR, process.argv[3]);
+      const it = ledger.resolve(PROJECT_DIR, process.argv[3]);
       console.log(it ? `Resolved: ${it.title}` : `No open item at ${process.argv[3]}`);
-    } catch (e) { console.error(`followups-resolve failed: ${e.message}`); }
+    } catch (e) { console.error(`log-resolve failed: ${e.message}`); }
     break;
   }
-  case 'followups-dismiss': {
+  case 'log-dismiss': {
     try {
-      const it = followups.dismiss(PROJECT_DIR, process.argv[3]);
+      const it = ledger.dismiss(PROJECT_DIR, process.argv[3]);
       console.log(it ? `Dismissed: ${it.title}` : `No open item at ${process.argv[3]}`);
-    } catch (e) { console.error(`followups-dismiss failed: ${e.message}`); }
+    } catch (e) { console.error(`log-dismiss failed: ${e.message}`); }
     break;
   }
-  case 'followups-add': {
+  case 'log-add': {
     try {
       const argv = process.argv.slice(3);
       const flag = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
       const title = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && argv[i - 1].startsWith('--'))).join(' ');
-      const { item, evicted } = followups.add(PROJECT_DIR, { title, category: flag('--category') || 'ideas', link: flag('--link') || null });
+      const { item, evicted } = ledger.add(PROJECT_DIR, { title, category: flag('--category') || 'ideas', link: flag('--link') || null });
       console.log(item ? `Added: ${item.title} (${item.category})` : 'Nothing added');
       if (evicted.length) console.log(`Evicted (cap reached): ${JSON.stringify(evicted)}`);
-    } catch (e) { console.error(`followups-add failed: ${e.message}`); }
+    } catch (e) { console.error(`log-add failed: ${e.message}`); }
     break;
   }
-  case 'followups-review': {
+  case 'log-review': {
     // Assisted cleanup: silently auto-resolve linked items (REQ-030), then
     // surface free-text likely-done/stale candidates for user-confirmed
     // resolution (REQ-031/032 — never resolved here without confirmation).
     try {
-      const resolved = followups.autoResolveLinked(PROJECT_DIR);
-      if (resolved.length) console.log(`FOLLOWUPS_AUTORESOLVED ${JSON.stringify(resolved.map((i) => i.title))}`);
-      const cands = followups.reviewCandidates(PROJECT_DIR);
-      if (!cands.length) { console.log('FOLLOWUPS_REVIEW_EMPTY'); break; }
-      console.log('FOLLOWUPS_REVIEW_BEGIN');
+      const resolved = ledger.autoResolveLinked(PROJECT_DIR);
+      if (resolved.length) console.log(`LOG_AUTORESOLVED ${JSON.stringify(resolved.map((i) => i.title))}`);
+      const cands = ledger.reviewCandidates(PROJECT_DIR);
+      if (!cands.length) { console.log('LOG_REVIEW_EMPTY'); break; }
+      console.log('LOG_REVIEW_BEGIN');
       for (const c of cands) console.log(`${c.n}. ${c.item.title} — ${c.reason}`);
-      console.log('FOLLOWUPS_REVIEW_END');
-    } catch (e) { console.error(`followups-review failed: ${e.message}`); }
+      console.log('LOG_REVIEW_END');
+    } catch (e) { console.error(`log-review failed: ${e.message}`); }
     break;
   }
   default:
     console.error(`Session Guard v${config.version}`);
-    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint|lifecycle-next|followups-hint|followups-list|followups-capture|followups-resolve|followups-dismiss|followups-add|followups-review>');
+    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint|lifecycle-next|log-hint|log-list|log-capture|log-resolve|log-dismiss|log-add|log-review>');
     process.exit(1);
 }
