@@ -268,10 +268,10 @@ test('perf smoke: computeSignature returns an object on this repo', () => {
   assert.ok(Array.isArray(s.components));
 });
 
-// ── /waypoint pull mode (plan step 7) ──────────────────────────────────────
+// ── /logbook pull mode (plan step 7) ──────────────────────────────────────
 
 // pull bypasses active-cycle suppression: a dirty feature branch hides ambient
-// offers, but an explicit /waypoint still lists them.
+// offers, but an explicit /logbook still lists them.
 test('pull: lists eligible steps even during an active cycle', () => {
   const s = sig({ hasScaffold: true, hasSuperpowers: true, size: 10, components: [comp('node')] });
   const suppressed = selectOffer(base({ signature: s, activeCycle: true }));
@@ -291,7 +291,7 @@ test('pull: lists a dismissed step that ambient mode would suppress', () => {
 });
 
 // pull bypasses global mute too (explicit query overrides mutedAll)...
-test('pull: mutedAll hides ambient but not /waypoint; per-rec mute still hidden', () => {
+test('pull: mutedAll hides ambient but not /logbook; per-rec mute still hidden', () => {
   const s = sig({ hasScaffold: true, hasSuperpowers: true, size: 10, components: [comp('node')] });
   const mutedAll = selectOffer(base({ signature: s, prefs: { mutedAll: true } }));
   assert.deepEqual(mutedAll.all, [], 'mutedAll suppresses ambient');

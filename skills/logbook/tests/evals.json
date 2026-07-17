@@ -1,0 +1,28 @@
+[
+  {
+    "name": "banner-and-tagline",
+    "prompt": "/logbook",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(Reading the ship's log|Course and remarks|What's on deck|circle back to|captain's running record|Best-practice heading)" },
+      { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
+    ]
+  },
+  {
+    "name": "two-section-show",
+    "prompt": "what's on deck for this project?",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(lifecycle|follow-?ups|log-list|lifecycle-next)", "flags": "i" },
+      { "type": "semantic", "value": "Describes showing two labeled sections in one view: computed best-practice lifecycle steps AND the committed follow-ups backlog, querying both lifecycle-next and log-list, and treating both-empty as 'all clear'" }
+    ]
+  },
+  {
+    "name": "review-consent",
+    "prompt": "/logbook review",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "semantic", "value": "Makes clear that free-text follow-ups are only resolved after explicit user confirmation, while linked items may auto-resolve silently, and that running a lifecycle step never happens without the user choosing it" }
+    ]
+  }
+]

@@ -49,7 +49,7 @@ test('AC-001 capture appends debrief items under mapped categories', () => {
   try {
     const res = fl.capture(dir, [
       { title: 'Add retry to the CI poller', category: 'deferred_fix', source: '/ship #87' },
-      { title: 'Should /waypoint mute recs?', category: 'open_question', source: '/waypoint design' },
+      { title: 'Should /logbook mute recs?', category: 'open_question', source: '/logbook design' },
       { title: 'computeSignature could get slow', category: 'tech_debt', source: '/build debrief' },
     ], { today: '2026-07-16' });
 
@@ -214,15 +214,15 @@ test('AC-008 empty ledger produces no hint', () => {
   } finally { rm(dir); }
 });
 
-// ─── AC-009: /waypoint cross-ref count source ───────────────────────────────
+// ─── AC-009: /logbook cross-ref count source ───────────────────────────────
 
-test('AC-009 count() drives the /waypoint cross-reference', () => {
+test('AC-009 count() drives the /logbook cross-reference', () => {
   const dir = mkRepo();
   try {
     const five = [];
     for (let i = 0; i < 5; i++) five.push(item({ title: `Xnextitem${i}` }));
     fl.write(dir, five);
-    assert.equal(fl.count(dir), 5); // /waypoint renders "+ 5 follow-ups → /log"
+    assert.equal(fl.count(dir), 5); // /logbook renders "+ 5 follow-ups → /logbook"
   } finally { rm(dir); }
 });
 
