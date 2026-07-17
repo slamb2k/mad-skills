@@ -269,6 +269,84 @@ test('AC-012 add creates an ideas/manual item dated today', () => {
   } finally { rm(dir); }
 });
 
+// ─── linked auto-resolve: guards against false positives (ledger follow-ups) ──
+
+test('spec: link does NOT auto-resolve a path that never existed (typo guard)', () => {
+  const dir = mkRepo();
+  try {
+    fl.write(dir, [item({ title: 'x', category: 'fixes', link: 'spec:specs/never-existed.md' })]);
+    assert.equal(fl.autoResolveLinked(dir).length, 0);
+    assert.equal(fl.count(dir), 1);
+  } finally { rm(dir); }
+});
+
+test('spec: link auto-resolves a path that once existed and is now gone', () => {
+  const dir = mkRepo();
+  try {
+    fs.mkdirSync(path.join(dir, 'specs'));
+    fs.writeFileSync(path.join(dir, 'specs', 'done.md'), '# spec');
+    execSync('git add -A && git commit -q -m "add spec"', { cwd: dir });
+    execSync('git rm -q specs/done.md && git commit -q -m "built + removed spec"', { cwd: dir });
+    fl.write(dir, [item({ title: 'x', category: 'fixes', link: 'spec:specs/done.md' })]);
+    assert.equal(fl.autoResolveLinked(dir).length, 1);
+  } finally { rm(dir); }
+});
+
+test('task# is not auto-resolved by the module (deferred to the /logbook review TaskGet path)', () => {
+  const dir = mkRepo();
+  try {
+    fl.write(dir, [item({ title: 'x', category: 'fixes', link: 'task#42' })]);
+    assert.equal(fl.autoResolveLinked(dir).length, 0); // no taskDone resolver → stays open
+    assert.equal(fl.count(dir), 1);
+  } finally { rm(dir); }
+});
+
+test('rec: link auto-resolves when the engine no longer lists the rec as applicable', () => {
+  const dir = mkRepo();
+  try {
+    fs.mkdirSync(path.join(dir, 'graphify-out')); // makes the graphify rec satisfied → not applicable
+    fl.write(dir, [item({ title: 'x', category: 'ideas', link: 'rec:graphify' })]);
+    assert.equal(fl.autoResolveLinked(dir).length, 1);
+  } finally { rm(dir); }
+});
+
+test('rec: is NOT resolved by a user mute — a muted rec must not read as "done"', () => {
+  const dir = mkRepo();
+  const lc = require('./lifecycle.cjs');
+  try {
+    fs.writeFileSync(path.join(dir, 'app.js'), 'x\n'); // brace applicable (size>0, no scaffold)
+    lc.saveLifecyclePrefs(dir, { mutedAll: true, recs: { brace: { status: 'muted' } } });
+    fl.write(dir, [item({ title: 'x', category: 'ideas', link: 'rec:brace' })]);
+    assert.equal(fl.autoResolveLinked(dir).length, 0); // muted, but genuinely applicable → stays open
+    assert.equal(fl.count(dir), 1);
+  } finally { lc.saveLifecyclePrefs(dir, {}); rm(dir); }
+});
+
+test('spec: link with a space in the path resolves correctly (argv form, not shell)', () => {
+  const dir = mkRepo();
+  try {
+    fs.mkdirSync(path.join(dir, 'specs'));
+    fs.writeFileSync(path.join(dir, 'specs', 'my plan.md'), '# spec');
+    execSync('git add -A && git commit -q -m "add"', { cwd: dir });
+    execSync('git rm -q "specs/my plan.md" && git commit -q -m "remove"', { cwd: dir });
+    fl.write(dir, [item({ title: 'x', category: 'fixes', link: 'spec:specs/my plan.md' })]);
+    assert.equal(fl.autoResolveLinked(dir).length, 1); // space handled → once-existed detected
+  } finally { rm(dir); }
+});
+
+test('rec: link stays open while the rec is still applicable, and for unknown rec ids', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'app.js'), 'console.log(1)\n'); // size>0, no scaffold → brace applicable
+    fl.write(dir, [
+      item({ title: 'a', category: 'ideas', link: 'rec:brace' }),
+      item({ title: 'b', category: 'ideas', link: 'rec:not-a-real-rec' }),
+    ]);
+    assert.equal(fl.autoResolveLinked(dir).length, 0);
+    assert.equal(fl.count(dir), 2);
+  } finally { rm(dir); }
+});
+
 // ─── legacy migration: a rename must never orphan committed items ───────
 
 test('read merges legacy FOLLOWUPS.md and LOG.md so nothing is orphaned', () => {

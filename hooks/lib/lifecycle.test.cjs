@@ -83,11 +83,42 @@ test('ADO pipeline satisfies rig despite miscomputed coverage — no /rig', () =
   assert.notEqual(offer && offer.id, 'rig');
 });
 
-test('ADO repo is not nagged for a release pipeline (ADO deploy YAML unparseable)', () => {
-  const s = sig({ hasScaffold: true, hasSuperpowers: true, size: 111, hasCI: true, hasAdoPipeline: true, ciCoveredLanguages: ['python'], components: [comp('node')], releaseTargets: [] });
+test('ADO repo that already deploys reads a release target — release rec satisfied, not offered', () => {
+  const s = sig({ hasScaffold: true, hasSuperpowers: true, size: 111, hasCI: true, hasAdoPipeline: true, ciCoveredLanguages: ['python'], components: [comp('node')], releaseTargets: ['ado-deploy'] });
   const { offer, all } = selectOffer(base({ signature: s }));
   assert.equal(all.find(r => r.id === 'release'), undefined);
   assert.notEqual(offer && offer.id, 'release');
+});
+
+test('CI-only ADO repo (no deploy) is now offered a release pipeline', () => {
+  const s = sig({ hasScaffold: true, hasSuperpowers: true, size: 111, hasCI: true, hasAdoPipeline: true, ciCoveredLanguages: ['python'], components: [comp('node')], releaseTargets: [] });
+  const { all } = selectOffer(base({ signature: s }));
+  assert.ok(all.find(r => r.id === 'release'), 'a CI-only ADO repo should be offerable a release pipeline');
+});
+
+test('computeSignature: an ADO deploy task yields the ado-deploy release target', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'package.json'), '{"name":"x"}\n');
+    fs.writeFileSync(path.join(dir, 'app.js'), 'x\n');
+    fs.writeFileSync(path.join(dir, 'azure-pipelines.yml'),
+      'stages:\n- stage: deploy\n  jobs:\n  - deployment: web\n    steps:\n    - task: AzureCLI@2\n      inputs:\n        inlineScript: az webapp up -n app\n');
+    const s = computeSignature(dir);
+    assert.ok(s.hasAdoPipeline);
+    assert.deepEqual(s.releaseTargets, ['ado-deploy']);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('computeSignature: broadened ADO detection — a -infra pipeline variant still counts as ADO', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'app.js'), 'x\n');
+    fs.writeFileSync(path.join(dir, 'azure-pipelines-infra.yml'),
+      'steps:\n- task: AzureCLI@2\n  inputs:\n    inlineScript: az deployment group create\n');
+    const s = computeSignature(dir);
+    assert.ok(s.hasAdoPipeline, 'a -infra pipeline variant must set hasAdoPipeline (else /rig false-nags)');
+    assert.ok(s.releaseTargets.includes('ado-deploy'));
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
 test('fix is ADO-scoped: a GitHub repo whose CI misses its language still gets /rig', () => {

@@ -1,6 +1,6 @@
 'use strict';
 
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 const { statSync, existsSync, readFileSync, readdirSync } = require('fs');
 const { join } = require('path');
 
@@ -23,6 +23,21 @@ function fileMtime(filePath) {
 function git(args, cwd) {
   try {
     return execSync(`git ${args}`, {
+      cwd,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 10000,
+      windowsHide: true,
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
+/** Run git with an argv array (no shell) — safe for untrusted path args. */
+function gitArgs(argv, cwd) {
+  try {
+    return execFileSync('git', argv, {
       cwd,
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -88,4 +103,4 @@ function countFiles(dir, pattern) {
   }
 }
 
-module.exports = { fileMtime, git, readJson, readText, getDirectories, countFiles, existsSync };
+module.exports = { fileMtime, git, gitArgs, readJson, readText, getDirectories, countFiles, existsSync };
