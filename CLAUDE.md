@@ -2,7 +2,7 @@
 
 ## Skill Usage Guide
 
-MAD Skills provides 15 skills covering the full development lifecycle. When this
+MAD Skills provides 14 skills covering the full development lifecycle. When this
 plugin is installed, use these skills proactively — don't wait for the user to
 invoke them by name if the situation clearly calls for one.
 
@@ -56,8 +56,7 @@ their standalone descriptions below.
 | Releasing a non-container package/app | `/hoist` | `/hoist` or `/hoist --skip-interview` |
 | Generating web design variations | `/distil` | `/distil 3 --port 5173` |
 | Resetting context without losing the thread | `/ferry` | `/ferry` or `/ferry commit` |
-| Seeing every applicable lifecycle step on demand | `/waypoint` | `/waypoint` |
-| Reviewing the durable backlog of captured follow-ups | `/log` | `/log` or `/log review` |
+| Seeing what's on deck: lifecycle steps + follow-ups backlog | `/logbook` | `/logbook` or `/logbook review` |
 
 ### Lifecycle Ordering
 
@@ -92,8 +91,7 @@ Suggest or invoke these skills when you observe:
 - User is about to do significant work and needs context → `/prime`
 - User wants to explore design directions for a web UI → `/distil`
 - User says "wrap up", "checkpoint", "clear context", or "start fresh" → `/ferry`
-- User asks "what's next", "next steps", or wants the lifecycle overview → `/waypoint`
-- User wants to see or clean up captured follow-ups/deferred ideas → `/log`
+- User asks "what's next"/"next steps", wants the lifecycle overview, or wants to see/clean up captured follow-ups → `/logbook`
 
 ### Cross-Skill Integration
 
@@ -199,7 +197,7 @@ Guidance for contributing to the mad-skills repository itself.
 
 ### Repository Overview
 
-**MAD Skills** is a skill framework for Claude Code. It ships 15 skills
+**MAD Skills** is a skill framework for Claude Code. It ships 14 skills
 covering the full development lifecycle with first-class support for both
 GitHub and Azure DevOps platforms. Skills are installed via
 `npx skills add slamb2k/mad-skills` or as a Claude Code plugin, and invoked
@@ -209,19 +207,18 @@ as slash commands.
 
 ```
 mad-skills/
-├── skills/                  # Skill definitions (15 skills)
+├── skills/                  # Skill definitions (14 skills)
 │   ├── brace/               # Project scaffold initialization
 │   ├── build/               # Context-isolated feature dev pipeline
 │   ├── distil/              # Web design variation generator
 │   ├── dock/                # Container release pipelines
 │   ├── ferry/               # Clean-context session handoff — waybill (signal + resume)
-│   ├── log/                 # Follow-ups Ledger — durable backlog (capture + resurface)
+│   ├── logbook/             # What's on deck — lifecycle steps + follow-ups backlog
 │   ├── hoist/               # Non-container release pipelines
 │   ├── keel/                # Infrastructure as Code pipelines
 │   ├── launch/              # Full idea-to-merged-PR pipeline (explicit-only)
 │   ├── prime/               # Project context loading
 │   ├── rig/                 # Repo bootstrapping (hooks, CI, templates)
-│   ├── waypoint/            # Lifecycle overview — on-demand "what's next"
 │   ├── ship/                # Full PR lifecycle
 │   ├── speccy/              # Interview-driven spec builder
 │   └── sync/                # Repo sync with origin/main
@@ -327,7 +324,7 @@ Use Explore for codebase scanning and general-purpose for complex logic.
 ### Testing
 
 ```bash
-npm run validate          # Structure checks for all 15 skills
+npm run validate          # Structure checks for all 14 skills
 npm run lint              # SKILL.md format checks
 npm run eval              # Eval assertions (requires API key)
 ```

@@ -451,7 +451,7 @@ switch (command) {
     break;
   }
   case 'lifecycle-next': {
-    // /waypoint overview (plan step 7): on-demand list of every applicable step,
+    // /logbook overview (plan step 7): on-demand list of every applicable step,
     // bypassing anti-nag suppression. Read-only.
     try {
       const { all } = lifecycle.next(PROJECT_DIR);
@@ -473,12 +473,12 @@ switch (command) {
     // matcher, silent on an empty ledger (REQ-042/043, AC-007/008).
     try {
       const n = ledger.count(PROJECT_DIR);
-      if (n > 0) console.log(`[SESSION GUARD] 📌 ${n} open follow-up${n === 1 ? '' : 's'} — /log to review`);
+      if (n > 0) console.log(`[SESSION GUARD] 📌 ${n} open follow-up${n === 1 ? '' : 's'} — /logbook to review`);
     } catch (e) { console.error(`log-hint failed: ${e.message}`); }
     break;
   }
   case 'log-list': {
-    // Numbered open ledger grouped by category — the /log pull surface.
+    // Numbered open ledger grouped by category — the /logbook pull surface.
     try {
       const open = ledger.openItems(PROJECT_DIR);
       if (!open.length) { console.log('LOG_LIST_EMPTY'); break; }

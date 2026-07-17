@@ -380,7 +380,7 @@ Invoke the `/ship` skill:
      item with a link (dedupe attaches it to the existing entry):
      `node "$_R/hooks/session-guard.cjs" log-capture '[{"title":"<same title>","source":"/build debrief","link":"task#<id>"}]'`.
    - **"Leave in the ledger"** → items stay captured in `LOG.md`; resurface
-     later via `/log`. No further action now (nothing is lost).
+     later via `/logbook`. No further action now (nothing is lost).
    - **"Let me choose per item"** → present each individually with full
      description, evidence, and impact. Options per item:
      "Fix now" / "Create task" / "Explain more" / "Leave in the ledger".
