@@ -15,13 +15,17 @@
  * wanted to do and reminds you at the right time.
  */
 
-const { existsSync, writeFileSync } = require('fs');
+const { existsSync, writeFileSync, unlinkSync } = require('fs');
 const { join } = require('path');
 const { git, readText } = require('./utils.cjs');
 
 // ─── constants ──────────────────────────────────────────────────────────
 
 const FILENAME = 'LOGBOOK.md';
+// Older names this ledger has used. The plugin runs user-level across many
+// repos, so a rename must never orphan committed items: read() merges these in
+// and write() consolidates them into LOGBOOK.md, migrating each project forward.
+const LEGACY_FILENAMES = ['LOG.md', 'FOLLOWUPS.md'];
 const CAP = 20;            // REQ-020: soft cap on open items
 const ARCHIVE_MAX = 30;    // REQ-022: bounded archive
 const DEDUPE_THRESHOLD = 0.6; // REQ-011: token-set Jaccard for "closely matches"
@@ -274,16 +278,45 @@ function capEvict(items, cap, when) {
 
 // ─── IO wrappers ────────────────────────────────────────────────────────
 
-/** Parse LOGBOOK.md (CON-002 safe). Returns { items, path }. */
+/** Conservative dedupe key for cross-file merge — exact normalized title. */
+function normKey(title) {
+  return String(title).toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Parse LOGBOOK.md, merging any legacy LOG.md / FOLLOWUPS.md so a rename never
+ * orphans committed items (CON-002 safe). Legacy items are appended unless an
+ * item with the same normalized title is already present. Returns
+ * { items, path, legacy } where `legacy` lists the on-disk legacy files found.
+ */
 function read(projectDir) {
   const path = ledgerPath(projectDir);
-  const items = safe(() => parse(readText(path)), []);
-  return { items, path };
+  return safe(() => {
+    const items = parse(readText(path));
+    const seen = new Set(items.map((i) => normKey(i.title)));
+    const legacy = [];
+    for (const name of LEGACY_FILENAMES) {
+      const p = join(projectDir, name);
+      if (!existsSync(p)) continue;
+      legacy.push(p);
+      for (const it of parse(readText(p))) {
+        const k = normKey(it.title);
+        if (!seen.has(k)) { items.push(it); seen.add(k); }
+      }
+    }
+    return { items, path, legacy };
+  }, { items: [], path, legacy: [] });
 }
 
 function write(projectDir, items) {
   const path = ledgerPath(projectDir);
   writeFileSync(path, serialize(items));
+  // Consolidation: the merged items now live in LOGBOOK.md, so retire any legacy
+  // FOLLOWUPS.md / LOG.md. A visible git deletion, never a silent drop (GUD-002).
+  for (const name of LEGACY_FILENAMES) {
+    const p = join(projectDir, name);
+    if (existsSync(p)) safe(() => unlinkSync(p));
+  }
   return path;
 }
 

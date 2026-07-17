@@ -198,3 +198,8 @@ date is today. Confirm the added item.
   on `/clear`. `/logbook` is the on-demand, full-picture counterpart.
 - `LOGBOOK.md` is committed and hand-editable. Keep the `- [ ]` checkbox shape and
   the category headings; the module normalizes the rest on the next write.
+- **Auto-migration.** Earlier versions named this file `LOG.md` / `FOLLOWUPS.md`.
+  The module reads any legacy file and merges its items in (deduped), so a rename
+  never orphans a backlog. The first write in a project (a capture, `resolve`, or
+  `add`) consolidates everything into `LOGBOOK.md` and removes the legacy files —
+  a visible git change. Nothing is lost across the rename.

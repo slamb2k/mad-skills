@@ -269,6 +269,41 @@ test('AC-012 add creates an ideas/manual item dated today', () => {
   } finally { rm(dir); }
 });
 
+// ─── legacy migration: a rename must never orphan committed items ───────
+
+test('read merges legacy FOLLOWUPS.md and LOG.md so nothing is orphaned', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'FOLLOWUPS.md'), fl.serialize([item({ title: 'from followups' })]));
+    fs.writeFileSync(path.join(dir, 'LOG.md'), fl.serialize([item({ title: 'from log' })]));
+    // no LOGBOOK.md yet — legacy items must still surface
+    assert.equal(fl.count(dir), 2);
+    assert.deepEqual(fl.openItems(dir).map((i) => i.title).sort(), ['from followups', 'from log']);
+  } finally { rm(dir); }
+});
+
+test('a write consolidates legacy files into LOGBOOK.md and retires them', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'FOLLOWUPS.md'), fl.serialize([item({ title: 'legacy A' })]));
+    fs.writeFileSync(path.join(dir, 'LOG.md'), fl.serialize([item({ title: 'legacy B' })]));
+    fl.add(dir, { title: 'brand new' }, { today: '2026-07-17' });
+    assert.ok(fs.existsSync(path.join(dir, 'LOGBOOK.md')));
+    assert.ok(!fs.existsSync(path.join(dir, 'FOLLOWUPS.md')));
+    assert.ok(!fs.existsSync(path.join(dir, 'LOG.md')));
+    assert.deepEqual(fl.openItems(dir).map((i) => i.title).sort(), ['brand new', 'legacy A', 'legacy B']);
+  } finally { rm(dir); }
+});
+
+test('merge dedupes an item present in both a legacy file and LOGBOOK.md', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), fl.serialize([item({ title: 'shared item' })]));
+    fs.writeFileSync(path.join(dir, 'LOG.md'), fl.serialize([item({ title: 'Shared Item' })])); // case-diff dup
+    assert.equal(fl.count(dir), 1);
+  } finally { rm(dir); }
+});
+
 // ─── round-trip: parse ∘ serialize is lossless (Validation §10) ─────────
 
 test('parse/serialize round-trips items, links, archive, empty categories', () => {
