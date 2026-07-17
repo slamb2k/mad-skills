@@ -170,11 +170,11 @@ From PROJECT_REPORT:
 
 **Skip this step if an existing project was detected in Step 2b.**
 
-Launch **Bash subagent** (haiku) to set up the project:
+Launch **general-purpose** subagent (bash) (haiku) to set up the project:
 
 ```
 Task(
-  subagent_type: "Bash",
+  subagent_type: "general-purpose",
   model: "haiku",
   description: "Initialize distil project",
   prompt: "Follow the project setup instructions:
@@ -273,7 +273,7 @@ Launch as a **background Bash** to avoid blocking the primary agent:
 
 ```
 Task(
-  subagent_type: "Bash",
+  subagent_type: "general-purpose",
   run_in_background: true,
   description: "Start Vite dev server",
   prompt: "{package_manager} run dev --port {PORT}"

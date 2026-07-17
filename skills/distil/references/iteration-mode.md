@@ -141,7 +141,7 @@ Otherwise launch as background Bash:
 
 ```
 Task(
-  subagent_type: "Bash",
+  subagent_type: "general-purpose",
   run_in_background: true,
   description: "Start Vite dev server",
   prompt: "{package_manager} run dev --port {PORT}"
