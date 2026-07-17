@@ -214,11 +214,11 @@ rigging against stale repo state.
 
 ## Phase 1: System Requirements Check
 
-Launch **Bash subagent** (haiku — simple checks):
+Launch **general-purpose** subagent (bash) (haiku — simple checks):
 
 ```
 Task(
-  subagent_type: "Bash",
+  subagent_type: "general-purpose",
   model: "haiku",
   description: "Check system requirements",
   prompt: <read from references/phase-prompts.md#phase-1>
@@ -237,11 +237,11 @@ Options for missing git config:
 
 ## Phase 2: Repository Analysis
 
-Launch **Bash subagent** (haiku):
+Launch **general-purpose** subagent (bash) (haiku):
 
 ```
 Task(
-  subagent_type: "Bash",
+  subagent_type: "general-purpose",
   model: "haiku",
   description: "Analyze repository",
   prompt: <read from references/phase-prompts.md#phase-2>
@@ -317,11 +317,11 @@ inject identical text.
 
 ## Phase 5: Verification
 
-Launch **Bash subagent** (haiku):
+Launch **general-purpose** subagent (bash) (haiku):
 
 ```
 Task(
-  subagent_type: "Bash",
+  subagent_type: "general-purpose",
   model: "haiku",
   description: "Verify configuration",
   prompt: <read from references/phase-prompts.md#phase-5>

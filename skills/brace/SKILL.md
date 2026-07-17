@@ -113,11 +113,11 @@ used for OMC — see `references/superpowers-deferral.md`.
 
 ## Phase 1: Directory Scan
 
-Launch **Bash** subagent (**haiku**):
+Launch **general-purpose** subagent (bash) (**haiku**):
 
 ```
 Task(
-  subagent_type: "Bash",
+  subagent_type: "general-purpose",
   model: "haiku",
   description: "Scan directory for existing scaffold structure",
   prompt: <read from references/phase-prompts.md#phase-1>
@@ -277,11 +277,11 @@ When updating an existing project CLAUDE.md (not creating from template):
 
 ## Phase 5: Verification & Report
 
-Launch **Bash** subagent (**haiku**):
+Launch **general-purpose** subagent (bash) (**haiku**):
 
 ```
 Task(
-  subagent_type: "Bash",
+  subagent_type: "general-purpose",
   model: "haiku",
   description: "Verify project scaffold",
   prompt: <read from references/phase-prompts.md#phase-5>

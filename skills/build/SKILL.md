@@ -275,11 +275,11 @@ Task(
 
 ## Stage 7: Verify
 
-Launch **Bash subagent** (haiku):
+Launch **general-purpose** subagent (bash) (haiku):
 
 ```
 Task(
-  subagent_type: "Bash",
+  subagent_type: "general-purpose",
   model: "haiku",
   description: "Run verification tests",
   prompt: <read from references/stage-prompts.md#stage-7>
