@@ -2,7 +2,7 @@
 
 ![Mad Skills](assets/mad-skills.png)
 
-A skill framework for Claude Code. Ships 10 skills covering the full development lifecycle — from project initialization to shipping PRs.
+A skill framework for Claude Code. Ships 14 skills covering the full development lifecycle — from project initialization to shipping PRs.
 
 ## Skills
 
@@ -12,7 +12,11 @@ A skill framework for Claude Code. Ships 10 skills covering the full development
 | **brace** | `/brace` | Initialize projects with a standard scaffold. Creates specs/, tools/, context/ directories, project CLAUDE.md, and branch protection. |
 | **distil** | `/distil` | Generate multiple unique web design variations. Creates a Vite + React + TypeScript + Tailwind project with N designs at /1, /2, /3. |
 | **dock** | `/dock` | Generate container release pipelines. Builds once, promotes immutable images through dev → staging → prod. Supports Azure Container Apps, AWS Fargate, Cloud Run, Kubernetes, Dokku, Coolify, CapRover. |
+| **ferry** | `/ferry` | Ferry a session's live state across a context reset — write a waybill and signal a fresh session to resume from it. Clean-context handoff / checkpoint before `/clear`. |
+| **hoist** | `/hoist` | Generate low-infrastructure release pipelines that publish artifacts directly — npm/PyPI/crates/RubyGems/NuGet/Go packages, GitHub Releases, static sites, serverless functions. OIDC/trusted publishing. The non-container sibling of /dock. |
 | **keel** | `/keel` | Generate IaC pipelines (Terraform, Bicep, Pulumi, CDK) to provision cloud infrastructure. Plans on PR, applies on merge. Provisions what /dock deploys to. |
+| **launch** | `/launch` | Run the full idea-to-merged-PR pipeline end to end (interview → plan → build → ship). Explicit-only. |
+| **logbook** | `/logbook` | "What's on deck" — one command, two sections: computed best-practice lifecycle steps + your committed follow-ups backlog (`LOGBOOK.md`). List, review, resolve, dismiss, or add follow-ups. |
 | **prime** | `/prime` | Load project context before feature work. Supports domain-specific context (security, routing, dashboard, etc.). |
 | **rig** | `/rig` | Bootstrap repos with lefthook hooks, commit templates, PR templates, and GitHub Actions workflows. Idempotent. |
 | **ship** | `/ship` | Full PR lifecycle — sync with main, create branch, commit, push, create PR, wait for CI, fix issues, squash merge, cleanup. |
@@ -21,7 +25,7 @@ A skill framework for Claude Code. Ships 10 skills covering the full development
 
 ## Lifecycle Overview
 
-The 10 skills form a complete development-to-deployment pipeline. Each skill produces artifacts that downstream skills consume.
+The 14 skills form a complete development-to-deployment pipeline. Each skill produces artifacts that downstream skills consume.
 
 ```mermaid
 graph LR
@@ -45,7 +49,8 @@ graph LR
 |-------|--------|--------------|
 | **Setup** | `/brace` → `/rig` | Initialize project structure, install hooks, templates, CI workflows |
 | **Develop** | `/speccy` → `/build` → `/ship` | Spec features, implement in isolated subagents, merge via PR lifecycle |
-| **Deploy** | `/keel` → `/dock` | Provision cloud infrastructure, then deploy containers to it |
+| **Deploy** | `/keel` → `/dock` or `/hoist` | Provision cloud infrastructure, then deploy containers (`/dock`) or publish artifacts directly (`/hoist`) |
+| **Utility** | `/sync` · `/prime` · `/ferry` · `/logbook` | Sync with main, load context, hand off across `/clear`, review what's on deck (lifecycle steps + follow-ups) |
 
 Supporting skills (`/sync`, `/prime`, `/distil`) are used as needed throughout:
 - `/sync` — Pull latest changes before starting work
@@ -392,6 +397,10 @@ graph TB
 | `/sync` | Clean working tree | Any skill (pre-work) |
 | `/prime` | Domain context in memory | `/build` (informed decisions) |
 | `/distil` | Multiple web design variations | `/build` (chosen design) |
+| `/hoist` | Release workflow, publish config | CI/CD (publish) |
+| `/ferry` | `waybill.md` (session state) | A fresh session (resume) |
+| `/logbook` | `LOGBOOK.md` (follow-ups backlog) | You (review/resolve) |
+| `/launch` | Orchestrates the full pipeline | — |
 
 ---
 
@@ -401,7 +410,7 @@ Three methods are available. The table below shows what each delivers:
 
 | | Plugin | npx skills | npm package |
 |---|---|---|---|
-| Skills (slash commands) | ✅ all 10 | ✅ all 10 | — |
+| Skills (slash commands) | ✅ all 14 | ✅ all 14 | — |
 | Bundled scripts (sync, CI, merge) | ✅ | ✅ | — |
 | Session hooks (session-guard) | ✅ | ❌ | — |
 | Cross-agent (Cursor, Cline, etc.) | ❌ Claude Code only | ✅ | — |
@@ -495,7 +504,7 @@ ln -sfn "$DOTFILES_DIR/skills/my-skill" "$HOME/.claude/skills/my-skill"
 
 ```
 mad-skills/
-├── skills/                  # Skill definitions (10 skills)
+├── skills/                  # Skill definitions (14 skills)
 │   ├── build/
 │   ├── brace/
 │   ├── distil/

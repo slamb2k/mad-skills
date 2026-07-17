@@ -8,13 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **logbook** — "What's on deck": one command, two sections — computed best-practice lifecycle steps **and** your committed follow-ups backlog (`LOGBOOK.md`). Merges the former `/next`/`/waypoint` (lifecycle overview) and `/followups` (ledger) into a single pull surface
+- **hoist** — Non-container release pipelines: publish artifacts directly (npm, PyPI, crates, RubyGems, NuGet, Go, GitHub Releases, static sites, serverless) with OIDC/trusted publishing and provenance. The sibling of `/dock`
+- **ferry** — Clean-context session handoff. Writes a `waybill.md` and signals a fresh session to resume, so work survives `/clear`
+- **launch** — Full idea-to-merged-PR pipeline (interview → plan → build → ship). Explicit-only
+- **Lifecycle Recommendation Engine** — computes the next best-practice step from a cheap repo signature and surfaces it ambiently (Session Guard) and on demand (`/logbook`). Platform-aware (GitHub + Azure DevOps), with anti-nag hysteresis
+- **Follow-ups Ledger** — durable `LOGBOOK.md` backlog auto-captured at `/build` and `/ship` debrief so ideas, deferred fixes, and open questions survive `/clear`. Two-track cleanup (deterministic linked auto-resolve + consent-gated free-text review), ~20-item cap, and a cold-start hint
 - **dock** — Container release pipeline generator. Builds once, promotes immutable images through environments (dev → staging → prod). Supports 8 deployment targets (Azure Container Apps, AWS Fargate, Cloud Run, Kubernetes, Dokku, Coolify, CapRover) and 3 CI systems (GitHub Actions, Azure Pipelines, GitLab CI)
 - **keel** — Infrastructure as Code pipeline generator. Interview-driven provisioning of cloud infrastructure (registries, compute, databases, networking, secrets). Supports Terraform, Bicep, Pulumi, and AWS CDK. Plans on PR, applies on merge. Provisions what /dock deploys to
 
 ### Changed
-- Skill count increased from 8 to 10
-- Recommended skill order: `/brace` → `/rig` → `/build` → `/ship` → `/keel` → `/dock`
-- Updated CLAUDE.md, README.md, and CHANGELOG.md to reflect new skills and unified CI/CD pipeline
+- Skill count increased to 14
+- `/next` + `/followups` merged into `/logbook`; the ledger file migrated `FOLLOWUPS.md` → `LOG.md` → `LOGBOOK.md` with backward-compatible auto-migration (legacy files are read and consolidated forward — nothing is orphaned across the rename)
+- Recommended skill order: `/brace` → `/rig` → `/speccy` → `/build` → `/ship` → `/keel` → `/dock`
+- Superpowers is now a soft, runtime-detected dependency: `/speccy`, `/build`, and `/ship` defer their methodology stages to it when installed, and fall back to their standalone pipelines when absent
+
+### Fixed
+- Lifecycle engine no longer offers `/rig` (a GitHub Actions scaffolder) on Azure DevOps repos — an ADO pipeline now counts as CI
+- `hooks/` made self-contained so the installed plugin loads: a required module lived under `scripts/`, a tree the distribution drops, causing `MODULE_NOT_FOUND` in `session-guard`
+- Skill subagent stages use the universally-available `general-purpose` agent instead of a nonexistent `"Bash"` agent type (broke `/brace`, `/rig`, `/distil`, and `/build`'s verify stage)
 
 ## [2.0.14] - 2026-03-09
 

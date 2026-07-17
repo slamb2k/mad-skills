@@ -6,6 +6,24 @@ last_updated: 2026-07-16
 tags: [process, tool, session-guard, skills, lifecycle]
 ---
 
+> **Status note (2026-07-17) — how this shipped and evolved.** This spec is the
+> point-in-time design record; the feature shipped and then evolved past some of
+> the names and structure below. Current reality:
+> - The command is **`/logbook`**, not `/followups`. `/followups` was first
+>   renamed to `/log`, then merged with the lifecycle-overview command
+>   (`/next` → `/waypoint`) into a single **`/logbook`** surface with two labeled
+>   sections (🧭 lifecycle steps · 📌 follow-ups). REQ-041's one-line `/next`→
+>   cross-reference is therefore superseded by that unified two-section view.
+> - The committed file is **`LOGBOOK.md`**, not `FOLLOWUPS.md` (renamed
+>   `FOLLOWUPS.md` → `LOG.md` → `LOGBOOK.md`). The module reads legacy filenames
+>   and consolidates them forward, so no ledger is orphaned across the renames.
+> - The shared module is `hooks/lib/logbook.cjs`; the Session Guard subcommands
+>   are `logbook-*` and the markers `LOGBOOK_*`.
+>
+> Everything else — storage model, auto-capture, two-track cleanup, cap/eviction,
+> cold-start gating, acceptance criteria — shipped as specified. The requirements
+> below are preserved verbatim as the original design.
+
 # Introduction
 
 The Follow-ups Ledger gives the good ideas, deferred fixes, open questions, and
