@@ -7,7 +7,7 @@ const os = require('os');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const fl = require('./log.cjs');
+const fl = require('./logbook.cjs');
 
 // ─── fixtures / helpers ─────────────────────────────────────────────────
 
@@ -61,7 +61,7 @@ test('AC-001 capture appends debrief items under mapped categories', () => {
     assert.equal(items.find((i) => i.title.startsWith('compute')).category, 'debt');
     // source + date recorded, and file present on disk (staged/committable)
     assert.equal(items[0].date, '2026-07-16');
-    assert.ok(fs.existsSync(path.join(dir, 'LOG.md')));
+    assert.ok(fs.existsSync(path.join(dir, 'LOGBOOK.md')));
   } finally { rm(dir); }
 });
 
@@ -115,7 +115,7 @@ test('AC-004 linked task# auto-resolves silently to archive', () => {
 
     assert.equal(resolved.length, 1);
     assert.equal(fl.count(dir), 0);
-    const text = fs.readFileSync(path.join(dir, 'LOG.md'), 'utf-8');
+    const text = fs.readFileSync(path.join(dir, 'LOGBOOK.md'), 'utf-8');
     assert.match(text, /- \[x\] rig-refresh predicate is shallow.*resolved:2026-07-16/);
   } finally { rm(dir); }
 });
@@ -177,12 +177,12 @@ test('AC-006 reviewCandidates never mutates a free-text item', () => {
   try {
     commit(dir, 'Add caching layer to the fetch responses path');
     fl.write(dir, [item({ title: 'Add caching layer to fetch responses' })]);
-    const before = fs.readFileSync(path.join(dir, 'LOG.md'), 'utf-8');
+    const before = fs.readFileSync(path.join(dir, 'LOGBOOK.md'), 'utf-8');
 
     fl.reviewCandidates(dir);
     fl.autoResolveLinked(dir); // free-text (no link) untouched by deterministic track too
 
-    assert.equal(fs.readFileSync(path.join(dir, 'LOG.md'), 'utf-8'), before);
+    assert.equal(fs.readFileSync(path.join(dir, 'LOGBOOK.md'), 'utf-8'), before);
     assert.equal(fl.count(dir), 1);
   } finally { rm(dir); }
 });
@@ -192,10 +192,10 @@ test('AC-006 reviewCandidates never mutates a free-text item', () => {
 const GUARD = path.join(__dirname, '..', 'session-guard.cjs');
 
 function hint(dir) {
-  return execSync(`node ${JSON.stringify(GUARD)} log-hint`, { cwd: dir, encoding: 'utf-8', env: { ...process.env, CLAUDE_PROJECT_DIR: dir } }).trim();
+  return execSync(`node ${JSON.stringify(GUARD)} logbook-hint`, { cwd: dir, encoding: 'utf-8', env: { ...process.env, CLAUDE_PROJECT_DIR: dir } }).trim();
 }
 
-test('AC-007 log-hint emits a passive line when the ledger is non-empty', () => {
+test('AC-007 logbook-hint emits a passive line when the ledger is non-empty', () => {
   const dir = mkRepo();
   try {
     fl.capture(dir, [
@@ -238,17 +238,17 @@ test('AC-010 resolve N archives the item and drops it from open counts', () => {
     const done = fl.resolve(dir, 2, { today: '2026-07-16' });
     assert.equal(done.title, 'Xsecond');
     assert.equal(fl.count(dir), 1);
-    const text = fs.readFileSync(path.join(dir, 'LOG.md'), 'utf-8');
+    const text = fs.readFileSync(path.join(dir, 'LOGBOOK.md'), 'utf-8');
     assert.match(text, /## Archive[\s\S]*- \[x\] Xsecond/);
   } finally { rm(dir); }
 });
 
 // ─── AC-011: degrade to no-op on malformed file ─────────────────────────
 
-test('AC-011 malformed LOG.md degrades to no-op', () => {
+test('AC-011 malformed LOGBOOK.md degrades to no-op', () => {
   const dir = mkRepo();
   try {
-    fs.writeFileSync(path.join(dir, 'LOG.md'), '## Ideas\n- [ ] busted line with no date or source\ngarbage');
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), '## Ideas\n- [ ] busted line with no date or source\ngarbage');
     assert.doesNotThrow(() => fl.count(dir));
     assert.equal(fl.count(dir), 0);
     assert.doesNotThrow(() => fl.autoResolveLinked(dir));
@@ -265,6 +265,41 @@ test('AC-012 add creates an ideas/manual item dated today', () => {
     assert.equal(it.category, 'ideas');
     assert.equal(it.source, 'manual');
     assert.equal(it.date, '2026-07-16');
+    assert.equal(fl.count(dir), 1);
+  } finally { rm(dir); }
+});
+
+// ─── legacy migration: a rename must never orphan committed items ───────
+
+test('read merges legacy FOLLOWUPS.md and LOG.md so nothing is orphaned', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'FOLLOWUPS.md'), fl.serialize([item({ title: 'from followups' })]));
+    fs.writeFileSync(path.join(dir, 'LOG.md'), fl.serialize([item({ title: 'from log' })]));
+    // no LOGBOOK.md yet — legacy items must still surface
+    assert.equal(fl.count(dir), 2);
+    assert.deepEqual(fl.openItems(dir).map((i) => i.title).sort(), ['from followups', 'from log']);
+  } finally { rm(dir); }
+});
+
+test('a write consolidates legacy files into LOGBOOK.md and retires them', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'FOLLOWUPS.md'), fl.serialize([item({ title: 'legacy A' })]));
+    fs.writeFileSync(path.join(dir, 'LOG.md'), fl.serialize([item({ title: 'legacy B' })]));
+    fl.add(dir, { title: 'brand new' }, { today: '2026-07-17' });
+    assert.ok(fs.existsSync(path.join(dir, 'LOGBOOK.md')));
+    assert.ok(!fs.existsSync(path.join(dir, 'FOLLOWUPS.md')));
+    assert.ok(!fs.existsSync(path.join(dir, 'LOG.md')));
+    assert.deepEqual(fl.openItems(dir).map((i) => i.title).sort(), ['brand new', 'legacy A', 'legacy B']);
+  } finally { rm(dir); }
+});
+
+test('merge dedupes an item present in both a legacy file and LOGBOOK.md', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), fl.serialize([item({ title: 'shared item' })]));
+    fs.writeFileSync(path.join(dir, 'LOG.md'), fl.serialize([item({ title: 'Shared Item' })])); // case-diff dup
     assert.equal(fl.count(dir), 1);
   } finally { rm(dir); }
 });

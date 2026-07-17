@@ -13,8 +13,8 @@
     "prompt": "what's on deck for this project?",
     "assertions": [
       { "type": "contains", "value": "██" },
-      { "type": "regex", "value": "(lifecycle|follow-?ups|log-list|lifecycle-next)", "flags": "i" },
-      { "type": "semantic", "value": "Describes showing two labeled sections in one view: computed best-practice lifecycle steps AND the committed follow-ups backlog, querying both lifecycle-next and log-list, and treating both-empty as 'all clear'" }
+      { "type": "regex", "value": "(lifecycle|follow-?ups|logbook-list|lifecycle-next)", "flags": "i" },
+      { "type": "semantic", "value": "Describes showing two labeled sections in one view: computed best-practice lifecycle steps AND the committed follow-ups backlog, querying both lifecycle-next and logbook-list, and treating both-empty as 'all clear'" }
     ]
   },
   {

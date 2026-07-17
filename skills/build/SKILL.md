@@ -341,7 +341,7 @@ Invoke the `/ship` skill:
 3. **If no items found, skip to Final Report.**
 
 4. **Auto-capture into the Follow-ups Ledger (REQ-010 — always, not skippable).**
-   Every surfaced item goes into the committed `LOG.md` so it survives
+   Every surfaced item goes into the committed `LOGBOOK.md` so it survives
    `/clear`. This is frictionless by design — the old "note it and forget it"
    evaporation is the exact failure being fixed; capture is not gated on a
    choice. The ledger dedupes on entry, so re-surfaced items don't pile up.
@@ -351,7 +351,7 @@ Invoke the `/ship` skill:
    accepted verbatim) and capture it:
    ```bash
    _R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
-   node "$_R/hooks/session-guard.cjs" log-capture \
+   node "$_R/hooks/session-guard.cjs" logbook-capture \
      '[{"title":"…","category":"deferred_fix","source":"/build debrief"}, …]'
    ```
    Note any `evicted:[…]` in the output — mention evictions to the user (never
@@ -361,7 +361,7 @@ Invoke the `/ship` skill:
    user reviews the whole backlog at the checkpoint where they're most likely to
    act:
    ```bash
-   node "$_R/hooks/session-guard.cjs" log-list
+   node "$_R/hooks/session-guard.cjs" logbook-list
    ```
 
 6. Present numbered summary via AskUserQuestion grouped by category.
@@ -372,14 +372,14 @@ Invoke the `/ship` skill:
    - **"Fix now"** → create a task list of resolution activities for
      each item; present for user confirmation, then work through them. When
      fixed, resolve the matching ledger item:
-     `node "$_R/hooks/session-guard.cjs" log-resolve <n>`.
+     `node "$_R/hooks/session-guard.cjs" logbook-resolve <n>`.
    - **"Create tasks for future sessions"** → use `TaskCreate` for each
      item as a persistent task, with category as prefix and suggested
      action as description. For each, **link the ledger item to the task**
      (REQ-012) so it auto-resolves when the task completes — re-capture that
      item with a link (dedupe attaches it to the existing entry):
-     `node "$_R/hooks/session-guard.cjs" log-capture '[{"title":"<same title>","source":"/build debrief","link":"task#<id>"}]'`.
-   - **"Leave in the ledger"** → items stay captured in `LOG.md`; resurface
+     `node "$_R/hooks/session-guard.cjs" logbook-capture '[{"title":"<same title>","source":"/build debrief","link":"task#<id>"}]'`.
+   - **"Leave in the ledger"** → items stay captured in `LOGBOOK.md`; resurface
      later via `/logbook`. No further action now (nothing is lost).
    - **"Let me choose per item"** → present each individually with full
      description, evidence, and impact. Options per item:

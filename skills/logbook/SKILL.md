@@ -59,7 +59,7 @@ clearly separated because they're genuinely different:
   explicitly asking, this **bypasses the ambient anti-nag suppression**
   (active-cycle, cooldown, dismissal watermarks) — you see the full picture.
 - **📌 Follow-ups** — what *you* said you'd come back to (ideas, deferred fixes,
-  open questions, risks, tech debt), **committed** to `LOG.md` at the repo root
+  open questions, risks, tech debt), **committed** to `LOGBOOK.md` at the repo root
   and auto-captured at `/build` and `/ship` debrief so they survive `/clear`.
   Personal and durable.
 
@@ -97,15 +97,15 @@ Query both surfaces, then render one box:
 
 ```bash
 node "$_R/hooks/session-guard.cjs" lifecycle-next   # 🧭 lifecycle
-node "$_R/hooks/session-guard.cjs" log-list          # 📌 follow-ups
+node "$_R/hooks/session-guard.cjs" logbook-list          # 📌 follow-ups
 ```
 
 - `lifecycle-next` prints a `LIFECYCLE_NEXT_BEGIN` … `LIFECYCLE_NEXT_END` block;
   each line is `{command} — {why}` (with `[previously dismissed]` where relevant),
   or `none` when nothing applies.
-- `log-list` prints a `LOG_LIST_BEGIN` … `LOG_LIST_END` block of category
+- `logbook-list` prints a `LOGBOOK_LIST_BEGIN` … `LOGBOOK_LIST_END` block of category
   headings + numbered items `N. {title} — {source} ({date}) [{link}]`, or
-  `LOG_LIST_EMPTY`.
+  `LOGBOOK_LIST_EMPTY`.
 
 Render both in a single box. **Letter** the lifecycle steps (A, B, C…) and keep
 the follow-up **numbers** (1, 2, 3…) so the two act-verbs never collide:
@@ -130,7 +130,7 @@ the follow-up **numbers** (1, 2, 3…) so the two act-verbs never collide:
 
 Empty-state rules (never fabricate):
 - Lifecycle `none` → show `✅ fully caught up — no lifecycle steps apply`.
-- `LOG_LIST_EMPTY` → show `— no open follow-ups`.
+- `LOGBOOK_LIST_EMPTY` → show `— no open follow-ups`.
 - **Both** empty → collapse to a single line: `✅ All clear — nothing on deck.`
   and stop (no verbs footer).
 
@@ -144,32 +144,32 @@ prompt, use `AskUserQuestion` with each listed command plus *Not now*.
 ### review (assisted follow-up cleanup)
 
 ```bash
-node "$_R/hooks/session-guard.cjs" log-review
+node "$_R/hooks/session-guard.cjs" logbook-review
 ```
 Two tracks:
 1. **Deterministic** — linked follow-ups whose link is satisfied (`task#`,
    `spec:`, `rec:`, `pr#`/`commit:`) auto-resolve **silently**; a
-   `LOG_AUTORESOLVED [...]` line means they were already handled.
+   `LOGBOOK_AUTORESOLVED [...]` line means they were already handled.
 2. **Assisted** — free-text items that look done or stale print in a
-   `LOG_REVIEW_BEGIN` … `LOG_REVIEW_END` block as `N. {title} — {reason}`
-   (`LOG_REVIEW_EMPTY` = nothing to review).
+   `LOGBOOK_REVIEW_BEGIN` … `LOGBOOK_REVIEW_END` block as `N. {title} — {reason}`
+   (`LOGBOOK_REVIEW_EMPTY` = nothing to review).
 
 For the assisted candidates you **MUST get user confirmation before resolving
 anything** (never silently drop a free-text idea). Present them via
 `AskUserQuestion` (multi-select + a "keep all" escape); for each confirmed item
-run `log-resolve <n>`. Anything not confirmed stays open.
+run `logbook-resolve <n>`. Anything not confirmed stays open.
 
-**Task-linked items (`task#`):** `log-review` runs as a plain Node process and
+**Task-linked items (`task#`):** `logbook-review` runs as a plain Node process and
 can't see harness task state, so it does not auto-resolve `task#` links. After
-it, scan the `log-list` output for items annotated `[task#<id>]`; for each, call
+it, scan the `logbook-list` output for items annotated `[task#<id>]`; for each, call
 `TaskGet <id>` — if the task is `completed`, resolve it silently:
-`node "$_R/hooks/session-guard.cjs" log-resolve <n>`.
+`node "$_R/hooks/session-guard.cjs" logbook-resolve <n>`.
 
 ### resolve / dismiss
 
 ```bash
-node "$_R/hooks/session-guard.cjs" log-resolve <n>   # done
-node "$_R/hooks/session-guard.cjs" log-dismiss <n>   # not done, not wanted
+node "$_R/hooks/session-guard.cjs" logbook-resolve <n>   # done
+node "$_R/hooks/session-guard.cjs" logbook-dismiss <n>   # not done, not wanted
 ```
 Both move the follow-up to the Archive section and drop it from the open
 list/counts. Confirm the archived title.
@@ -177,7 +177,7 @@ list/counts. Confirm the archived title.
 ### add
 
 ```bash
-node "$_R/hooks/session-guard.cjs" log-add "<text>" --category <ideas|fixes|questions|risks|debt> --link <link>
+node "$_R/hooks/session-guard.cjs" logbook-add "<text>" --category <ideas|fixes|questions|risks|debt> --link <link>
 ```
 `--category` (default `ideas`) and `--link` are optional. Source is `manual`,
 date is today. Confirm the added item.
@@ -196,5 +196,10 @@ date is today. Confirm the added item.
   surfaces the single causal/drift lifecycle offer mid-work, and a passive
   cold-start hint (`📌 N open follow-ups`) on a genuine launch/reconnect — never
   on `/clear`. `/logbook` is the on-demand, full-picture counterpart.
-- `LOG.md` is committed and hand-editable. Keep the `- [ ]` checkbox shape and
+- `LOGBOOK.md` is committed and hand-editable. Keep the `- [ ]` checkbox shape and
   the category headings; the module normalizes the rest on the next write.
+- **Auto-migration.** Earlier versions named this file `LOG.md` / `FOLLOWUPS.md`.
+  The module reads any legacy file and merges its items in (deduped), so a rename
+  never orphans a backlog. The first write in a project (a capture, `resolve`, or
+  `add`) consolidates everything into `LOGBOOK.md` and removes the legacy files —
+  a visible git change. Nothing is lost across the rename.
