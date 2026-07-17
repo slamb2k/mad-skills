@@ -28,7 +28,7 @@ const { checkGit } = require('./lib/git-checks.cjs');
 const { checkTaskList } = require('./lib/task-checks.cjs');
 const { checkStaleness } = require('./lib/staleness.cjs');
 const lifecycle = require('./lib/lifecycle.cjs');
-const ledger = require('./lib/log.cjs');
+const ledger = require('./lib/logbook.cjs');
 
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const CLAUDE_MD = join(PROJECT_DIR, 'CLAUDE.md');
@@ -468,21 +468,21 @@ switch (command) {
     } catch (e) { console.error(`lifecycle-next failed: ${e.message}`); }
     break;
   }
-  case 'log-hint': {
+  case 'logbook-hint': {
     // Passive cold-start line — gated to startup|resume by the hooks.json
     // matcher, silent on an empty ledger (REQ-042/043, AC-007/008).
     try {
       const n = ledger.count(PROJECT_DIR);
       if (n > 0) console.log(`[SESSION GUARD] 📌 ${n} open follow-up${n === 1 ? '' : 's'} — /logbook to review`);
-    } catch (e) { console.error(`log-hint failed: ${e.message}`); }
+    } catch (e) { console.error(`logbook-hint failed: ${e.message}`); }
     break;
   }
-  case 'log-list': {
+  case 'logbook-list': {
     // Numbered open ledger grouped by category — the /logbook pull surface.
     try {
       const open = ledger.openItems(PROJECT_DIR);
-      if (!open.length) { console.log('LOG_LIST_EMPTY'); break; }
-      console.log('LOG_LIST_BEGIN');
+      if (!open.length) { console.log('LOGBOOK_LIST_EMPTY'); break; }
+      console.log('LOGBOOK_LIST_BEGIN');
       let n = 0;
       let cat = null;
       for (const it of open) {
@@ -490,34 +490,34 @@ switch (command) {
         const link = it.link ? ` [${it.link}]` : '';
         console.log(`${++n}. ${it.title} — ${it.source} (${it.date})${link}`);
       }
-      console.log('LOG_LIST_END');
-    } catch (e) { console.error(`log-list failed: ${e.message}`); }
+      console.log('LOGBOOK_LIST_END');
+    } catch (e) { console.error(`logbook-list failed: ${e.message}`); }
     break;
   }
-  case 'log-capture': {
+  case 'logbook-capture': {
     // Auto-capture from /build & /ship debrief; arg is a JSON array of items.
     try {
       const items = JSON.parse(process.argv[3] || '[]');
       const r = ledger.capture(PROJECT_DIR, items);
-      console.log(`LOG_CAPTURED added:${r.added} deduped:${r.deduped.length} evicted:${JSON.stringify(r.evicted)}`);
-    } catch (e) { console.error(`log-capture failed: ${e.message}`); }
+      console.log(`LOGBOOK_CAPTURED added:${r.added} deduped:${r.deduped.length} evicted:${JSON.stringify(r.evicted)}`);
+    } catch (e) { console.error(`logbook-capture failed: ${e.message}`); }
     break;
   }
-  case 'log-resolve': {
+  case 'logbook-resolve': {
     try {
       const it = ledger.resolve(PROJECT_DIR, process.argv[3]);
       console.log(it ? `Resolved: ${it.title}` : `No open item at ${process.argv[3]}`);
-    } catch (e) { console.error(`log-resolve failed: ${e.message}`); }
+    } catch (e) { console.error(`logbook-resolve failed: ${e.message}`); }
     break;
   }
-  case 'log-dismiss': {
+  case 'logbook-dismiss': {
     try {
       const it = ledger.dismiss(PROJECT_DIR, process.argv[3]);
       console.log(it ? `Dismissed: ${it.title}` : `No open item at ${process.argv[3]}`);
-    } catch (e) { console.error(`log-dismiss failed: ${e.message}`); }
+    } catch (e) { console.error(`logbook-dismiss failed: ${e.message}`); }
     break;
   }
-  case 'log-add': {
+  case 'logbook-add': {
     try {
       const argv = process.argv.slice(3);
       const flag = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
@@ -525,26 +525,26 @@ switch (command) {
       const { item, evicted } = ledger.add(PROJECT_DIR, { title, category: flag('--category') || 'ideas', link: flag('--link') || null });
       console.log(item ? `Added: ${item.title} (${item.category})` : 'Nothing added');
       if (evicted.length) console.log(`Evicted (cap reached): ${JSON.stringify(evicted)}`);
-    } catch (e) { console.error(`log-add failed: ${e.message}`); }
+    } catch (e) { console.error(`logbook-add failed: ${e.message}`); }
     break;
   }
-  case 'log-review': {
+  case 'logbook-review': {
     // Assisted cleanup: silently auto-resolve linked items (REQ-030), then
     // surface free-text likely-done/stale candidates for user-confirmed
     // resolution (REQ-031/032 — never resolved here without confirmation).
     try {
       const resolved = ledger.autoResolveLinked(PROJECT_DIR);
-      if (resolved.length) console.log(`LOG_AUTORESOLVED ${JSON.stringify(resolved.map((i) => i.title))}`);
+      if (resolved.length) console.log(`LOGBOOK_AUTORESOLVED ${JSON.stringify(resolved.map((i) => i.title))}`);
       const cands = ledger.reviewCandidates(PROJECT_DIR);
-      if (!cands.length) { console.log('LOG_REVIEW_EMPTY'); break; }
-      console.log('LOG_REVIEW_BEGIN');
+      if (!cands.length) { console.log('LOGBOOK_REVIEW_EMPTY'); break; }
+      console.log('LOGBOOK_REVIEW_BEGIN');
       for (const c of cands) console.log(`${c.n}. ${c.item.title} — ${c.reason}`);
-      console.log('LOG_REVIEW_END');
-    } catch (e) { console.error(`log-review failed: ${e.message}`); }
+      console.log('LOGBOOK_REVIEW_END');
+    } catch (e) { console.error(`logbook-review failed: ${e.message}`); }
     break;
   }
   default:
     console.error(`Session Guard v${config.version}`);
-    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint|lifecycle-next|log-hint|log-list|log-capture|log-resolve|log-dismiss|log-add|log-review>');
+    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint|lifecycle-next|logbook-hint|logbook-list|logbook-capture|logbook-resolve|logbook-dismiss|logbook-add|logbook-review>');
     process.exit(1);
 }

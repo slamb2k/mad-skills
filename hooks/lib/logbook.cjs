@@ -3,7 +3,7 @@
 /**
  * Follow-ups Ledger.
  *
- * A committed `LOG.md` at the repo root is the single source of truth:
+ * A committed `LOGBOOK.md` at the repo root is the single source of truth:
  * parse it on read, rewrite it on mutation, never keep a parallel store
  * (REQ-004). Pure markdown parse/serialize/dedupe/cap logic is IO-free and
  * drives every acceptance test; `read`/`write`/`capture`/`resolve`/… are the
@@ -21,7 +21,7 @@ const { git, readText } = require('./utils.cjs');
 
 // ─── constants ──────────────────────────────────────────────────────────
 
-const FILENAME = 'LOG.md';
+const FILENAME = 'LOGBOOK.md';
 const CAP = 20;            // REQ-020: soft cap on open items
 const ARCHIVE_MAX = 30;    // REQ-022: bounded archive
 const DEDUPE_THRESHOLD = 0.6; // REQ-011: token-set Jaccard for "closely matches"
@@ -62,7 +62,7 @@ const STOPWORDS = new Set([
 
 const HEADER = `# Follow-ups
 
-<!-- Managed by MAD Skills /log. Hand-edits are preserved; keep the
+<!-- Managed by MAD Skills /logbook. Hand-edits are preserved; keep the
      \`- [ ]\` checkbox shape and category headings. -->
 `;
 
@@ -128,7 +128,7 @@ function toCategory(cat) {
 // ─── parse (pure) ───────────────────────────────────────────────────────
 
 /**
- * Parse LOG.md text into a flat item array (file order preserved).
+ * Parse LOGBOOK.md text into a flat item array (file order preserved).
  * Malformed item lines are skipped, never thrown on (CON-002). Items under
  * the Archive heading are treated as resolved/dismissed.
  */
@@ -207,7 +207,7 @@ function serializeItem(item) {
   return line;
 }
 
-/** Render the full LOG.md text from an item array. */
+/** Render the full LOGBOOK.md text from an item array. */
 function serialize(items) {
   const out = [HEADER];
   for (const cat of CATEGORIES) {
@@ -274,7 +274,7 @@ function capEvict(items, cap, when) {
 
 // ─── IO wrappers ────────────────────────────────────────────────────────
 
-/** Parse LOG.md (CON-002 safe). Returns { items, path }. */
+/** Parse LOGBOOK.md (CON-002 safe). Returns { items, path }. */
 function read(projectDir) {
   const path = ledgerPath(projectDir);
   const items = safe(() => parse(readText(path)), []);
@@ -474,7 +474,7 @@ function reviewCandidates(projectDir, opts = {}) {
     const out = [];
     open.forEach((it, i) => {
       if (it.link) return; // linked items are the deterministic track
-      const n = i + 1; // 1-based, matches log-list / resolve <n>
+      const n = i + 1; // 1-based, matches logbook-list / resolve <n>
       const match = recent.find((s) => similarity(s, it.title) >= DEDUPE_THRESHOLD);
       if (match) { out.push({ item: it, n, reason: `likely done — recent commit: "${match}"` }); return; }
       if (daysBetween(it.date, when) >= (opts.staleDays || STALE_DAYS)) {
