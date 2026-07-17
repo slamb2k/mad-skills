@@ -17,7 +17,7 @@
 
 const { existsSync, writeFileSync, unlinkSync } = require('fs');
 const { join } = require('path');
-const { git, readText } = require('./utils.cjs');
+const { git, gitArgs, readText } = require('./utils.cjs');
 
 // ─── constants ──────────────────────────────────────────────────────────
 
@@ -454,14 +454,31 @@ function linkSatisfied(projectDir, link, opts) {
   if (task) return opts.taskDone ? !!opts.taskDone(task[1]) : false;
 
   const spec = link.match(/^spec:(.+)$/);
-  if (spec) return !existsSync(join(projectDir, spec[1])); // built/removed → gone
+  if (spec) {
+    const p = spec[1];
+    if (existsSync(join(projectDir, p))) return false; // still on disk — not built/removed
+    // Gone from disk: only resolve if it *once existed* (is in git history), so a
+    // link to a path that never existed (a typo) doesn't auto-resolve on sight.
+    // argv form (no shell) — `p` comes from a hand-editable ledger link.
+    const tracked = gitArgs(['log', '-1', '--format=%H', '--', p], projectDir);
+    return !!(tracked && tracked.trim());
+  }
 
   const rec = link.match(/^rec:(.+)$/);
-  // ponytail: resolves via the committed lifecycle marker `.mad/state/<id>.json`
-  // — fires for rec ids that are skill names (rec:rig, rec:keel). A rec id with
-  // no marker writer (e.g. rec:rig-refresh) simply stays open, which is the safe
-  // failure (GUD-001: keep a possibly-done item rather than wrongly resolve it).
-  if (rec) return existsSync(join(projectDir, '.mad', 'state', `${rec[1]}.json`));
+  if (rec) {
+    return safe(() => {
+      const lc = require('./lifecycle.cjs');
+      if (!(lc.REGISTRY || []).some((r) => r.id === rec[1])) return false; // unknown id → keep open
+      // A committed marker (skill-named recs like rec:rig / rec:keel) is a
+      // definite yes. Otherwise the rec is done when the engine no longer lists
+      // it as applicable — this covers drift recs like rec:rig-refresh whose id
+      // isn't a marker filename (their satisfied() is always true).
+      if (existsSync(join(projectDir, '.mad', 'state', `${rec[1]}.json`))) return true;
+      // recApplicable ignores mute/dismiss (a muted rec must not read as "done")
+      // but keeps real markers so drift recs like rig-refresh resolve correctly.
+      return !lc.recApplicable(projectDir, rec[1]);
+    }, false);
+  }
 
   const pr = link.match(/^pr#(\d+)$/);
   if (pr) return prMerged(projectDir, pr[1]);

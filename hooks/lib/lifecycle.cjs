@@ -53,6 +53,12 @@ function norm(v) {
   return Array.isArray(v) ? [...v].sort() : (v === undefined ? null : v);
 }
 
+/** ADO pipeline YAML: azure-pipelines[*].yml (root or nested) or .azuredevops/*.yml. */
+function isAdoPipelineFile(f) {
+  return /(^|\/)azure-pipelines[^/]*\.ya?ml$/.test(f) ||
+    (f.startsWith('.azuredevops/') && /\.ya?ml$/.test(f));
+}
+
 /** Sorted JSON compare — works for arrays (slices) and scalars (tiers). */
 function deepEqualArr(a, b) {
   return JSON.stringify(norm(a)) === JSON.stringify(norm(b));
@@ -151,10 +157,12 @@ function _compute(projectDir) {
   // CI workflows
   const workflowFiles = files.filter(f =>
     (f.startsWith('.github/workflows/') && (f.endsWith('.yml') || f.endsWith('.yaml'))) ||
-    f === 'azure-pipelines.yml',
+    isAdoPipelineFile(f),
   );
   sig.hasCI = workflowFiles.length > 0;
-  sig.hasAdoPipeline = workflowFiles.some(f => f === 'azure-pipelines.yml');
+  // Broaden in lockstep with the filter — a repo whose only pipeline is
+  // .azuredevops/foo.yml must still count as ADO, or rigged() false-nags /rig.
+  sig.hasAdoPipeline = workflowFiles.some(isAdoPipelineFile);
 
   const ci = new Set();
   const rel = new Set();
@@ -178,6 +186,12 @@ function _compute(projectDir) {
     if (/homebrew/.test(t)) rel.add('homebrew');
     if (/vercel/.test(t)) rel.add('vercel');
     if (/cargo publish/.test(t)) rel.add('crates');
+
+    // ADO deploy/publish tasks — the GitHub-Actions release regexes above don't
+    // match ADO task YAML. Coarse 'ado-deploy' token: a non-empty releaseTargets
+    // marks the pipeline as already handling release, so /dock isn't re-offered.
+    // (Kept out of INFRA_TARGETS — it conflates publish and infra deploy.)
+    if (/azurewebapp@|azurefunctionapp@|azurewebappcontainer@|azurefunctionappcontainer@|azurermwebappdeployment@|azurecontainerapps@|azurermresourcegroupdeployment@|azurecli@|kubernetesmanifest@|helm@|buildandpush|twineauthenticate|\bnuget push\b|az (webapp|functionapp|containerapp|staticwebapp|deployment) |func azure |\bdeployment:/.test(t)) rel.add('ado-deploy');
 
     let m;
     const re = /environment:\s*['"]?([a-z0-9_-]+)['"]?/g;
@@ -331,11 +345,11 @@ const REGISTRY = [
     priority: 30,
     kind: 'lifecycle',
     presentation: 'causal-then-drift',
-    // ponytail: ADO repos excluded — release-target regexes are GitHub-shaped
-    // and can't read ADO deploy YAML (releaseTargets would read empty), so this
-    // would trade the /rig false-nag for a /dock one. ADO release detection is
-    // future work; until then, don't nag ADO repos about release pipelines.
-    requires: s => rigged(s) && !s.hasAdoPipeline && (s.components.length > 0 || s.hasDockerfile) && s.releaseTargets.length === 0,
+    // ADO deploy YAML is now parsed (the 'ado-deploy' release token above), so an
+    // ADO repo that already deploys reads releaseTargets non-empty → satisfied →
+    // not offered, while a CI-only ADO repo can still be offered /dock or /hoist
+    // (both are ADO-capable).
+    requires: s => rigged(s) && (s.components.length > 0 || s.hasDockerfile) && s.releaseTargets.length === 0,
     satisfied: s => s.releaseTargets.length > 0,
     slice: s => [...s.components.map(c => c.language), s.hasDockerfile ? 'docker' : ''].filter(Boolean).sort(),
     select: s => releaseSelect(s),
@@ -588,10 +602,28 @@ function next(projectDir) {
   }
 }
 
+/**
+ * Preference-INDEPENDENT: is this rec still genuinely applicable (needs doing)?
+ * Evaluates with empty prefs so a user's mute/dismiss/cooldown does NOT read as
+ * "done" — but keeps real markers so drift recs (rig-refresh) resolve correctly.
+ * On any error, returns true (assume still applicable) so a linked ledger item
+ * is never wrongly auto-resolved (GUD-001).
+ */
+function recApplicable(projectDir, recId) {
+  try {
+    const signature = computeSignature(projectDir);
+    const markers = readAllMarkers(projectDir);
+    const { all } = selectOffer({ signature, prefs: {}, markers, session: 0, activeCycle: false, pull: true });
+    return (all || []).some(r => r.id === recId);
+  } catch {
+    return true; // CON-003 — keep the item open, don't resolve on error
+  }
+}
+
 module.exports = {
   computeSignature, selectOffer, evaluate, next, isActiveCycle,
   readMarker, writeMarker, readAllMarkers, currentSession, bumpSession,
-  loadLifecyclePrefs, saveLifecyclePrefs, REGISTRY,
+  loadLifecyclePrefs, saveLifecyclePrefs, REGISTRY, recApplicable,
   // extras used by session-guard subcommands
   sliceFor, tier,
   // exposed for release-selection tests
