@@ -49,3 +49,16 @@ No announcement is printed — the deferral logic is purely additive.
 | `build` plan/implement core | `superpowers:executing-plans` / `superpowers:subagent-driven-development` | explore, 3× code-review, verify, ship gate |
 | `ship` final integration | `superpowers:finishing-a-development-branch` | sync, branch, commit, PR, CI-poll, auto-fix |
 | `prime` graphify awareness | — (hint only) | context summary |
+
+## Absolute-path note (REQ-012)
+
+Relative Read/Write/Edit paths do not follow a Bash `cd`. When deferring the
+implementation core to `superpowers:executing-plans` /
+`superpowers:subagent-driven-development`, whoever orchestrates that
+deferral should ensure implementer subagents use absolute paths rooted at
+the correct worktree for every file-tool call once inside a worktree.
+
+This is advisory-only context, not an enforcement mechanism. mad-skills does
+not modify the `superpowers` plugin and does not own Superpowers' own
+implementer-prompt templates (CON-002) — this note cannot be verified or
+enforced by mad-skills itself.

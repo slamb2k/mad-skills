@@ -42,5 +42,13 @@
       { "type": "regex", "value": "(squash|merge)", "flags": "i" },
       { "type": "semantic", "value": "Runs the standalone merge (squash merge and delete branch by default) via merge.sh, with no deferral to superpowers" }
     ]
+  },
+  {
+    "name": "ship-location-mismatch",
+    "prompt": "Before syncing, Bash's shell cwd resolves to a different git toplevel than this session's declared working directory — Bash is inside a leftover worktree. What does /ship do before Stage 1: Sync?",
+    "assertions": [
+      { "type": "contains", "value": "Location Check" },
+      { "type": "semantic", "value": "Runs the Pre-Ship Location Check, which blocks with an AskUserQuestion because Bash's cwd toplevel doesn't match the session's declared working directory, rather than silently proceeding" }
+    ]
   }
 ]

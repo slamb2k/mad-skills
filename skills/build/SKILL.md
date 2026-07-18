@@ -152,9 +152,13 @@ mode — see `references/pre-stage.md` for the full procedure:
 
 1. **Plan Resolution** — turn the PLAN argument into content (file path vs
    free-form text; display the resolved source in the Input box).
-2. **Pre-Build Branch Check** — warn if on a stale feature branch; auto-`/sync`
+2. **Pre-Build Location Check** — run the shared root-mismatch check from
+   `references/location-check.md`; warns via a blocking `AskUserQuestion` if
+   Bash's cwd toplevel doesn't match the session's declared working
+   directory, otherwise passes silently.
+3. **Pre-Build Branch Check** — warn if on a stale feature branch; auto-`/sync`
    if on an out-of-date default branch.
-3. **Execution Mode** — run here now (default) vs hand off to a clean session
+4. **Execution Mode** — run here now (default) vs hand off to a clean session
    via `ferry` (only offered when context is already large *and* the plan is
    self-contained; `--handoff`/`--no-handoff` force it). Subagents are always on
    underneath either choice.

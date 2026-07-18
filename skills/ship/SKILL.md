@@ -150,6 +150,13 @@ substituted into all stage prompts as `{REMOTE}` and `{DEFAULT_BRANCH}`.
 
 ---
 
+## Pre-Ship Location Check
+
+Before syncing, run the shared root-mismatch check from
+`references/location-check.md` (`{caller}` = "before syncing").
+
+---
+
 ## Stage 1: Sync
 
 Run the sync script directly (no LLM needed):
