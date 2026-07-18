@@ -38,9 +38,11 @@ import { readdir, readFile, writeFile, access, mkdir } from "node:fs/promises";
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { loadReferencedFiles } from "./lib/eval-references.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SKILLS_DIR = resolve(__dirname, "..", "skills");
+const REPO_ROOT = resolve(__dirname, "..");
+const SKILLS_DIR = resolve(REPO_ROOT, "skills");
 const RESULTS_DIR = resolve(__dirname, "..", "tests", "results");
 
 const { values: args } = parseArgs({
@@ -218,12 +220,15 @@ Respond with ONLY a JSON object: {"pass": true/false, "reasoning": "brief explan
   }
 }
 
-async function runEvalCase(skillName, skillContent, evalCase) {
+async function runEvalCase(skillName, skillContent, referencedContent, evalCase) {
+  const referencesBlock = referencedContent
+    ? `\n\n<references>\n${referencedContent}\n</references>`
+    : "";
   const systemPrompt = `You are Claude, using the following skill to help the user.
 
 <skill>
 ${skillContent}
-</skill>
+</skill>${referencesBlock}
 
 Follow the skill's instructions to complete the user's request. Be thorough and follow all specified patterns.`;
 
@@ -277,6 +282,7 @@ async function runSkillEvals(skillName) {
 
   const evalCases = JSON.parse(await readFile(evalsPath, "utf-8"));
   const skillContent = await readFile(join(skillDir, "SKILL.md"), "utf-8");
+  const referencedContent = await loadReferencedFiles(skillDir, REPO_ROOT, skillContent);
 
   console.log(
     `\n📋 ${skillName}: running ${evalCases.length} eval(s)...\n`
@@ -289,7 +295,7 @@ async function runSkillEvals(skillName) {
   for (let i = 0; i < evalCases.length; i += concurrency) {
     const batch = evalCases.slice(i, i + concurrency);
     const batchResults = await Promise.all(
-      batch.map((ec) => runEvalCase(skillName, skillContent, ec))
+      batch.map((ec) => runEvalCase(skillName, skillContent, referencedContent, ec))
     );
     results.push(...batchResults);
 
