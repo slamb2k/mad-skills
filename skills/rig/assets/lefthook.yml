@@ -18,6 +18,10 @@ pre-commit:
       glob: "*.{ts,tsx}"
       run: npm run typecheck --if-present || npm run type-check --if-present || npx tsc --noEmit 2>/dev/null || echo "No type check"
 
+    secret-scan:
+      run: |
+        git diff --cached | grep -qEi '^\+.*(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|(SECRET|TOKEN|API_?KEY|PASSWORD)[ =:]*"?[A-Za-z0-9/+_-]{12,})' && echo "Possible secret in staged changes" && exit 1 || true
+
 # Pre-push hooks (slower, more thorough)
 pre-push:
   parallel: false

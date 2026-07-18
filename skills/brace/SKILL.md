@@ -288,6 +288,36 @@ When updating an existing project CLAUDE.md (not creating from template):
    - If no `## Guardrails` section exists, append the section at the end of the file
 3. If already present, skip (idempotent)
 
+### Verification Discipline Injection
+
+When updating an existing project CLAUDE.md (not creating from template):
+
+1. Check if `## Verification Discipline` already exists:
+   ```bash
+   grep -q "## Verification Discipline" CLAUDE.md
+   ```
+2. If NOT found, inject the Verification Discipline section before `## Guardrails`:
+   - Read the file content
+   - Find the line containing `## Guardrails`
+   - Insert the Verification Discipline section (from the template) immediately before it
+   - If no `## Guardrails` section exists, append the section at the end of the file
+3. If already present, skip (idempotent)
+
+### Known Gotchas Injection
+
+When updating an existing project CLAUDE.md (not creating from template):
+
+1. Check if `## Known Gotchas` already exists:
+   ```bash
+   grep -q "## Known Gotchas" CLAUDE.md
+   ```
+2. If NOT found, inject the Known Gotchas section before `## Guardrails`:
+   - Read the file content
+   - Find the line containing `## Guardrails`
+   - Insert the Known Gotchas section (from the template) immediately before it
+   - If no `## Guardrails` section exists, append the section at the end of the file
+3. If already present, skip (idempotent)
+
 ---
 
 ## Phase 5: Verification & Report

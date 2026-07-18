@@ -203,6 +203,24 @@ decision must be explicitly recorded and revisited.
 - At the start of new work, check for outstanding items from previous sessions
 - Never close a task with unacknowledged open questions
 
+## Communication
+
+- When stuck, explain what's missing — don't guess or invent capabilities
+- When a workflow fails mid-execution, preserve intermediate outputs
+- Verify output format before chaining into another tool or step
+
+## Agent Workflow
+
+- Offload broad codebase exploration, log analysis, and open-ended research
+  to subagents rather than doing it inline — it keeps the primary
+  conversation's context budget for synthesis and decision-making.
+- Before reading a large file in full, consider whether a subagent can
+  extract just the relevant section instead of loading the whole thing into
+  the primary context.
+- Prefer targeted search (grep/glob for a known symbol or pattern) over
+  broad exploration when the target is already known; reserve subagents for
+  genuinely open-ended searches.
+
 ## Commit Discipline
 
 Reinforces Claude Code's built-in "only commit when explicitly asked" rule.

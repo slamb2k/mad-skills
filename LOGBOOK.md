@@ -9,12 +9,16 @@
 
 ## Deferred fixes
 - [ ] /ship's Azure DevOps merge path fails on the first attempt whenever the target repo has a minimum-reviewer branch policy, discovered only via a failed merge error rather than checked upfront — proactively run az repos policy list (or REST equivalent) before attempting merge and surface the approval requirement to the user ahead of time — unfurl project session, hit twice across separate /ship runs (2026-07-18)
+- [ ] global-preferences-template.md new ### Agent Workflow subsection has a blank line before its first bullet, breaking this file's no-blank-line-after-heading convention that every other subsection follows — /build verification-discipline-prompt review (2026-07-18)
+- [ ] Agent Workflow bullets in global-preferences-template.md are more verbose/explanatory (2-3 lines with embedded rationale) than sibling bullets' terse single-clause style — /build verification-discipline-prompt review (2026-07-18)
+- [ ] skills/rig/SKILL.md frontmatter description does not mention secret-scan/credential-related keywords, so a user asking specifically about secret scanning may not discover it — /build verification-discipline-prompt review (2026-07-18)
 
 ## Open questions
 
 ## Risks
 
 ## Tech debt
+- [ ] phase-prompts.md doc comment claims redundancy is checked section-by-section for UNIVERSAL_PRINCIPLES, but the actual gate only checks the coarse ## Universal Operating Principles wrapper atomically, not individual subsections — pre-existing gap, now more visible with 4 subsections instead of 2 — /build verification-discipline-prompt review (2026-07-18)
 
 ## Archive
 - [x] mad-skills'/build pre-flight table lists feature-dev:code-explorer/architect/reviewer with an empty Check column (no bash/file-existence test), unlike superpowers which has a real on-disk glob check (scripts/lib/superpowers.js). Whether a /build run reports feature-dev as found/not-found is just the orchestrating Claude instance's own guess each time, not a deterministic environment fact — demonstrated live: one /build run tonight declared "feature-dev agents not found" in its pre-flight summary, then successfully used feature-dev:code-explorer/architect/reviewer anyway in Stages 1/3/5. feature-dev is a user-scope plugin (should be available every session on a machine that has it installed), so cross-project inconsistency a user reported is more likely this unreliable self-report than a real per-repo difference. Fix: give feature-dev a real detection check (mirror the superpowers on-disk-anchor pattern) instead of leaving Check="—" and trusting the orchestrator's guess. — session observation, worktree-discipline-guardrails follow-up work (2026-07-18) <!-- link:task#42 resolved:2026-07-18 -->
