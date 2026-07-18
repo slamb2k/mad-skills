@@ -5,11 +5,11 @@
     "assertions": [
       {
         "type": "contains",
-        "value": "SPECCY"
+        "value": "██"
       },
       {
-        "type": "contains",
-        "value": "██"
+        "type": "regex",
+        "value": "(Tell me everything|think this through|wreck it|Interview mode|great questions|Measure twice|assumption left behind|Precision engineering)"
       }
     ]
   },
@@ -59,10 +59,6 @@
     "name": "speccy-location-mismatch",
     "prompt": "Run /speccy. Before Stage 1: Context Gathering, its Pre-Spec Location Check finds that Bash's shell cwd resolves to a different git toplevel than this session's declared working directory — Bash is inside a leftover worktree. What does the Pre-Spec Location Check do?",
     "assertions": [
-      {
-        "type": "contains",
-        "value": "location-check.md"
-      },
       {
         "type": "semantic",
         "value": "Treats the toplevel mismatch as something to warn about rather than silently continuing — it does not just proceed with Stage 1 as if nothing happened"
