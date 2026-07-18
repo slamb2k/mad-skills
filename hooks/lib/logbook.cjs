@@ -81,7 +81,11 @@ function today() {
 }
 
 function ledgerPath(projectDir) {
-  return join(projectDir, FILENAME);
+  // The ledger is repo-scoped, not cwd-scoped — resolve to the git root so a
+  // hook invoked from a subdirectory (or with CLAUDE_PROJECT_DIR unset)
+  // never orphans a nested LOGBOOK.md instead of updating the real one.
+  const gitRoot = git('rev-parse --show-toplevel', projectDir);
+  return join(gitRoot || projectDir, FILENAME);
 }
 
 /** Title → token set: lowercase alphanumerics, stopwords dropped. */
