@@ -89,9 +89,7 @@ Before starting, check all dependencies in this table:
 |-----------|------|-------|----------|------------|--------|
 | ship | skill | `ls .claude/skills/ship/SKILL.md ~/.claude/skills/ship/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ship/SKILL.md 2>/dev/null` | yes | stop | Install with: npx skills add slamb2k/mad-skills --skill ship |
 | prime | skill | `ls .claude/skills/prime/SKILL.md ~/.claude/skills/prime/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md 2>/dev/null` | no | fallback | Context loading; falls back to manual CLAUDE.md/goals scan |
-| feature-dev:code-explorer | agent | — | no | fallback | Uses general-purpose agent |
-| feature-dev:code-architect | agent | — | no | fallback | Uses general-purpose agent |
-| feature-dev:code-reviewer | agent | — | no | fallback | Uses general-purpose agent |
+| feature-dev | plugin | on-disk glob via scripts/lib/feature-dev.js | no | fallback | Detected on disk → try feature-dev:code-explorer / code-architect / code-reviewer first, general-purpose agent as fallback if the subagent_type isn't actually registered |
 | superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Routes Stage 4 impl core to superpowers:executing-plans / subagent-driven-development when present; see references/superpowers-deferral.md |
 | ferry | skill | `ls .claude/skills/ferry/SKILL.md ~/.claude/skills/ferry/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ferry/SKILL.md 2>/dev/null` | no | fallback | Powers the "hand off to a clean session" execution mode; ships with mad-skills, so normally present |
 
@@ -222,6 +220,21 @@ of the general-purpose subagents below. Stage 1 (explore), Stage 5 (3× review),
 and Stage 7 (verify) remain unchanged either way. When Superpowers is absent or
 `--no-superpowers` is set, run the standalone implementation below unchanged.
 See `references/superpowers-deferral.md`.
+
+**Skipping the deferral without `--no-superpowers`:** Superpowers'
+`subagent-driven-development` skill hard-requires explicit user consent (and
+prefers a fresh worktree) before implementing on the current branch;
+mad-skills' own convention is to implement directly on the current branch and
+let Stage 9 (`/ship`) handle branching, PR, and merge afterward. Those two
+conventions conflict. When ARCH_REPORT describes a fully-specified, mechanical,
+low-risk change (1-2 files, no design judgment needed — the same signal
+`subagent-driven-development` itself uses for its cheapest model tier), that
+conflict is license to skip the deferral for this Stage 4 only and run the
+standalone implementation below even though Superpowers is detected. Announce
+it in one line (`⚡ Superpowers detected but skipping deferral for Stage 4 —
+<reason>`) so the choice is visible, not silent. Anything with real
+multi-file integration concerns or genuine design ambiguity still defers as
+normal — this is a narrow carve-out, not a general opt-out.
 
 If ARCH_REPORT identifies independent `parallel_groups`, launch **multiple
 general-purpose subagents in parallel** — one per group. Do NOT wait for
