@@ -39,6 +39,7 @@ import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { loadReferencedFiles } from "./lib/eval-references.js";
+import { parseAnthropicResponse, parseOpenRouterResponse } from "./lib/eval-response.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..");
@@ -97,7 +98,7 @@ async function callClaude(systemPrompt, userMessage, model = args.model) {
     },
     body: JSON.stringify({
       model,
-      max_tokens: 8192,
+      max_tokens: 16384,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
     }),
@@ -108,8 +109,7 @@ async function callClaude(systemPrompt, userMessage, model = args.model) {
     throw new Error(`Anthropic API error ${response.status}: ${body}`);
   }
 
-  const data = await response.json();
-  return data.content.map((b) => (b.type === "text" ? b.text : "")).join("\n");
+  return parseAnthropicResponse(await response.json());
 }
 
 async function callOpenRouter(systemPrompt, userMessage, model) {
@@ -122,7 +122,7 @@ async function callOpenRouter(systemPrompt, userMessage, model) {
     },
     body: JSON.stringify({
       model: orModel,
-      max_tokens: 8192,
+      max_tokens: 16384,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
@@ -135,8 +135,7 @@ async function callOpenRouter(systemPrompt, userMessage, model) {
     throw new Error(`OpenRouter API error ${response.status}: ${body}`);
   }
 
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content ?? "";
+  return parseOpenRouterResponse(await response.json());
 }
 
 async function checkAssertion(assertion, output) {
@@ -182,7 +181,7 @@ ${output.slice(0, 3000)}
 Respond with ONLY a JSON object: {"pass": true/false, "reasoning": "brief explanation"}`;
 
       try {
-        const judgement = await callClaude(
+        const { text: judgement } = await callClaude(
           "You are a precise evaluator. Respond only with valid JSON.",
           judgePrompt,
           "claude-sonnet-4-20250514" // Always use Sonnet for judging (cost efficiency)
@@ -230,12 +229,12 @@ async function runEvalCase(skillName, skillContent, referencedContent, evalCase)
 ${skillContent}
 </skill>${referencesBlock}
 
-Follow the skill's instructions to complete the user's request. Be thorough and follow all specified patterns.`;
+Follow the skill's instructions to complete the user's request. Be thorough and follow all specified patterns. If the request is about a later stage of the skill, prioritize reaching and describing that stage over fully re-enacting every earlier stage in exhaustive detail.`;
 
   const startTime = Date.now();
 
   try {
-    const output = await callClaude(systemPrompt, evalCase.prompt);
+    const { text: output, truncated } = await callClaude(systemPrompt, evalCase.prompt);
     const duration = Date.now() - startTime;
 
     const assertionResults = [];
@@ -256,6 +255,7 @@ Follow the skill's instructions to complete the user's request. Be thorough and 
       assertions: assertionResults,
       output_preview: output.slice(0, 500),
       full_output: output,
+      truncated,
     };
   } catch (err) {
     return {
@@ -307,8 +307,9 @@ async function runSkillEvals(skillName) {
           : result.status === "fail"
             ? "❌"
             : "💥";
+      const truncatedNote = result.truncated ? " ⚠ truncated (hit max_tokens)" : "";
       console.log(
-        `  ${icon} ${result.name} (${result.duration_ms}ms)`
+        `  ${icon} ${result.name} (${result.duration_ms}ms)${truncatedNote}`
       );
 
       if (result.status === "fail" || args.verbose) {

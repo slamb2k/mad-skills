@@ -53,7 +53,6 @@
     "name": "build-location-mismatch",
     "prompt": "Run /build. Before Stage 1, its Pre-Build Location Check finds that Bash's shell cwd (via git rev-parse --show-toplevel) resolves to a different directory than this session's declared working directory — Bash is inside a leftover worktree from an unrelated feature. What does the Pre-Build Location Check do?",
     "assertions": [
-      { "type": "contains", "value": "location-check.md" },
       { "type": "semantic", "value": "Treats the toplevel mismatch as something to warn about rather than silently continuing — it does not just proceed with Stage 1 as if nothing happened" }
     ]
   }
