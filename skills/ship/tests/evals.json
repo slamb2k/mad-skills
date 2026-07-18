@@ -10,7 +10,7 @@
   },
   {
     "name": "pr-lifecycle",
-    "prompt": "Ship the feature I've been working on",
+    "prompt": "Ship the feature I've been working on. Before doing anything else, list every stage /ship will run, in order, from sync through merge.",
     "assertions": [
       { "type": "contains", "value": "██" },
       { "type": "regex", "value": "(commit|push|PR|pull request)", "flags": "i" },

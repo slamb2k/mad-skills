@@ -10,7 +10,7 @@
   },
   {
     "name": "lifecycle-stages",
-    "prompt": "Build: Implement user authentication with JWT tokens",
+    "prompt": "Build: Implement user authentication with JWT tokens. Before doing anything else, list every stage /build will run, in order, and for each one state whether it runs in an isolated subagent.",
     "assertions": [
       { "type": "contains", "value": "██" },
       { "type": "regex", "value": "(explore|architect|implement|review)", "flags": "i" },

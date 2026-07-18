@@ -27,6 +27,7 @@ const { getBanner } = require('./lib/banner.cjs');
 const { checkGit } = require('./lib/git-checks.cjs');
 const { checkTaskList } = require('./lib/task-checks.cjs');
 const { checkStaleness } = require('./lib/staleness.cjs');
+const { git } = require('./lib/utils.cjs');
 const lifecycle = require('./lib/lifecycle.cjs');
 const ledger = require('./lib/logbook.cjs');
 
@@ -113,6 +114,13 @@ function checkBackground() {
   lifecycle.bumpSession(PROJECT_DIR);
   checkLifecycle(PROJECT_DIR, output);
 
+  // 4c) LOGBOOK.md dirty check — capture/resolve/dismiss/add are plain
+  // writeFileSync calls with no git integration, so entries can silently sit
+  // uncommitted between /ship runs. A warning, not an auto-commit: committing
+  // on the user's behalf would land LOGBOOK.md onto whatever branch happens
+  // to be checked out.
+  checkLogbookDirty(gitRoot, output);
+
   // 5) Staleness summary
   if (output.score >= config.staleness.threshold) {
     output.blank();
@@ -194,6 +202,16 @@ function remind() {
       additionalContext: parts.join('\n'),
     },
   }));
+}
+
+// ─── logbook dirty check ────────────────────────────────────────────
+
+function checkLogbookDirty(gitRoot, output) {
+  if (!gitRoot) return;
+  const dirty = git('status --porcelain -- LOGBOOK.md', gitRoot);
+  if (dirty && dirty.trim()) {
+    output.add('[SESSION GUARD] ⚠️  LOGBOOK.md has uncommitted changes — commit it so follow-ups persist.');
+  }
 }
 
 // ─── brace check ──────────────────────────────────────────────────

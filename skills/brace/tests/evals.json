@@ -10,7 +10,7 @@
   },
   {
     "name": "project-scaffold",
-    "prompt": "Set up the project scaffold with specs and context directories",
+    "prompt": "Initialize a fresh, empty directory with /brace — nothing exists yet, so skip any existing-state detection. What files and directories does it create, and what goes in each?",
     "assertions": [
       { "type": "contains", "value": "██" },
       { "type": "regex", "value": "(specs|context|CLAUDE\\.md)", "flags": "i" },

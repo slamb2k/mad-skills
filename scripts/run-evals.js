@@ -175,7 +175,7 @@ Criterion: ${assertion.value}
 
 Output to evaluate:
 <output>
-${output.slice(0, 3000)}
+${output}
 </output>
 
 Respond with ONLY a JSON object: {"pass": true/false, "reasoning": "brief explanation"}`;
