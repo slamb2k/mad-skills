@@ -65,6 +65,21 @@ test('AC-001 capture appends debrief items under mapped categories', () => {
   } finally { rm(dir); }
 });
 
+test('capture invoked with a subdirectory as projectDir still writes LOGBOOK.md at the repo root', () => {
+  const dir = mkRepo();
+  try {
+    const sub = path.join(dir, 'app');
+    fs.mkdirSync(sub);
+
+    fl.capture(sub, [
+      { title: 'Fix the thing', category: 'deferred_fix', source: 'test' },
+    ], { today: '2026-07-18' });
+
+    assert.ok(fs.existsSync(path.join(dir, 'LOGBOOK.md')));
+    assert.ok(!fs.existsSync(path.join(sub, 'LOGBOOK.md')));
+  } finally { rm(dir); }
+});
+
 // ─── AC-002: dedupe on entry ────────────────────────────────────────────
 
 test('AC-002 dedupe refreshes existing item instead of duplicating', () => {
