@@ -19,6 +19,15 @@
     ]
   },
   {
+    "name": "secret-scan-precommit",
+    "prompt": "Rig this repository — besides lint, format-check, and type-check, does the pre-commit hook check for anything related to accidentally committing secrets or credentials?",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "secret", "flags": "i" },
+      { "type": "semantic", "value": "Describes a secret-scan pre-commit check added alongside lint/format-check/type-check that scans staged diff additions for high-confidence secret patterns such as AWS access key IDs, PEM private-key headers, and SECRET/TOKEN/API_KEY/PASSWORD-style assignments, and blocks the commit when one is found" }
+    ]
+  },
+  {
     "name": "idempotency-and-confirmation",
     "prompt": "Rig my repository",
     "assertions": [

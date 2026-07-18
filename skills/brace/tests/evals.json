@@ -32,5 +32,21 @@
       { "type": "contains", "value": "Worktree Discipline" },
       { "type": "semantic", "value": "Idempotently checks for an existing ## Worktree Discipline section (grep), and if absent, injects it immediately before ## Guardrails (adjacent to Branch Discipline); if already present, skips insertion" }
     ]
+  },
+  {
+    "name": "verification-discipline-injection",
+    "prompt": "Retrofit brace against an existing project CLAUDE.md that already has ## Branch Discipline and ## Worktree Discipline sections but no ## Verification Discipline section. What does /brace do to the file?",
+    "assertions": [
+      { "type": "contains", "value": "Verification Discipline" },
+      { "type": "semantic", "value": "Idempotently checks for an existing ## Verification Discipline section (grep), and if absent, injects it immediately before ## Guardrails; if already present, skips insertion. May mention that the section covers reproducing bugs before fixing them and verifying fixes in the running environment rather than only via unit tests." }
+    ]
+  },
+  {
+    "name": "known-gotchas-injection",
+    "prompt": "Retrofit brace against an existing project CLAUDE.md that has no ## Known Gotchas section. What does /brace do, and what is that section for?",
+    "assertions": [
+      { "type": "contains", "value": "Known Gotchas" },
+      { "type": "semantic", "value": "Idempotently checks for an existing ## Known Gotchas section (grep), and if absent, injects it immediately before ## Guardrails, initially near-empty/example-only; if already present, skips insertion. Describes it as a place for non-obvious project-specific operational lessons distinct from TODOs, which belong in the /logbook follow-ups ledger instead." }
+    ]
   }
 ]

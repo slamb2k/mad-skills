@@ -4,7 +4,8 @@ Template for the generated project CLAUDE.md. The Phase 4 agent substitutes
 `{VARIABLE}` placeholders and writes to the project root.
 
 `{UNIVERSAL_PRINCIPLES}` is populated with universal behavioral rules
-(currently: Question & Assumption Accountability and Commit Discipline)
+(currently: Question & Assumption Accountability, Communication, Agent
+Workflow, and Commit Discipline)
 when install_level is "project" AND those sections are not already present
 in `~/.claude/CLAUDE.md`. Left empty when install_level is "global"
 (principles are in the global config instead) or when the sections would
@@ -86,6 +87,42 @@ of silent conflict resolution.
 
 These rules prevent file-tool paths from silently resolving against the
 wrong tree.
+
+## Verification Discipline
+
+- **Reproduce a reported bug before proposing a fix.** A bug report describes
+  a symptom, not a root cause — code-reading alone produces plausible-but-wrong
+  hypotheses more often than it should. Confirm the failure actually happens,
+  the way the report describes it, before writing a fix for it.
+- **Verify behavioral/UI fixes in the actual running environment, not just
+  passing unit tests.** A test suite proves the code you touched still does
+  what the tests already checked — it doesn't prove the reported symptom is
+  gone. For UI, interaction, or environment-dependent bugs, run the app and
+  reproduce the original steps after the fix.
+- **If verification doesn't show the expected result, don't assume the fix is
+  wrong before ruling out the verification path itself.** Dev servers with
+  hot-reload (Vite, webpack-dev-server, etc.) can silently serve stale code
+  after a long-running session — restarting the dev process is a known,
+  cheap first check when a change "isn't taking effect." Confirm which one
+  is actually true (stale server vs. wrong fix) rather than guessing.
+
+These rules exist because skipping them produces two specific failure modes:
+fixing a plausible-sounding wrong cause, and abandoning a correct fix because
+the verification environment lied.
+
+## Known Gotchas
+
+Non-obvious, project-specific operational lessons — not TODOs (those go in
+the follow-ups ledger via `/logbook`), but things that will confuse a future
+session if rediscovered from scratch. Add an entry here whenever a debugging
+session spends real effort on something surprising and the cause wasn't a
+one-off. Keep entries short: the symptom, the actual cause, the fix.
+
+<!-- Example entry shape:
+- **Symptom**: dev server doesn't reflect a saved edit.
+  **Cause**: Vite's file watcher can silently die on long-running sessions.
+  **Fix**: kill and restart `bun run dev`; no cache-clear needed.
+-->
 
 ## Guardrails
 
