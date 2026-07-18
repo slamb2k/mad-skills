@@ -273,6 +273,21 @@ When updating an existing project CLAUDE.md (not creating from template):
    - If no `## Guardrails` section exists, append the section at the end of the file
 3. If already present, skip (idempotent)
 
+### Worktree Discipline Injection
+
+When updating an existing project CLAUDE.md (not creating from template):
+
+1. Check if `## Worktree Discipline` already exists:
+   ```bash
+   grep -q "## Worktree Discipline" CLAUDE.md
+   ```
+2. If NOT found, inject the Worktree Discipline section before `## Guardrails`:
+   - Read the file content
+   - Find the line containing `## Guardrails`
+   - Insert the Worktree Discipline section (from the template) immediately before it
+   - If no `## Guardrails` section exists, append the section at the end of the file
+3. If already present, skip (idempotent)
+
 ---
 
 ## Phase 5: Verification & Report

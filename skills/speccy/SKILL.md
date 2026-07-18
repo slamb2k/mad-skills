@@ -90,6 +90,12 @@ For each row, in order:
 
 ## Stage 1: Context Gathering
 
+### Pre-Spec Location Check
+
+Before gathering context, run the shared root-mismatch check from
+`references/location-check.md` (`{caller}` = "before Stage 1: Context
+Gathering"). This is independent of the Pre-Spec Branch Check below.
+
 ### Pre-Spec Branch Check
 
 Before gathering context, check if the user is on a stale branch:

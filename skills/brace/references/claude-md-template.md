@@ -72,6 +72,21 @@ when it is absent.
 These rules prevent divergent branches that require complex rebases with risk
 of silent conflict resolution.
 
+## Worktree Discipline
+
+- **Relative paths don't follow a Bash `cd`** — Read/Write/Edit tools
+  resolve relative paths against the session's own working directory, not
+  wherever a worktree checkout or `cd` left the shell; use absolute paths
+  once inside a worktree
+- **Never reuse an existing worktree for an unrelated task** — a leftover
+  worktree from a different feature is not a safe place to start new work
+- **Don't leave worktrees dangling once a branch is finished** — clean up
+  through whichever tool created the worktree once its branch is merged or
+  abandoned
+
+These rules prevent file-tool paths from silently resolving against the
+wrong tree.
+
 ## Guardrails
 
 - Verify tool output format before chaining into another tool

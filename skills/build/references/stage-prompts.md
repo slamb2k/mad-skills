@@ -163,6 +163,9 @@ Limit IMPL_REPORT to 20 lines maximum.
 - After all changes, run the project's test command:
   {PROJECT_CONFIG.test_runner}
   Capture the last 20 lines of output.
+- Relative Read/Write/Edit paths do not follow a Bash `cd`. If you enter or
+  are already inside a worktree, use absolute paths rooted at that worktree
+  for every file-tool call for the rest of this task.
 
 ## Output Format
 

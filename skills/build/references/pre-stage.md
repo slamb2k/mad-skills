@@ -19,6 +19,13 @@ Before Stage 1, resolve the PLAN argument into content:
    - File: `Plan: {file path} ({line count} lines)`
    - Text: `Plan: inline ({word count} words)`
 
+## Pre-Build Location Check
+
+Before starting Stage 1, run the shared root-mismatch check from
+`references/location-check.md` (`{caller}` = "before Stage 1"). This runs
+as an independent bash block from the Pre-Build Branch Check below — the two
+checks are not merged into one combined check (REQ-008).
+
 ## Pre-Build Branch Check
 
 Before starting Stage 1, verify the working tree is suitable for building:

@@ -24,5 +24,13 @@
       { "type": "contains", "value": "██" },
       { "type": "semantic", "value": "Acknowledges the --force flag, indicating it will overwrite existing files without prompting" }
     ]
+  },
+  {
+    "name": "worktree-discipline-injection",
+    "prompt": "Retrofit brace against an existing project CLAUDE.md that already has a ## Branch Discipline section but no ## Worktree Discipline section. What does /brace do to the file?",
+    "assertions": [
+      { "type": "contains", "value": "Worktree Discipline" },
+      { "type": "semantic", "value": "Idempotently checks for an existing ## Worktree Discipline section (grep), and if absent, injects it immediately before ## Guardrails (adjacent to Branch Discipline); if already present, skips insertion" }
+    ]
   }
 ]
