@@ -40,17 +40,39 @@ if [ "$PLATFORM" = "github" ]; then
     emit_report; exit 3
   fi
 
-  # Grace period: wait for checks to register (CI may not trigger immediately)
+  # Grace period: wait for checks to register (CI may not trigger immediately).
+  # A `gh` call failure (rate limit, auth, network) must not read the same as
+  # "no checks registered yet" — track the two separately.
   GRACE_POLLS=0
   GRACE_JSON="[]"
+  GRACE_CALL_OK=true
   for _ in $(seq 1 3); do
     GRACE_POLLS=$((GRACE_POLLS + 1))
-    GRACE_JSON=$(gh pr checks "$PR_NUMBER" --json name,state 2>/dev/null || echo "[]")
+    GRACE_ERR=$(mktemp)
+    GRACE_JSON=$(gh pr checks "$PR_NUMBER" --json name,state 2>"$GRACE_ERR")
+    if [ $? -eq 0 ]; then
+      GRACE_CALL_OK=true
+    else
+      GRACE_CALL_OK=false
+      GRACE_JSON="[]"
+    fi
     if [ "$GRACE_JSON" != "[]" ]; then
+      rm -f "$GRACE_ERR"
       break
     fi
     sleep 10
   done
+
+  # If the last poll was a real failure (not a genuine empty result), don't
+  # silently report "no_checks" — that would let /ship proceed to merge
+  # believing CI hasn't started when we actually just don't know.
+  if [ "$GRACE_JSON" = "[]" ] && ! $GRACE_CALL_OK; then
+    STATUS="no_checks"; FAILING="none"
+    CHECKS="error:checks lookup failed: $(tr '\n' ' ' <"$GRACE_ERR" | cut -c1-200)"
+    rm -f "$GRACE_ERR"
+    emit_report; exit 3
+  fi
+  rm -f "$GRACE_ERR" 2>/dev/null
 
   # If no checks found after grace period, report and exit
   if [ "$GRACE_JSON" = "[]" ]; then
@@ -61,8 +83,18 @@ if [ "$PLATFORM" = "github" ]; then
   # gh pr checks --watch blocks until done; --fail-fast stops on first failure
   gh pr checks "$PR_NUMBER" --watch --fail-fast 2>/dev/null || true
 
-  # Parse final status
-  CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json name,state 2>/dev/null || echo "[]")
+  # Parse final status. This determines whether /ship proceeds to merge —
+  # a call failure here must not silently read as "[]" (which would fall
+  # through to FAIL_COUNT=0 and falsely report all_passed).
+  CHECKS_ERR=$(mktemp)
+  CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json name,state 2>"$CHECKS_ERR")
+  if [ $? -ne 0 ]; then
+    STATUS="no_checks"; FAILING="none"
+    CHECKS="error:checks lookup failed: $(tr '\n' ' ' <"$CHECKS_ERR" | cut -c1-200)"
+    rm -f "$CHECKS_ERR"
+    emit_report; exit 3
+  fi
+  rm -f "$CHECKS_ERR"
 
   FAIL_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state=="FAILURE")] | length')
   CHECKS=$(echo "$CHECKS_JSON" | jq -r '.[] | "\(.name):\(.state | ascii_downcase)"' | paste -sd, -)
@@ -118,10 +150,21 @@ if [ "$AZDO_MODE" = "cli" ]; then
   done
 
   if [ "$RUNS_FOUND" = false ]; then
-    # Check PR policies
+    # Check PR policies. `az repos pr policy list` does not accept --project
+    # (unlike `az repos policy list` / `az pipelines runs list`, which do) —
+    # passing it fails every call. A call failure must not silently read as
+    # "no policies exist," which would falsely report no_checks/all_passed.
+    POLICY_ERR=$(mktemp)
     POLICY_COUNT=$(az repos pr policy list --id "$PR_NUMBER" \
-      --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
-      --query "length(@)" -o tsv 2>/dev/null || echo "0")
+      --org "$AZDO_ORG_URL" \
+      --query "length(@)" -o tsv 2>"$POLICY_ERR")
+    if [ $? -ne 0 ]; then
+      STATUS="no_checks"; FAILING="none"
+      CHECKS="error:policy check failed: $(tr '\n' ' ' <"$POLICY_ERR" | cut -c1-200)"
+      rm -f "$POLICY_ERR"
+      emit_report; exit 3
+    fi
+    rm -f "$POLICY_ERR"
     if [ "$POLICY_COUNT" = "0" ] || [ -z "$POLICY_COUNT" ]; then
       STATUS="no_checks"; CHECKS=""; FAILING="none"
       emit_report; exit 0
@@ -151,10 +194,18 @@ if [ "$AZDO_MODE" = "cli" ]; then
   CHECKS=$(echo "$RUNS_TABLE" | jq -r '.[] | "\(.name):\(.result // "pending")"' | paste -sd, -)
   FAILING=$(echo "$RUNS_TABLE" | jq -r '.[] | select(.result=="failed") | .name' | paste -sd, -)
 
-  # Also check PR policies
+  # Also check PR policies. Same --project caveat as above.
+  POLICY_ERR2=$(mktemp)
   REJECTED=$(az repos pr policy list --id "$PR_NUMBER" \
-    --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
-    --query "[?status=='rejected'] | length(@)" -o tsv 2>/dev/null || echo "0")
+    --org "$AZDO_ORG_URL" \
+    --query "[?status=='rejected'] | length(@)" -o tsv 2>"$POLICY_ERR2")
+  if [ $? -ne 0 ]; then
+    STATUS="no_checks"; FAILING="none"
+    CHECKS="error:policy check failed: $(tr '\n' ' ' <"$POLICY_ERR2" | cut -c1-200)"
+    rm -f "$POLICY_ERR2"
+    emit_report; exit 3
+  fi
+  rm -f "$POLICY_ERR2"
 
   FAIL_COUNT=$(echo "$RUNS_TABLE" | jq '[.[] | select(.result=="failed")] | length')
   STILL_RUNNING=$(echo "$RUNS_TABLE" | jq '[.[] | select(.result==null)] | length')
