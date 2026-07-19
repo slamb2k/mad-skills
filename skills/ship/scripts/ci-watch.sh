@@ -169,6 +169,22 @@ if [ "$AZDO_MODE" = "cli" ]; then
       STATUS="no_checks"; CHECKS=""; FAILING="none"
       emit_report; exit 0
     fi
+    # Policies exist but no CI pipeline ever registered on either branch
+    # pattern — CI_BRANCH was never set on this path (only inside the
+    # RUNS_FOUND=true branches above), so there is nothing to poll
+    # `az pipelines runs list --branch` for. Report policy status directly
+    # instead of falling into the pipeline-run wait loop below with an
+    # empty --branch filter.
+    REJECTED=$(az repos pr policy list --id "$PR_NUMBER" \
+      --org "$AZDO_ORG_URL" \
+      --query "[?status=='rejected'] | length(@)" -o tsv 2>/dev/null || echo "0")
+    if [ "${REJECTED:-0}" -gt 0 ]; then
+      STATUS="some_failed"; CHECKS="policy:rejected"; FAILING="branch policy"
+      emit_report; exit 1
+    else
+      STATUS="pending"; CHECKS="policy:pending"; FAILING="none"
+      emit_report; exit 2
+    fi
   fi
 
   # Wait for runs to complete with fail-fast (max 30 min)
