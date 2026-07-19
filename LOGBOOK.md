@@ -5,6 +5,7 @@
 
 ## Ideas
 - [ ] Consider a dedicated debugging skill (e.g. /diagnose) mirroring /build's subagent-isolated pipeline but scoped to root-causing a reported bug rather than implementing a plan — reproduce/hypothesize/verify/fix/reverify stages, deferring to superpowers:systematic-debugging when present, same deferral pattern /build already uses for implementation — unfurl project session debugging a Flow-mode drill-through bug (2026-07-18)
+- [ ] Fully autonomous /speccy (inferring a complete spec from a bare one-line ticket, zero interview) is explicitly out of scope for autonomous-execution-mode.md — named as deliberate future work, not solved now — /speccy autonomous-execution-mode (2026-07-19) <!-- link:spec:autonomous-execution-mode -->
 
 ## Deferred fixes
 
