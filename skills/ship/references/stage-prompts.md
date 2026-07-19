@@ -218,17 +218,18 @@ FAILING CHECKS: {FAILING_CHECKS}
        --query "[?result=='failed'].id | [0]" -o tsv)
      az pipelines runs show --id $RUN_ID \
        --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" --output json
-     # Download logs locally — more reliable than timeline API on legacy domains
-     LOGDIR=$(mktemp -d)
-     az pipelines logs download --run-id $RUN_ID --path "$LOGDIR" \
-       --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" 2>/dev/null
-     if [ -d "$LOGDIR" ] && [ "$(ls "$LOGDIR")" ]; then
-       grep -ril "error\|fail\|##vso\[task.logissue" "$LOGDIR" | head -5 | while read f; do
-         echo "=== $(basename "$f") ==="
-         grep -i "error\|fail\|##vso\[task.logissue" "$f" | tail -30
-       done
-     fi
-     rm -rf "$LOGDIR"
+     # `az pipelines` has no `logs download` command (verified against
+     # `az pipelines --help` — it doesn't exist). Fetching log content is a
+     # REST-only operation with no CLI equivalent: use the same
+     # timeline-then-curl pattern as REST mode below.
+     AUTH="Authorization: Basic $(printf ":%s" "{PAT}" | base64 | tr -d '\n')"
+     TIMELINE=$(curl -s -H "$AUTH" \
+       "{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/build/builds/$RUN_ID/timeline?api-version=7.0")
+     echo "$TIMELINE" | jq -r '.records[] | select(.result=="failed") | "\(.name): \(.log.url // "no log URL")"'
+     for LOG_URL in $(echo "$TIMELINE" | jq -r '.records[] | select(.result=="failed") | .log.url // empty'); do
+       echo "=== Log: $LOG_URL ==="
+       curl -s -H "$AUTH" "$LOG_URL" | tail -50
+     done
 
    **If PLATFORM == azdo AND AZDO_MODE == rest:**
      AUTH="Authorization: Basic $(printf ":%s" "{PAT}" | base64 | tr -d '\n')"
