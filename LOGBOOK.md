@@ -17,6 +17,7 @@
 
 ## Tech debt
 - [ ] phase-prompts.md doc comment claims redundancy is checked section-by-section for UNIVERSAL_PRINCIPLES, but the actual gate only checks the coarse ## Universal Operating Principles wrapper atomically, not individual subsections — pre-existing gap, now more visible with 4 subsections instead of 2 — /build verification-discipline-prompt review (2026-07-18)
+- [ ] ci-watch.sh AzDO CLI path: when no CI runs are found but PR policies genuinely exist, CI_BRANCH stays the empty string (only ever set inside the two RUN_COUNT!=0 branches), so the main wait loop calls az pipelines runs list --branch "" with an empty branch filter — behavior unverified, likely returns unrelated runs or none at all — az/gh command audit (2026-07-19)
 
 ## Archive
 - [x] /ship's Azure DevOps merge path fails on the first attempt whenever the target repo has a minimum-reviewer branch policy, discovered only via a failed merge error rather than checked upfront — proactively run az repos policy list (or REST equivalent) before attempting merge and surface the approval requirement to the user ahead of time — unfurl project session, hit twice across separate /ship runs (2026-07-18) <!-- resolved:2026-07-19 -->

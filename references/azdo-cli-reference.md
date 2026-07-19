@@ -26,7 +26,17 @@ Using it where it is not supported produces `ERROR: unrecognized arguments`.
 |---------|------------|------------|
 | `az repos pr update` | NO | `--org` only, or configure defaults |
 | `az repos pr show` | NO | `--org` only, or configure defaults |
+| `az repos pr policy list` | NO | `--id` (the PR number) + `--org` only |
 | `az devops invoke` | NO | Pass project in `--route-parameters` |
+
+**Easy to confuse:** `az repos policy list` (lists all policies *configured on
+a project/branch*, accepts `--project`) vs. `az repos pr policy list` (lists
+policy *evaluation status for one PR*, scoped by `--id`, does NOT accept
+`--project`). Passing `--project` to the PR-scoped variant fails with
+`unrecognized arguments` — verified live against `az --version 2.88.0`. This
+exact confusion caused a real incident (see `skills/ship/scripts/merge.sh` and
+`ci-watch.sh`, both of which check PR-level policy status and therefore use
+the `pr policy list` form without `--project`).
 
 ### Safe pattern
 

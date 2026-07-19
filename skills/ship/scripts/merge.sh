@@ -45,15 +45,17 @@ if [ "$PLATFORM" = "github" ]; then
   GH_MERGE_FLAG=$( [ "$SQUASH" = true ] && echo "--squash" || echo "--merge" )
   GH_BRANCH_FLAG=$( [ "$DELETE_BRANCH" = true ] && echo "--delete-branch" || echo "" )
 
-  if gh pr merge "$PR_NUMBER" $GH_MERGE_FLAG $GH_BRANCH_FLAG 2>/dev/null; then
+  GH_MERGE_ERR=$(mktemp)
+  if gh pr merge "$PR_NUMBER" $GH_MERGE_FLAG $GH_BRANCH_FLAG 2>"$GH_MERGE_ERR"; then
     STATUS="success"
     MERGE_COMMIT=$(gh pr view "$PR_NUMBER" --json mergeCommit -q '.mergeCommit.oid' 2>/dev/null | head -c 7)
     BRANCH_DELETED=$DELETE_BRANCH
   else
     STATUS="failed"
-    ERRORS="gh pr merge failed"
+    ERRORS="gh pr merge failed: $(tr '\n' ' ' <"$GH_MERGE_ERR" | cut -c1-200)"
     BRANCH_DELETED=false
   fi
+  rm -f "$GH_MERGE_ERR"
   emit_report
   [ "$STATUS" = "success" ] && exit 0 || exit 1
 fi
