@@ -7,9 +7,6 @@
 - [ ] Consider a dedicated debugging skill (e.g. /diagnose) mirroring /build's subagent-isolated pipeline but scoped to root-causing a reported bug rather than implementing a plan — reproduce/hypothesize/verify/fix/reverify stages, deferring to superpowers:systematic-debugging when present, same deferral pattern /build already uses for implementation — unfurl project session debugging a Flow-mode drill-through bug (2026-07-18)
 
 ## Deferred fixes
-- [ ] global-preferences-template.md new ### Agent Workflow subsection has a blank line before its first bullet, breaking this file's no-blank-line-after-heading convention that every other subsection follows — /build verification-discipline-prompt review (2026-07-18)
-- [ ] Agent Workflow bullets in global-preferences-template.md are more verbose/explanatory (2-3 lines with embedded rationale) than sibling bullets' terse single-clause style — /build verification-discipline-prompt review (2026-07-18)
-- [ ] skills/rig/SKILL.md frontmatter description does not mention secret-scan/credential-related keywords, so a user asking specifically about secret scanning may not discover it — /build verification-discipline-prompt review (2026-07-18)
 
 ## Open questions
 
@@ -18,6 +15,9 @@
 ## Tech debt
 
 ## Archive
+- [x] global-preferences-template.md new ### Agent Workflow subsection has a blank line before its first bullet, breaking this file's no-blank-line-after-heading convention that every other subsection follows — /build verification-discipline-prompt review (2026-07-18) <!-- resolved:2026-07-19 -->
+- [x] Agent Workflow bullets in global-preferences-template.md are more verbose/explanatory (2-3 lines with embedded rationale) than sibling bullets' terse single-clause style — /build verification-discipline-prompt review (2026-07-18) <!-- resolved:2026-07-19 -->
+- [x] skills/rig/SKILL.md frontmatter description does not mention secret-scan/credential-related keywords, so a user asking specifically about secret scanning may not discover it — /build verification-discipline-prompt review (2026-07-18) <!-- resolved:2026-07-19 -->
 - [x] phase-prompts.md doc comment claims redundancy is checked section-by-section for UNIVERSAL_PRINCIPLES, but the actual gate only checks the coarse ## Universal Operating Principles wrapper atomically, not individual subsections — pre-existing gap, now more visible with 4 subsections instead of 2 — /build verification-discipline-prompt review (2026-07-18) <!-- resolved:2026-07-19 -->
 - [x] ci-watch.sh AzDO CLI path: when no CI runs are found but PR policies genuinely exist, CI_BRANCH stays the empty string (only ever set inside the two RUN_COUNT!=0 branches), so the main wait loop calls az pipelines runs list --branch "" with an empty branch filter — behavior unverified, likely returns unrelated runs or none at all — az/gh command audit (2026-07-19) <!-- resolved:2026-07-19 -->
 - [x] /ship's Azure DevOps merge path fails on the first attempt whenever the target repo has a minimum-reviewer branch policy, discovered only via a failed merge error rather than checked upfront — proactively run az repos policy list (or REST equivalent) before attempting merge and surface the approval requirement to the user ahead of time — unfurl project session, hit twice across separate /ship runs (2026-07-18) <!-- resolved:2026-07-19 -->
