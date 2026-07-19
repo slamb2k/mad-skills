@@ -15,6 +15,7 @@
 ## Tech debt
 
 ## Archive
+- [x] merge.sh (AzDO CLI/REST paths) never casts a self-approve reviewer vote before waiting on PR policies — orgs with self-approval allowed require the user to manually POST vote:10 to unblock every PR, all day, per report from another project on this ledger item — user report, external project ledger item #2 (2026-07-19) <!-- resolved:2026-07-19 -->
 - [x] global-preferences-template.md new ### Agent Workflow subsection has a blank line before its first bullet, breaking this file's no-blank-line-after-heading convention that every other subsection follows — /build verification-discipline-prompt review (2026-07-18) <!-- resolved:2026-07-19 -->
 - [x] Agent Workflow bullets in global-preferences-template.md are more verbose/explanatory (2-3 lines with embedded rationale) than sibling bullets' terse single-clause style — /build verification-discipline-prompt review (2026-07-18) <!-- resolved:2026-07-19 -->
 - [x] skills/rig/SKILL.md frontmatter description does not mention secret-scan/credential-related keywords, so a user asking specifically about secret scanning may not discover it — /build verification-discipline-prompt review (2026-07-18) <!-- resolved:2026-07-19 -->

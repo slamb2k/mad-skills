@@ -67,6 +67,21 @@ DELETE_FLAG=$( [ "$DELETE_BRANCH" = true ] && echo "true" || echo "false" )
 
 # ── AzDO CLI mode ──────────────────────────────────────
 if [ "$AZDO_MODE" = "cli" ]; then
+  # Best-effort self-approve: on orgs where "Allow requestors to approve
+  # their own changes" is enabled, this satisfies the minimum-reviewer
+  # policy immediately instead of leaving it pending until a human votes
+  # manually — see LOGBOOK.md, reported as needing a manual REST vote on
+  # every /ship run. On orgs where that setting is off, the vote succeeds
+  # but doesn't count toward the policy; the unchanged wait loop below is
+  # the backstop either way, so this can't make things worse.
+  # CAUTION: if AZURE_DEVOPS_EXT_PAT/AZDO_PAT belongs to a shared/service
+  # identity rather than the PR author, this vote is a genuine second-party
+  # approval and WILL count even where self-approval is disabled — only
+  # use a personal PAT if that distinction matters for your org's policy.
+  if az repos pr set-vote --id "$PR_NUMBER" --vote approve --org "$AZDO_ORG_URL" >/dev/null 2>&1; then
+    echo "Cast self-approve vote on PR #$PR_NUMBER (best-effort)" >&2
+  fi
+
   # Wait for all policies to reach terminal state (approved/rejected/notApplicable)
   # NOTE: `az repos pr policy list` does not accept --project — passing it makes
   # every call fail. A prior version silently swallowed that failure (2>/dev/null
@@ -163,6 +178,20 @@ if [ "$AZDO_MODE" = "rest" ]; then
   AUTH="Authorization: Basic $(printf ":%s" "$PAT" | base64 | tr -d '\n')"
   REPO_NAME=$(basename -s .git "$(git remote get-url origin)")
   PR_API="$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/git/repositories/$REPO_NAME/pullrequests/$PR_NUMBER"
+
+  # Best-effort self-approve (see CLI-mode comment above for rationale and
+  # the shared-PAT caution). connectiondata is an org-level endpoint — do
+  # NOT build it from PR_API's project-scoped base.
+  SELF_ID=$(curl -s -H "$AUTH" "$AZDO_ORG_URL/_apis/connectiondata?api-version=7.0" \
+    | jq -r '.authenticatedUser.id // empty' 2>/dev/null)
+  if [ -n "$SELF_ID" ]; then
+    VOTE_CODE=$(curl -s -o /dev/null -w '%{http_code}' -X PUT -H "$AUTH" -H "Content-Type: application/json" \
+      "$PR_API/reviewers/$SELF_ID?api-version=7.0" \
+      -d "{\"vote\": 10, \"id\": \"$SELF_ID\"}")
+    case "$VOTE_CODE" in
+      2??) echo "Cast self-approve vote on PR #$PR_NUMBER (best-effort)" >&2 ;;
+    esac
+  fi
 
   # Wait for all policy evaluations to reach terminal state
   POLICY_TIMEOUT=20
