@@ -9,9 +9,14 @@ Workflow, and Commit Discipline)
 when install_level is "project" AND those sections are not already present
 in `~/.claude/CLAUDE.md`. Left empty when install_level is "global"
 (principles are in the global config instead) or when the sections would
-be redundant with existing global content. Redundancy is checked
-section-by-section — each section that already exists in global is
-skipped individually rather than dropping the whole substitution.
+be redundant with existing global content. Redundancy is checked against
+three coarse buckets — `## Global Preferences`, `## Universal Operating
+Principles`, and `## Commit Discipline` — each skipped independently if
+already present in global. Question & Assumption Accountability,
+Communication, and Agent Workflow are subsections of `## Universal
+Operating Principles` and are NOT checked individually: if global has that
+heading at all, all three are skipped together, even if global's version
+only covers one of them.
 
 ---
 
