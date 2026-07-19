@@ -66,9 +66,37 @@ DELETE_FLAG=$( [ "$DELETE_BRANCH" = true ] && echo "true" || echo "false" )
 # ── AzDO CLI mode ──────────────────────────────────────
 if [ "$AZDO_MODE" = "cli" ]; then
   # Wait for all policies to reach terminal state (approved/rejected/notApplicable)
+  # NOTE: `az repos pr policy list` does not accept --project — passing it makes
+  # every call fail. A prior version silently swallowed that failure (2>/dev/null
+  # || echo "[]"), which reads identically to "no policies exist" and let the
+  # loop below skip straight to merge. Distinguish "call failed" from "call
+  # succeeded with zero policies" so a broken check surfaces as a broken check,
+  # not a false "no policy" — see LOGBOOK.md, this was hit twice in production.
   POLICY_TIMEOUT=20  # 20 iterations × 15 seconds = 5 minutes
+  POLICY_CALL_OK=false
   for POLICY_ITER in $(seq 1 $POLICY_TIMEOUT); do
-    POLICY_JSON=$(az repos pr policy list --id "$PR_NUMBER" --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" -o json 2>/dev/null || echo "[]")
+    POLICY_ERR=$(mktemp)
+    POLICY_JSON=$(az repos pr policy list --id "$PR_NUMBER" --org "$AZDO_ORG_URL" -o json 2>"$POLICY_ERR")
+    if [ $? -eq 0 ]; then
+      POLICY_CALL_OK=true
+    else
+      POLICY_CALL_OK=false
+      POLICY_JSON="[]"
+    fi
+
+    if ! $POLICY_CALL_OK; then
+      if [ "$POLICY_ITER" -eq "$POLICY_TIMEOUT" ]; then
+        STATUS="failed"
+        ERRORS="policy check failed: $(tr '\n' ' ' <"$POLICY_ERR" | cut -c1-200)"
+        MERGE_COMMIT=""; BRANCH_DELETED=false
+        rm -f "$POLICY_ERR"
+        emit_report; exit 1
+      fi
+      rm -f "$POLICY_ERR"
+      sleep 15
+      continue
+    fi
+    rm -f "$POLICY_ERR"
 
     REJECTED=$(echo "$POLICY_JSON" | jq '[.[] | select(.status=="rejected")] | length')
     PENDING=$(echo "$POLICY_JSON" | jq '[.[] | select(.status=="running" or .status=="queued" or .status=="pending")] | length')
@@ -100,11 +128,12 @@ if [ "$AZDO_MODE" = "cli" ]; then
   # Avoid `sleep 30 && retry` (blind wait) — this loop exits early on success.
   MERGE_DEADLINE=$((SECONDS + 30))
   MERGE_OK=false
+  MERGE_ERR=$(mktemp)
   while :; do
     if az repos pr update --id "$PR_NUMBER" --status completed \
       --org "$AZDO_ORG_URL" \
       --squash "$SQUASH_FLAG" \
-      --delete-source-branch "$DELETE_FLAG" 2>/dev/null; then
+      --delete-source-branch "$DELETE_FLAG" 2>"$MERGE_ERR"; then
       MERGE_OK=true
       break
     fi
@@ -117,10 +146,12 @@ if [ "$AZDO_MODE" = "cli" ]; then
     BRANCH_DELETED=$DELETE_BRANCH
   else
     STATUS="failed"
-    ERRORS="Merge failed after retry"
+    ERRORS="Merge failed after retry: $(tr '\n' ' ' <"$MERGE_ERR" | cut -c1-200)"
     MERGE_COMMIT=""; BRANCH_DELETED=false
+    rm -f "$MERGE_ERR"
     emit_report; exit 2
   fi
+  rm -f "$MERGE_ERR"
   emit_report
   exit 0
 fi
