@@ -230,7 +230,11 @@ mad-skills/
 │   ├── package-skills.js    # Package .skill archives
 │   └── lib/                 # Shared helpers
 │       ├── frontmatter.js   # YAML frontmatter parser (validate + manifests)
-│       └── superpowers.js   # Superpowers detection helper (soft-dep, on-disk glob)
+│       ├── superpowers.js   # Superpowers detection helper (soft-dep, on-disk glob)
+│       ├── eval-references.js # Reference resolution for eval test cases
+│       ├── eval-response.js # Eval response parsing/scoring
+│       ├── feature-dev.js   # feature-dev agent selection/fallback helper
+│       └── *.test.js        # Unit tests for the above
 ├── hooks/                   # Session guard (Node.js)
 │   ├── hooks.json           # Plugin hook definitions
 │   ├── session-guard.cjs    # Entry point (check/remind subcommands)
@@ -238,13 +242,18 @@ mad-skills/
 │       ├── banner.cjs       # ASCII banner rendering
 │       ├── config.cjs       # Configuration constants
 │       ├── git-checks.cjs   # Git status checks
+│       ├── lifecycle.cjs    # Lifecycle Recommendation Engine (🧭 lifecycle-next)
+│       ├── logbook.cjs      # Follow-ups ledger (LOGBOOK.md read/write/resolve)
 │       ├── output.cjs       # Output formatting
 │       ├── staleness.cjs    # CLAUDE.md staleness detection
 │       ├── state.cjs        # Persistent state (dismissals)
+│       ├── superpowers-core.cjs # Superpowers detection/deferral core
 │       ├── task-checks.cjs  # Task list checks
-│       └── utils.cjs        # Shared utilities
-├── tests/                   # Eval test results
-│   └── results/             # JSON eval output (latest.json symlink)
+│       ├── utils.cjs        # Shared utilities
+│       └── *.test.cjs       # Unit tests (lifecycle, logbook)
+├── tests/                   # Eval test results + packaging test
+│   ├── results/             # JSON eval output (latest.json symlink)
+│   └── packaging.test.cjs   # .skill archive packaging test
 ├── archive/                 # Inactive skills (historical reference)
 │   ├── cyberarian/          # Archived skill
 │   ├── example-skill/       # Archived skill
@@ -268,12 +277,14 @@ mad-skills/
 ```bash
 npm run validate          # Validate all skill structures
 npm run lint              # Lint SKILL.md files
+npm run test:unit         # Unit tests (node --test) for scripts/lib + hooks/lib
 npm run eval              # Run evals (needs API key)
 npm run eval -- --verbose # Verbose eval output
+npm run eval:update       # Update eval snapshots
 npm run build:manifests   # Generate skills/manifest.json
 npm run build:skills      # Package .skill archives
 npm run build             # Both manifests + skills
-npm test                  # validate + lint + eval
+npm test                  # validate + lint + test:unit + eval
 ```
 
 No build step required for development. Scripts run directly with Node.js (>=18).
@@ -326,6 +337,7 @@ Use Explore for codebase scanning and general-purpose for complex logic.
 ```bash
 npm run validate          # Structure checks for all 14 skills
 npm run lint              # SKILL.md format checks
+npm run test:unit         # Unit tests for scripts/lib + hooks/lib modules
 npm run eval              # Eval assertions (requires API key)
 ```
 
