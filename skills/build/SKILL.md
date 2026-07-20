@@ -78,6 +78,9 @@ Parse optional flags from the request:
 - `--no-superpowers`: Force the standalone pipeline even when Superpowers is installed
 - `--handoff`: Skip the execution-mode question and hand off to a clean session
 - `--no-handoff`: Skip the execution-mode question and run here now
+- `--auto`: Autonomous end-to-end run against an `autonomy_ready: true` spec, no
+  interactive interruption — dispatch only, see `references/autonomous-pipeline.md`.
+  Caps (flag/env/default, any hit forces stop-and-report): `--iterations`/`BUILD_AUTO_ITERATIONS`/20, `--budget`/`BUILD_AUTO_BUDGET`/5M, wall-clock/`BUILD_AUTO_WALLCLOCK`/4h.
 
 ---
 
@@ -103,6 +106,9 @@ For each row, in order:
    - **ask**: notify user, offer to run command in Detail, continue either way (or halt if required)
    - **fallback**: notify user with Detail, continue with degraded behavior
 4. After all checks: summarize what's available and what's degraded
+
+**If `--auto`:** verify `autonomy_ready: true` (`scripts/lib/frontmatter.js`) — on
+failure STOP naming the missing gate items (AC-001, format in `references/autonomous-pipeline.md`), never fall back silently.
 
 1. Capture **PLAN** (the user's argument) and **FLAGS**
 2. **Clear pending-build marker** — if a marker was left by `/speccy`, clear it:
@@ -182,6 +188,9 @@ Parse EXPLORE_REPORT. Extract `questions` for Stage 2.
 
 **Skip if `--skip-questions` or no questions found.**
 
+**If `--auto`:** SKIPPED by default (REQ-012, ambiguity resolved via the
+assumption-authorization list) — `references/autonomous-pipeline.md`'s headless mechanism covers the rare uncovered decision.
+
 Runs on the **primary thread** (requires user interaction).
 
 1. Review EXPLORE_REPORT `questions` and `potential_issues`
@@ -211,7 +220,11 @@ If rejected, incorporate feedback and re-run.
 
 ## Stage 4: Implementation
 
-**Superpowers deferral (soft dependency):** When Superpowers is detected (per the
+**If `--auto`:** implementation subagents MUST use Sonnet (REQ-013, other
+stages keep interactive-default tiers) and this stage never defers to
+Superpowers — see `references/autonomous-pipeline.md`'s Model tiering section.
+
+**Superpowers deferral (soft dependency, interactive mode only):** When Superpowers is detected (per the
 pre-flight check) and `--no-superpowers` is not set, announce
 `⚡ Superpowers detected — deferring plan/implement core to superpowers:executing-plans`
 and route the plan-execution/implementation core through
@@ -258,6 +271,10 @@ Parse IMPL_REPORT(s). If any failed, assess retry or abort.
 ---
 
 ## Stage 5: Code Review
+
+**If `--auto`:** skip the standard Stage 5–8 flow below — dispatch review-depth
+selection, `/code-review` + `/security-review`, the fix loop, `/verify`,
+evidence capture, and `/loop`/`/goal` guardrails per `references/autonomous-pipeline.md`.
 
 **Skip if `--skip-review`.**
 
@@ -330,6 +347,8 @@ Task(
 ---
 
 ## Stage 9: Ship
+
+**If `--auto`:** invoke `/ferry` to checkpoint before proceeding (GUD-004, `references/autonomous-pipeline.md`).
 
 Invoke the `/ship` skill:
 

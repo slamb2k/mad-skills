@@ -23,6 +23,7 @@
 | Fix | general-purpose | — | Targeted edits |
 | Verify | Bash (haiku) | — | Just runs test command |
 | Docs | general-purpose | — | Updates progress markers |
+| Implement (`--auto`) | general-purpose (Sonnet) | — | REQ-013 — cheaper tier for mechanical implementation in autonomous mode; explore/architect/review/verify keep their default tiers |
 | Ship | /ship skill | — | Has own subagent tree |
 
 ## Compaction Prevention
