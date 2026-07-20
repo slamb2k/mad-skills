@@ -133,7 +133,15 @@ bash "$SKILL_ROOT/skills/sync/scripts/sync.sh" \
 Parse the output between `SYNC_REPORT_BEGIN` and `SYNC_REPORT_END` markers.
 Extract `key=value` pairs for the report fields: `status`, `remote`,
 `default_branch`, `main_updated_to`, `current_branch`, `stash`, `rebase`,
-`branches_cleaned`, `errors`.
+`branches_cleaned`, `worktrees_skipped`, `errors`.
+
+Branch cleanup also tears down associated worktrees: when a stale branch
+(merged or remote-gone) is checked out in a git worktree carrying a
+`.mad-skills-auto` sentinel (an autonomous `--auto` run, per
+`references/autonomous-worktree-lifecycle.md` (repo root)), the worktree is removed
+before the branch is deleted. A worktree with uncommitted changes is never
+force-removed — it and its branch are left intact and reported in
+`worktrees_skipped`.
 
 Exit codes: 0=success, 1=fatal error, 2=partial success (conflict warnings).
 
