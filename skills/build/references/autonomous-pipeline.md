@@ -1,10 +1,11 @@
-# Build Autonomous Pipeline (`--auto`)
+# Build Pipeline
 
-The `--auto` procedure for `/build`. SKILL.md only dispatches to this file
-per stage (REQ-002); all autonomous-specific logic lives here. The entire
-`--auto` run happens inside the git worktree `/speccy --auto` already created
-(REQ-004) — every file-tool call uses absolute paths rooted at that worktree,
-matching `stage-prompts.md`'s absolute-path rule.
+`/build`'s self-evaluating, autonomous-by-default procedure — the only mode
+(REQ-008); there is no separate interactive build mode. SKILL.md only
+dispatches to this file per stage (REQ-002, REQ-015). The entire run happens
+inside the git worktree `/speccy` already created (REQ-001, either mode) —
+every file-tool call uses absolute paths rooted at that worktree, matching
+`stage-prompts.md`'s absolute-path rule.
 
 The one invariant carried through every stage below: each subagent report
 MUST capture rationale ("why"), not just outcome ("what"), mirroring the
@@ -14,46 +15,101 @@ not shallower reasoning.
 
 ---
 
-## Gate check — `autonomy_ready` (AC-001)
+## Worktree refusal (REQ-009)
 
-Runs in pre-flight, before any stage. Read the target spec's frontmatter via
-`scripts/lib/frontmatter.js` and require `autonomy_ready: true`.
+Runs in pre-flight, before any stage — this replaces the old `autonomy_ready`
+hard gate as `/build`'s actual precondition check. `/build` MUST NOT create
+its own worktree under any circumstance; it only ever operates inside one
+`/speccy` already created (`references/autonomous-worktree-lifecycle.md`).
 
-```
-_R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
-node --input-type=module -e "
-  import { parseFrontmatter } from '$_R/scripts/lib/frontmatter.js';
-  import { readFileSync } from 'node:fs';
-  const fm = parseFrontmatter(readFileSync(process.argv[1], 'utf8')) || {};
-  process.stdout.write(String(fm.autonomy_ready === 'true'));
-" "<spec-path>"
-```
-
-On `false` or absent, STOP immediately (do not implement anything, do not
-fall back to interactive mode silently). Print exactly:
+Detection is pure git-native, not the `.mad-skills-auto` sentinel (that
+sentinel only marks `--auto` runs; REQ-001 means an interactive `/speccy` run
+also produces a worktree `/build` must recognize) — compare
+`git rev-parse --git-common-dir` against `git rev-parse --git-dir`:
 
 ```
-❌ /build --auto refused — spec is not autonomy-ready.
-
-   {spec-path} has autonomy_ready: {false | (absent)}.
-
-   The completeness gate requires all of: outcome, architecture/approach,
-   non-goals, a literal Definition of Done checklist, a roadmap/what's-next
-   section, risks, and an assumption-authorization entry per unresolved
-   ambiguity. Missing from this spec:
-     • {each missing gate item, one per line}
-
-   Fix: run `/speccy --auto` to complete the interview and set
-   autonomy_ready: true, or run plain `/build {spec-path}` interactively.
+GIT_DIR=$(git rev-parse --git-dir)
+GIT_COMMON_DIR=$(git rev-parse --git-common-dir)
 ```
 
-Determine the missing items by scanning the spec body for the required
-sections (`## Definition of Done`, roadmap/what's-next, `## Assumption
-Authorization`, non-goals, risks). List whichever are absent.
+They differ inside a linked worktree and match inside a main working copy.
+`/build` proceeds when they differ; when they match, it refuses immediately
+— no partial work, no attempt to create a worktree itself — and prints
+exactly (AC-004 pattern):
+
+```
+❌ /build refused — no worktree found.
+
+   /build only ever runs inside a worktree /speccy already created; it
+   never bootstraps its own. That guarantees every autonomous build traces
+   back to a reviewable spec, not a bare prompt.
+
+   Fix: run `/speccy {ticket}` first (with or without --auto) to create the
+   worktree and spec, then re-run `/build` from inside it.
+```
 
 ---
 
-## Model tiering (REQ-013)
+## Per-decision self-evaluation (REQ-010, REQ-011)
+
+Whenever implementation surfaces a genuine ambiguity, run this three-step
+check, in order:
+
+1. **Covered by the spec's Assumption Authorization list?** → resolve per
+   that authorization, silently; report the resolution in the PR.
+2. **Not covered — does it touch a risk-keyword path
+   (`references/autonomous-review-thresholds.md`) or an architectural-surface
+   marker (`references/autonomous-architecture-surface-markers.md`)?**
+   → interview, deferred to the next checkpoint (see the mid-build question
+   mechanism below).
+3. **Not covered, not risky** → decide, record a new Assumption Authorization
+   entry in the spec, and keep going.
+
+`autonomy_ready` is no longer a hard precondition (superseding the gate this
+section replaces) — it's now a weighting signal on the boundary between
+"interview" (step 2) and "decide" (step 3) for genuinely borderline cases:
+`autonomy_ready: true` nudges a borderline ambiguity toward step 3; `false`
+or absent nudges it toward step 2. It never overrides a clear-cut case — an
+ambiguity that plainly touches a risk-keyword path or architectural-surface
+marker still gets interviewed even on a `true` spec, and a plainly low-risk
+ambiguity still gets decided even on a `false`/absent one.
+
+---
+
+## Early draft PR (REQ-014 (unified-autonomous-build.md))
+
+Open the PR as a draft at or before the first substantive implementation
+work (Stage 4), so every checkpoint interview and evidence artifact from
+here on has somewhere to attach. The spec file is already the branch's
+first commit (`/speccy`'s existing behavior) by the time `/build` starts, so
+there's always something to open a PR against.
+
+Call `skills/ship/scripts/create-pr.sh` directly:
+
+```
+skills/ship/scripts/create-pr.sh <PLATFORM> "<TITLE>" <BODY_FILE> <SOURCE_BRANCH> \
+  --draft [--target-branch=<BRANCH>] [--remote=<NAME>] \
+  [--azdo-mode=cli|rest --azdo-org-url=<URL> --azdo-project=<NAME> --azdo-project-url-safe=<NAME>]
+```
+
+- `PLATFORM`, the AzDO flags, `--target-branch`, and `--remote` reuse the
+  same platform detection the orchestrator resolves for `/ship` — don't
+  re-detect.
+- `BODY_FILE` at this stage holds a minimal placeholder body (title, spec
+  link); the full Summary/Risks/Validation report (REQ-030) isn't assembled
+  until Stage 9 — checkpoint interviews and evidence steps update the PR as
+  the run progresses.
+- Idempotent: the script checks for an existing open PR on `SOURCE_BRANCH`
+  first and reuses it (`reused=true` in its `PR_REPORT_BEGIN`/`END` output)
+  rather than erroring. This matters because `/ship --auto`'s Stage 9 calls
+  the same script again on the same branch — it reuses this draft PR
+  instead of creating a second one.
+- Capture the returned `pr_url`: every checkpoint-interview comment and
+  evidence artifact from here on posts against it.
+
+---
+
+## Model tiering (REQ-013 (autonomous-execution-mode.md))
 
 Implementation subagents (Stage 4 and every fix-loop subagent) run on
 **Sonnet** — mechanical edits against a fully-specified spec don't need a
@@ -67,14 +123,14 @@ table.
 `superpowers:subagent-driven-development` (see
 `references/superpowers-deferral.md`) has no model-override parameter, so
 REQ-013's Sonnet mandate cannot be forced through that invocation. Resolution:
-in `--auto` mode, Stage 4 does NOT defer to Superpowers, even when detected
-and `--no-superpowers` is not set — it always runs the standalone Sonnet path
+Stage 4 never defers to Superpowers, even when detected and
+`--no-superpowers` is not set — it always runs the standalone Sonnet path
 below, so REQ-013 stays enforceable on the one path that's actually possible
 to enforce it on.
 
 ---
 
-## Architect stage — roadmap reference (REQ-014)
+## Architect stage — roadmap reference (REQ-014 (autonomous-execution-mode.md))
 
 The architect subagent MUST read and explicitly reference the spec's
 roadmap/what's-next section when choosing an approach, so the design fits the
@@ -93,7 +149,7 @@ then apply the file-count-plus-risk-keyword-path rule to pick **Standard** or
 **Deep**. The rule is an OR — either >10 files or any risk-keyword path forces
 Deep.
 
-The ORCHESTRATOR (this `/build --auto` thread) then invokes the native
+The ORCHESTRATOR (this `/build` thread) then invokes the native
 `/code-review` and `/security-review` commands directly via the Skill tool —
 the same pattern `/build` already uses to invoke `/ship` at Stage 9 and
 `/prime` in setup. These native commands run their own internal multi-agent
@@ -112,7 +168,7 @@ For each finding-set surfaced by review:
    `/ship`'s existing CI-fix retry cap).
 
 After 2 consecutive failed fix→re-review cycles on the same finding-set, treat
-it as **stuck** (§2 Definitions) and escalate via the headless question
+it as **stuck** (§2 Definitions) and escalate via the mid-build question
 mechanism below (REQ-021) — do NOT attempt a 3rd fix.
 
 ---
@@ -192,40 +248,47 @@ exercised now — mark the queue behavior as a designed-for-later hook.
 
 ---
 
-## Headless mid-build question mechanism (REQ-024–REQ-028)
+## Mid-build question mechanism — checkpoint timing & channel delivery (REQ-012, REQ-013, REQ-024–REQ-028)
 
-Used only when explore surfaces a decision outside the spec's assumption-
-authorization list, or when a finding-set goes stuck (REQ-021).
+Triggered only when the per-decision self-evaluation above (REQ-010) lands on
+step 2 (interview), or when a finding-set goes stuck (REQ-021).
 
-1. **Continue independent work first (REQ-024):** don't block the entire run
-   on one open question — proceed with any other Definition-of-Done items that
-   don't depend on the answer.
-2. **Compose a rich artifact (REQ-025):** multiple well-communicated options,
-   pros/cons for each, an explicit recommendation, and supporting visuals via
-   the same evidence-capture tooling where relevant. Never an open-ended "what
-   do you think?"
-3. **Post as a comment on the (draft) PR (REQ-026)** already open for this
-   work, capturing the returned `comment_url`.
-4. **Notify (REQ-027)** per `references/autonomous-notification-payload.md`
-   (repo root)'s channel-agnostic schema:
-   - Live interactive session → `channel: "push"`, sent via the
-     `PushNotification` tool.
-   - Headless / unattended → `channel: "pr-comment-only"`, no delivery beyond
-     the comment already posted.
-5. **Pause or continue (REQ-028):** keep working remaining independent items,
-   or pause if nothing independent remains, until the PR-comment reply is
-   picked up by a follow-up `--auto` pass or the original session if still
-   live.
+**Checkpoint-only timing (REQ-012):** ambiguity may be *detected* the moment
+implementation hits it, but the question itself is only ever surfaced at a
+defined checkpoint — immediately after handoff (before implementation
+begins), at code-review, or at verify. Never mid-implementation. In the
+meantime, continue any other independent work that doesn't depend on the
+answer (REQ-024) rather than blocking the whole run on one open question.
+
+**Channel-adaptive delivery (REQ-013 (unified-autonomous-build.md)):**
+
+- **Live interactive session watching** → ask directly via `AskUserQuestion`
+  with an explicit recommendation. The answer is available synchronously, so
+  no PR round-trip is needed.
+- **Headless / unattended** → the existing PR-comment mechanism:
+  1. **Compose a rich artifact (REQ-025):** multiple well-communicated
+     options, pros/cons for each, an explicit recommendation, and supporting
+     visuals via the same evidence-capture tooling where relevant — never an
+     open-ended "what do you think?"
+  2. **Post as a comment on the draft PR (REQ-026)** already open for this
+     work (per Early draft PR, above), capturing the returned `comment_url`.
+  3. **Notify (REQ-027)** per `references/autonomous-notification-payload.md`
+     (repo root)'s channel-agnostic schema, with `channel: "pr-comment-only"`
+     — no delivery beyond the comment already posted.
+  4. **Pause or continue (REQ-028):** keep working remaining independent
+     items, or pause if nothing independent remains, until the PR-comment
+     reply is picked up by a follow-up pass or the original session if still
+     live.
 
 ---
 
 ## Checkpointing — automatic `/ferry` (GUD-004)
 
 At major stage boundaries, the orchestrator automatically invokes `/ferry` to
-write a waybill and checkpoint context — automatic in `--auto` mode, unlike
-interactive mode's conditional offer. With no human present to judge "is
-context large enough to warrant this," automatic is the safer default
-(AC-009). Wired at two concrete trigger points:
+write a waybill and checkpoint context — always automatic, since `/build` has
+no other mode to offer a conditional prompt in. With no human present to judge
+"is context large enough to warrant this," automatic is the safer default
+(AC-009 (autonomous-execution-mode.md)). Wired at two concrete trigger points:
 
 - **speccy → build:** `skills/speccy/SKILL.md`'s Output & Handoff section
   invokes `/ferry` before handing off to `/build`.

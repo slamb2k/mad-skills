@@ -35,10 +35,10 @@
   },
   {
     "name": "build-superpowers-present",
-    "prompt": "The superpowers plugin is installed. Run build on specs/rate-limiter.md. Which superpowers skill does build route its implementation core through?",
+    "prompt": "The superpowers plugin is installed and --no-superpowers is not set. Run build on specs/rate-limiter.md. Does Stage 4's implementation core defer to a superpowers skill, and why or why not?",
     "assertions": [
-      { "type": "regex", "value": "(executing-plans|subagent-driven-development)", "flags": "i" },
-      { "type": "contains", "value": "Superpowers detected" }
+      { "type": "contains", "value": "Sonnet" },
+      { "type": "semantic", "value": "Stage 4 never defers to Superpowers, present or not, because the Skill tool used to invoke superpowers:executing-plans/subagent-driven-development has no model-override parameter, so REQ-013's Sonnet-tiering mandate for implementation subagents can't be enforced through that path — Stage 4 always runs its own standalone Sonnet-tiered implementation pipeline, unlike the other overlapping stages that do defer" }
     ]
   },
   {
@@ -57,41 +57,106 @@
     ]
   },
   {
-    "name": "build-auto-gate-not-ready-stops",
-    "prompt": "Run /build specs/rate-limiter.md --auto. The spec's frontmatter has autonomy_ready: false because its Definition of Done and Assumption Authorization sections are missing. What does /build --auto do?",
+    "name": "build-worktree-refusal-no-worktree",
+    "prompt": "Run /build specs/rate-limiter.md. Pre-flight's worktree check compares git rev-parse --git-common-dir against git rev-parse --git-dir and finds they MATCH — this is a plain main working copy, not a linked worktree, because no prior /speccy run created one. What does /build do?",
     "assertions": [
-      { "type": "semantic", "value": "Stops immediately with a clear message naming the specific missing completeness-gate items (e.g. Definition of Done, Assumption Authorization) and does not implement anything — it does not silently fall back to interactive mode without saying so" }
+      { "type": "regex", "value": "refus", "flags": "i" },
+      { "type": "semantic", "value": "Refuses immediately, before any stage runs, with a message directing the user to run /speccy first — it does not attempt to bootstrap or create a worktree of its own, and does not perform any partial implementation work" }
     ]
   },
   {
-    "name": "build-auto-implementation-model-tier",
-    "prompt": "Run /build specs/rate-limiter.md --auto on a spec with autonomy_ready: true. Which model does the implementation subagent use, and does that differ from explore/architect/review/verify stages?",
+    "name": "build-model-tier-sonnet",
+    "prompt": "Run /build specs/rate-limiter.md (no flags). Which model does the Stage 4 implementation subagent use, and does that differ from the explore/architect/review/verify stages?",
     "assertions": [
       { "type": "contains", "value": "Sonnet" },
-      { "type": "semantic", "value": "Implementation subagents are forced to use Sonnet (the cheaper model tier) in --auto mode, while explore, architect, and review/verify stages use whichever model tier best fits that stage's judgment requirements rather than being forced to Sonnet" }
+      { "type": "semantic", "value": "Implementation subagents always use Sonnet, the cheaper model tier, since this is simply how /build works now rather than something gated behind a flag, while explore, architect, and review/verify stages use whichever model tier best fits that stage's judgment requirements" }
     ]
   },
   {
-    "name": "build-auto-review-depth-standard",
-    "prompt": "Run /build --auto on a spec whose implementation touches 4 files, none of which are auth, secrets, CI/CD config, payment, or data-deletion related. Per the review-depth threshold rule, does /build --auto dispatch a standard or deep review?",
+    "name": "build-review-depth-standard",
+    "prompt": "Run /build on a spec whose implementation touches 4 files, none of which are auth, secrets, CI/CD config, payment, or data-deletion related. Per the review-depth threshold rule, does /build dispatch a standard or deep review?",
     "assertions": [
       { "type": "regex", "value": "standard", "flags": "i" },
       { "type": "semantic", "value": "Standard review depth is selected because the diff touches 10 or fewer files and none of the risk-keyword paths, per the threshold table in references/autonomous-review-thresholds.md" }
     ]
   },
   {
-    "name": "build-auto-review-depth-risk-keyword",
-    "prompt": "Run /build --auto on a spec whose implementation touches only 3 files, but one of them is .github/workflows/deploy.yml. Per the review-depth threshold rule, does /build --auto dispatch a standard or deep review, and why?",
+    "name": "build-review-depth-risk-keyword",
+    "prompt": "Run /build on a spec whose implementation touches only 3 files, but one of them is .github/workflows/deploy.yml. Per the review-depth threshold rule, does /build dispatch a standard or deep review, and why?",
     "assertions": [
       { "type": "regex", "value": "deep", "flags": "i" },
       { "type": "semantic", "value": "Deep review is selected even though only 3 files changed, because the diff touches a CI/CD or deploy config path, which is one of the named risk-keyword paths that forces deep review regardless of file count" }
     ]
   },
   {
-    "name": "build-auto-fix-loop-stuck-escalation",
-    "prompt": "Run /build --auto. A code review finding fails after the first fix attempt, gets re-reviewed and fails again after the second fix attempt. What does /build --auto do — does it try a third fix, and if not, what happens instead?",
+    "name": "build-fix-loop-stuck-escalation",
+    "prompt": "Run /build. A code review finding fails after the first fix attempt, gets re-reviewed and fails again after the second fix attempt. What does /build do — does it try a third fix, and if not, what happens instead?",
     "assertions": [
-      { "type": "semantic", "value": "Does not attempt a third fix; two consecutive failed fix-then-re-review attempts on the same finding is treated as stuck, and the run escalates via the headless mid-build question mechanism instead of retrying again" }
+      { "type": "semantic", "value": "Does not attempt a third fix; two consecutive failed fix-then-re-review attempts on the same finding is treated as stuck, and the run escalates via the mid-build question mechanism instead of retrying again" }
+    ]
+  },
+  {
+    "name": "build-self-eval-covered-by-assumptions",
+    "prompt": "During Stage 4 implementation, /build hits a genuine ambiguity that IS covered by the spec's existing Assumption Authorization list. Per the per-decision self-evaluation's first step, what does /build do?",
+    "assertions": [
+      { "type": "contains", "value": "Assumption Authorization" },
+      { "type": "semantic", "value": "Resolves the ambiguity silently per the existing Assumption Authorization entry — it does not interview or pause — and reports the resolution in the PR" }
+    ]
+  },
+  {
+    "name": "build-self-eval-risky-triggers-interview",
+    "prompt": "During Stage 4, /build hits an ambiguity that is NOT covered by the spec's Assumption Authorization list, and the affected file is a public exported interface (an architectural-surface marker). Per the three-step self-evaluation, what does /build do, and when does the question actually get surfaced to the user?",
+    "assertions": [
+      { "type": "regex", "value": "checkpoint", "flags": "i" },
+      { "type": "semantic", "value": "Because the ambiguity is uncovered by the assumption list and touches an architectural-surface marker, /build defers to an interview rather than deciding alone, and the question is only surfaced at the next checkpoint (e.g. before code review) rather than immediately when it was detected" }
+    ]
+  },
+  {
+    "name": "build-self-eval-decide-and-record",
+    "prompt": "During Stage 4, /build hits an ambiguity that is NOT covered by the spec's Assumption Authorization list, and it does not touch any risk-keyword path or architectural-surface marker. Per the three-step self-evaluation's third step, what does /build do?",
+    "assertions": [
+      { "type": "contains", "value": "Assumption Authorization" },
+      { "type": "semantic", "value": "Decides the ambiguity itself, records a brand-new Assumption Authorization entry in the spec, and keeps working — it does not stop to interview the user" }
+    ]
+  },
+  {
+    "name": "build-checkpoint-only-timing",
+    "prompt": "/build is mid-implementation (Stage 4) and detects a genuine ambiguity that needs an interview. Is the question surfaced to the user the moment it's detected, or later? Explain the timing and what /build does in the meantime.",
+    "assertions": [
+      { "type": "regex", "value": "checkpoint", "flags": "i" },
+      { "type": "semantic", "value": "The ambiguity may be detected at any point during implementation, but the interview question itself is only ever surfaced at a defined checkpoint (immediately after handoff, at code-review, or at verify) — never mid-implementation. /build continues any other independent work that doesn't depend on the answer rather than blocking the whole run on one open question" }
+    ]
+  },
+  {
+    "name": "build-channel-live-session",
+    "prompt": "/build reaches a checkpoint with a deferred interview question, and this is a live interactive session that's currently watching. Which delivery channel does it use to ask the question?",
+    "assertions": [
+      { "type": "contains", "value": "AskUserQuestion" },
+      { "type": "semantic", "value": "Uses AskUserQuestion directly, with an explicit recommendation, because a live watched session can answer synchronously and no PR round-trip is needed" }
+    ]
+  },
+  {
+    "name": "build-channel-headless",
+    "prompt": "/build reaches a checkpoint with a deferred interview question, but this is a headless/unattended run with no live session watching. Which delivery channel does it use to ask the question?",
+    "assertions": [
+      { "type": "regex", "value": "(PR|pull request).*comment", "flags": "is" },
+      { "type": "semantic", "value": "Composes a rich artifact with multiple options, pros/cons, and an explicit recommendation, posts it as a comment on the draft PR already open for the work, and sends a notification — it does not use AskUserQuestion since no live session is watching" }
+    ]
+  },
+  {
+    "name": "build-autonomy-ready-weighting",
+    "prompt": "Compare two otherwise-identical /build runs hitting the same borderline ambiguity — one against a spec with autonomy_ready: true, the other against a spec with autonomy_ready: false (or the field absent entirely). How does autonomy_ready change the outcome, and does it ever override a clear-cut case?",
+    "assertions": [
+      { "type": "contains", "value": "autonomy_ready" },
+      { "type": "semantic", "value": "autonomy_ready: true nudges the borderline ambiguity toward deciding and recording a new Assumption Authorization entry, while false or absent nudges the same borderline case toward interviewing at the next checkpoint instead; it is only a weighting signal, not a hard gate — a clear-cut ambiguity that plainly touches a risk-keyword path or architectural-surface marker still gets interviewed even when autonomy_ready is true, and a plainly low-risk ambiguity still gets decided even when it's false or absent" }
+    ]
+  },
+  {
+    "name": "build-early-draft-pr",
+    "prompt": "Run /build specs/rate-limiter.md. Stage 4 is about to dispatch its first implementation subagent. Has a PR been opened yet, and if so, how?",
+    "assertions": [
+      { "type": "contains", "value": "draft" },
+      { "type": "semantic", "value": "Before dispatching the first implementation subagent, /build opens the PR as a draft by calling skills/ship/scripts/create-pr.sh --draft directly, which is idempotent and reuses any existing open PR on the branch rather than erroring; every subsequent checkpoint-interview comment and evidence artifact posts against that draft PR" }
     ]
   }
 ]

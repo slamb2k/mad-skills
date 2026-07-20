@@ -3,6 +3,8 @@
 Shared deferral behavior for `speccy`, `build`, and `ship`. Superpowers is a
 soft/recommended dependency (runtime-detected, like graphify) — never required.
 When it is absent, every skill runs its standalone pipeline unchanged.
+Exception: `build`'s Stage 4 (plan/implement core) never defers, present or
+not — see the Per-skill deferral map below.
 
 ## Detection
 
@@ -46,9 +48,19 @@ No announcement is printed — the deferral logic is purely additive.
 | Skill / stage | Defers to (when present) | Retained by mad-skills |
 |---|---|---|
 | `speccy` requirements interview | `superpowers:brainstorming` | writes `specs/*.md` + pending-build marker |
-| `build` plan/implement core | `superpowers:executing-plans` / `superpowers:subagent-driven-development` | explore, 3× code-review, verify, ship gate |
+| `build` plan/implement core | *never — see Exception below* | explore, 3× code-review, verify, ship gate, **and Stage 4 implementation itself** |
 | `ship` final integration | `superpowers:finishing-a-development-branch` | sync, branch, commit, PR, CI-poll, auto-fix |
 | `prime` graphify awareness | — (hint only) | context summary |
+
+**Exception — `build` Stage 4 never defers:** unlike the rows above, `build`'s
+plan/implement core does not defer to Superpowers even when detected and
+`--no-superpowers` is not set. The Skill tool used for the deferral has no
+model-override parameter, so REQ-013 (autonomous-execution-mode.md)'s
+Sonnet-tiering mandate for
+implementation subagents can't be enforced through that path. See
+`skills/build/references/autonomous-pipeline.md`'s Model tiering section
+(Resolved interaction) for the full rationale. `speccy` and `ship` are
+unaffected.
 
 ## Absolute-path note (REQ-012)
 
@@ -56,7 +68,9 @@ Relative Read/Write/Edit paths do not follow a Bash `cd`. When deferring the
 implementation core to `superpowers:executing-plans` /
 `superpowers:subagent-driven-development`, whoever orchestrates that
 deferral should ensure implementer subagents use absolute paths rooted at
-the correct worktree for every file-tool call once inside a worktree.
+the correct worktree for every file-tool call once inside a worktree. (Given
+the `build` exception above, this currently applies to no live deferral path;
+retained in case a future skill/stage defers the implementation core.)
 
 This is advisory-only context, not an enforcement mechanism. mad-skills does
 not modify the `superpowers` plugin and does not own Superpowers' own

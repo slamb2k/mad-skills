@@ -71,16 +71,15 @@ Project detection: `references/project-detection.md`
 ## Flags
 
 Parse optional flags from the request:
-- `--skip-questions`: Skip Stage 2 (clarifying questions)
-- `--skip-review`: Skip Stage 5 (code review)
+- `--skip-questions`: Skip Stage 2 (the first checkpoint interview, REQ-012)
+- `--skip-review`: Skip Stage 5's native `/code-review` + `/security-review` dispatch
 - `--no-ship`: Stop after Stage 8 docs update
 - `--parallel-impl`: Split implementation into parallel agents when independent
 - `--no-superpowers`: Force the standalone pipeline even when Superpowers is installed
 - `--handoff`: Skip the execution-mode question and hand off to a clean session
 - `--no-handoff`: Skip the execution-mode question and run here now
-- `--auto`: Autonomous end-to-end run against an `autonomy_ready: true` spec, no
-  interactive interruption — dispatch only, see `references/autonomous-pipeline.md`.
-  Caps (flag/env/default, any hit forces stop-and-report): `--iterations`/`BUILD_AUTO_ITERATIONS`/20, `--budget`/`BUILD_AUTO_BUDGET`/5M, wall-clock/`BUILD_AUTO_WALLCLOCK`/4h.
+
+Caps (flag/env/default, any hit forces stop-and-report): `--iterations`/`BUILD_AUTO_ITERATIONS`/20, `--budget`/`BUILD_AUTO_BUDGET`/5M, wall-clock/`BUILD_AUTO_WALLCLOCK`/4h — see `references/autonomous-pipeline.md`.
 
 ---
 
@@ -93,7 +92,7 @@ Before starting, check all dependencies in this table:
 | ship | skill | `ls .claude/skills/ship/SKILL.md ~/.claude/skills/ship/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ship/SKILL.md 2>/dev/null` | yes | stop | Install with: npx skills add slamb2k/mad-skills --skill ship |
 | prime | skill | `ls .claude/skills/prime/SKILL.md ~/.claude/skills/prime/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md 2>/dev/null` | no | fallback | Context loading; falls back to manual CLAUDE.md/goals scan |
 | feature-dev | plugin | on-disk glob via scripts/lib/feature-dev.js | no | fallback | Detected on disk → try feature-dev:code-explorer / code-architect / code-reviewer first, general-purpose agent as fallback if the subagent_type isn't actually registered |
-| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Routes Stage 4 impl core to superpowers:executing-plans / subagent-driven-development when present; see references/superpowers-deferral.md |
+| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Detected for `--no-superpowers` parity with speccy/ship; Stage 4 never defers to it (model-tiering enforceability, see references/autonomous-pipeline.md's Model tiering section) — see references/superpowers-deferral.md |
 | ferry | skill | `ls .claude/skills/ferry/SKILL.md ~/.claude/skills/ferry/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ferry/SKILL.md 2>/dev/null` | no | fallback | Powers the "hand off to a clean session" execution mode; ships with mad-skills, so normally present |
 
 For each row, in order:
@@ -107,8 +106,12 @@ For each row, in order:
    - **fallback**: notify user with Detail, continue with degraded behavior
 4. After all checks: summarize what's available and what's degraded
 
-**If `--auto`:** verify `autonomy_ready: true` (`scripts/lib/frontmatter.js`) — on
-failure STOP naming the missing gate items (AC-001, format in `references/autonomous-pipeline.md`), never fall back silently.
+**Worktree refusal (REQ-009):** before anything else, run the check documented
+in `references/autonomous-pipeline.md`'s "Worktree refusal" section — `/build`
+MUST NOT create its own worktree under any circumstance; it only ever operates
+inside one `/speccy` already created. On failure (no worktree found), refuse
+immediately with the exact message specified there, directing the user to run
+`/speccy` first, and stop — never fall back silently.
 
 1. Capture **PLAN** (the user's argument) and **FLAGS**
 2. **Clear pending-build marker** — if a marker was left by `/speccy`, clear it:
@@ -188,8 +191,10 @@ Parse EXPLORE_REPORT. Extract `questions` for Stage 2.
 
 **Skip if `--skip-questions` or no questions found.**
 
-**If `--auto`:** SKIPPED by default (REQ-012, ambiguity resolved via the
-assumption-authorization list) — `references/autonomous-pipeline.md`'s headless mechanism covers the rare uncovered decision.
+This is the first of the pipeline's defined interview checkpoints (REQ-012) —
+see the mid-build question mechanism in `references/autonomous-pipeline.md`
+for how later ambiguities surface at the review/verify checkpoints instead of
+here, and for channel-adaptive delivery when no live session is watching.
 
 Runs on the **primary thread** (requires user interaction).
 
@@ -220,34 +225,24 @@ If rejected, incorporate feedback and re-run.
 
 ## Stage 4: Implementation
 
-**If `--auto`:** implementation subagents MUST use Sonnet (REQ-013, other
-stages keep interactive-default tiers) and this stage never defers to
-Superpowers — see `references/autonomous-pipeline.md`'s Model tiering section.
+Implementation subagents MUST use Sonnet (REQ-013 (autonomous-execution-mode.md),
+other stages keep interactive-default tiers). This stage never defers to
+Superpowers, even when Superpowers is detected and `--no-superpowers` is not
+set: the Skill tool used to invoke `superpowers:executing-plans` /
+`superpowers:subagent-driven-development` has no model-override parameter, so
+REQ-013's Sonnet mandate can't be enforced through that path. Stage 4 always
+runs the standalone implementation below — see
+`references/autonomous-pipeline.md`'s Model tiering section (Resolved
+interaction) for the full rationale, and `references/superpowers-deferral.md`
+for how this differs from `speccy` and `ship`.
 
-**Superpowers deferral (soft dependency, interactive mode only):** When Superpowers is detected (per the
-pre-flight check) and `--no-superpowers` is not set, announce
-`⚡ Superpowers detected — deferring plan/implement core to superpowers:executing-plans`
-and route the plan-execution/implementation core through
-`superpowers:executing-plans` / `superpowers:subagent-driven-development` instead
-of the general-purpose subagents below. Stage 1 (explore), Stage 5 (3× review),
-and Stage 7 (verify) remain unchanged either way. When Superpowers is absent or
-`--no-superpowers` is set, run the standalone implementation below unchanged.
-See `references/superpowers-deferral.md`.
-
-**Skipping the deferral without `--no-superpowers`:** Superpowers'
-`subagent-driven-development` skill hard-requires explicit user consent (and
-prefers a fresh worktree) before implementing on the current branch;
-mad-skills' own convention is to implement directly on the current branch and
-let Stage 9 (`/ship`) handle branching, PR, and merge afterward. Those two
-conventions conflict. When ARCH_REPORT describes a fully-specified, mechanical,
-low-risk change (1-2 files, no design judgment needed — the same signal
-`subagent-driven-development` itself uses for its cheapest model tier), that
-conflict is license to skip the deferral for this Stage 4 only and run the
-standalone implementation below even though Superpowers is detected. Announce
-it in one line (`⚡ Superpowers detected but skipping deferral for Stage 4 —
-<reason>`) so the choice is visible, not silent. Anything with real
-multi-file integration concerns or genuine design ambiguity still defers as
-normal — this is a narrow carve-out, not a general opt-out.
+**Early draft PR (REQ-014 (unified-autonomous-build.md)):** before dispatching
+the implementation subagent(s) below, open the PR as a draft per
+`references/autonomous-pipeline.md`'s "Early draft PR" section — call
+`skills/ship/scripts/create-pr.sh --draft` directly (idempotent: reuses any
+existing open PR on the branch rather than erroring). Capture the returned
+`pr_url`; every checkpoint-interview comment and evidence artifact from here
+on posts against it.
 
 If ARCH_REPORT identifies independent `parallel_groups`, launch **multiple
 general-purpose subagents in parallel** — one per group. Do NOT wait for
@@ -272,28 +267,26 @@ Parse IMPL_REPORT(s). If any failed, assess retry or abort.
 
 ## Stage 5: Code Review
 
-**If `--auto`:** skip the standard Stage 5–8 flow below — dispatch review-depth
-selection, `/code-review` + `/security-review`, the fix loop, `/verify`,
-evidence capture, and `/loop`/`/goal` guardrails per `references/autonomous-pipeline.md`.
-
 **Skip if `--skip-review`.**
 
-Launch **3 feature-dev:code-reviewer subagents in parallel** (fallback: general-purpose):
+Dispatch review-depth selection and native review per
+`references/autonomous-pipeline.md`'s Review-depth dispatch section (REQ-015,
+GUD-002): compute the changed-file set and apply the
+file-count-plus-risk-keyword-path rule from
+`references/autonomous-review-thresholds.md` to select **Standard** or
+**Deep** depth, then invoke the native `/code-review` and `/security-review`
+commands directly via the Skill tool, passing the selected depth.
 
-1. Simplicity & DRY
-2. Bugs & Correctness
-3. Conventions & Integration
-
-Prompts in `references/stage-prompts.md#stage-5`.
-
-Consolidate reports. Present **only critical and high severity findings**.
-Ask: "Fix these now, or proceed as-is?"
+Parse findings into REVIEW_REPORT.
 
 ---
 
 ## Stage 6: Fix Review Findings
 
-**Only if Stage 5 found issues AND user wants them fixed.**
+**Only if Stage 5's native review found Critical/Important findings** —
+fix-loop mechanics (max 2 fix→re-review attempts per finding-set, then escalate
+as stuck) are `references/autonomous-pipeline.md`'s Fix loop section
+(REQ-016, REQ-021).
 
 Launch **general-purpose subagent**:
 
@@ -309,22 +302,15 @@ Task(
 
 ## Stage 7: Verify
 
-Launch **general-purpose** subagent (bash) (haiku):
+Dispatch the native `/verify` command per `references/autonomous-pipeline.md`'s
+Verify against Definition of Done section (REQ-017, REQ-020): check the
+implementation against the spec's `## Definition of Done` checklist item by
+item — each item is either verified-via-evidence or outstanding, never a
+general "looks done" judgment. The stage is complete only when every
+checklist item is verified.
 
-```
-Task(
-  subagent_type: "general-purpose",
-  model: "haiku",
-  description: "Run verification tests",
-  prompt: <read from references/stage-prompts.md#stage-7>
-)
-```
-
-Substitute `{PROJECT_CONFIG.test_runner}` and `{PROJECT_CONFIG.test_setup}`.
-
-If tests fail:
-- First failure: launch general-purpose agent to fix, retry
-- Second failure: report to user and stop
+If items remain outstanding, dispatch a fix subagent and re-verify, subject to
+the same fix-loop cap as Stage 6.
 
 ---
 
@@ -348,7 +334,8 @@ Task(
 
 ## Stage 9: Ship
 
-**If `--auto`:** invoke `/ferry` to checkpoint before proceeding (GUD-004, `references/autonomous-pipeline.md`).
+Invoke `/ferry` to checkpoint before proceeding (GUD-004,
+`references/autonomous-pipeline.md`).
 
 Invoke the `/ship` skill:
 
