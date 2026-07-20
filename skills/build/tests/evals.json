@@ -55,5 +55,43 @@
     "assertions": [
       { "type": "semantic", "value": "Treats the toplevel mismatch as something to warn about rather than silently continuing — it does not just proceed with Stage 1 as if nothing happened" }
     ]
+  },
+  {
+    "name": "build-auto-gate-not-ready-stops",
+    "prompt": "Run /build specs/rate-limiter.md --auto. The spec's frontmatter has autonomy_ready: false because its Definition of Done and Assumption Authorization sections are missing. What does /build --auto do?",
+    "assertions": [
+      { "type": "semantic", "value": "Stops immediately with a clear message naming the specific missing completeness-gate items (e.g. Definition of Done, Assumption Authorization) and does not implement anything — it does not silently fall back to interactive mode without saying so" }
+    ]
+  },
+  {
+    "name": "build-auto-implementation-model-tier",
+    "prompt": "Run /build specs/rate-limiter.md --auto on a spec with autonomy_ready: true. Which model does the implementation subagent use, and does that differ from explore/architect/review/verify stages?",
+    "assertions": [
+      { "type": "contains", "value": "Sonnet" },
+      { "type": "semantic", "value": "Implementation subagents are forced to use Sonnet (the cheaper model tier) in --auto mode, while explore, architect, and review/verify stages use whichever model tier best fits that stage's judgment requirements rather than being forced to Sonnet" }
+    ]
+  },
+  {
+    "name": "build-auto-review-depth-standard",
+    "prompt": "Run /build --auto on a spec whose implementation touches 4 files, none of which are auth, secrets, CI/CD config, payment, or data-deletion related. Per the review-depth threshold rule, does /build --auto dispatch a standard or deep review?",
+    "assertions": [
+      { "type": "regex", "value": "standard", "flags": "i" },
+      { "type": "semantic", "value": "Standard review depth is selected because the diff touches 10 or fewer files and none of the risk-keyword paths, per the threshold table in references/autonomous-review-thresholds.md" }
+    ]
+  },
+  {
+    "name": "build-auto-review-depth-risk-keyword",
+    "prompt": "Run /build --auto on a spec whose implementation touches only 3 files, but one of them is .github/workflows/deploy.yml. Per the review-depth threshold rule, does /build --auto dispatch a standard or deep review, and why?",
+    "assertions": [
+      { "type": "regex", "value": "deep", "flags": "i" },
+      { "type": "semantic", "value": "Deep review is selected even though only 3 files changed, because the diff touches a CI/CD or deploy config path, which is one of the named risk-keyword paths that forces deep review regardless of file count" }
+    ]
+  },
+  {
+    "name": "build-auto-fix-loop-stuck-escalation",
+    "prompt": "Run /build --auto. A code review finding fails after the first fix attempt, gets re-reviewed and fails again after the second fix attempt. What does /build --auto do — does it try a third fix, and if not, what happens instead?",
+    "assertions": [
+      { "type": "semantic", "value": "Does not attempt a third fix; two consecutive failed fix-then-re-review attempts on the same finding is treated as stuck, and the run escalates via the headless mid-build question mechanism instead of retrying again" }
+    ]
   }
 ]

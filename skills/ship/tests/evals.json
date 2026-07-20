@@ -50,5 +50,25 @@
       { "type": "contains", "value": "Location Check" },
       { "type": "semantic", "value": "Runs the Pre-Ship Location Check, which blocks with an AskUserQuestion because Bash's cwd toplevel doesn't match the session's declared working directory, rather than silently proceeding" }
     ]
+  },
+  {
+    "name": "ship-auto-always-stops-at-open-pr",
+    "prompt": "Run /ship --auto. CI passes cleanly and /code-review found no issues. Does /ship --auto merge the PR?",
+    "assertions": [
+      { "type": "regex", "value": "(does not merge|not merge|never merge|remains open)", "flags": "i" },
+      { "type": "semantic", "value": "--auto always stops at an open PR and never merges, regardless of CI or review outcome — merging remains a human action even when everything passed cleanly" }
+    ]
+  },
+  {
+    "name": "ship-auto-pr-report-sections",
+    "prompt": "Run /ship --auto to open the PR for a completed --auto build. What sections must the PR description contain?",
+    "assertions": [
+      { "type": "contains", "value": "Summary" },
+      { "type": "contains", "value": "Risks" },
+      { "type": "regex", "value": "(How It Was Validated|Validated)", "flags": "i" },
+      { "type": "regex", "value": "(Further Testing Needed|Further Testing)", "flags": "i" },
+      { "type": "regex", "value": "(Assumptions Made|Assumptions)", "flags": "i" },
+      { "type": "semantic", "value": "The PR description body itself is the report, containing all five required sections — Summary, Risks, How It Was Validated, Further Testing Needed, and Assumptions Made — with evidence embedded or linked inline, and no separate report file" }
+    ]
   }
 ]
