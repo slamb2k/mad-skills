@@ -21,9 +21,10 @@ pipeline **when it is absent**. Superpowers is a **soft/recommended dependency**
 
 - `/speccy` uses `superpowers:brainstorming` for requirements exploration, but
   still owns the `specs/*.md` artifact + pending-build marker.
-- `/build` keeps its explore, 3× code-review, and verify stages, but routes the
-  plan/implement core to `superpowers:executing-plans` /
-  `superpowers:subagent-driven-development`.
+- `/build` keeps its explore stage, and its review and verify stages now
+  dispatch unconditionally to the native `/code-review` + `/security-review`
+  + `/verify` pipeline, but the plan/implement core still routes to
+  `superpowers:executing-plans` / `superpowers:subagent-driven-development`.
 - `/ship` keeps sync + branch + commit + CI-poll + auto-fix, but hands the final
   integration to `superpowers:finishing-a-development-branch` (merge/PR/cleanup
   options) instead of silently auto-merging.
@@ -277,7 +278,9 @@ mad-skills/
 ```bash
 npm run validate          # Validate all skill structures
 npm run lint              # Lint SKILL.md files
-npm run test:unit         # Unit tests (node --test) for scripts/lib + hooks/lib
+npm run test:unit         # Unit tests (node --test): scripts/lib, hooks/lib,
+                           # tests/packaging.test.cjs, and colocated skill
+                           # script tests (skills/*/scripts/*.test.js)
 npm run eval              # Run evals (needs API key)
 npm run eval -- --verbose # Verbose eval output
 npm run eval:update       # Update eval snapshots
@@ -296,11 +299,12 @@ Each skill follows the standard layout:
 ```
 skills/<name>/
 ├── SKILL.md              # Frontmatter + banner + full execution logic
-├── scripts/              # Deterministic bash scripts (no LLM needed)
-├── references/           # Extracted prompts, contracts, guides
-├── assets/               # Static files (templates, components)
+├── scripts/               # Deterministic bash scripts (no LLM needed);
+│   └── *.test.js          # colocated unit tests where scripts have logic worth testing
+├── references/            # Extracted prompts, contracts, guides
+├── assets/                # Static files (templates, components)
 └── tests/
-    └── evals.json        # Eval test cases
+    └── evals.json         # Eval test cases
 ```
 
 **SKILL.md frontmatter** (required fields):
@@ -337,7 +341,8 @@ Use Explore for codebase scanning and general-purpose for complex logic.
 ```bash
 npm run validate          # Structure checks for all 14 skills
 npm run lint              # SKILL.md format checks
-npm run test:unit         # Unit tests for scripts/lib + hooks/lib modules
+npm run test:unit         # Unit tests for scripts/lib, hooks/lib, packaging,
+                           # and per-skill script tests
 npm run eval              # Eval assertions (requires API key)
 ```
 

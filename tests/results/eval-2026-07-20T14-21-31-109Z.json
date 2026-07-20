@@ -1,0 +1,2068 @@
+{
+  "timestamp": "2026-07-20T14:21:31.110Z",
+  "model": "claude-sonnet-4-20250514",
+  "summary": {
+    "pass": 74,
+    "fail": 8,
+    "error": 2
+  },
+  "skills": [
+    {
+      "skill": "brace",
+      "results": [
+        {
+          "name": "banner-and-tagline",
+          "skill": "brace",
+          "status": "pass",
+          "duration_ms": 15613,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Bracing the|Reinforcing before|Locking in the|Preparing for heavy|Cross-bracing|Tightening the load|Structural integrity|Brace for impact)",
+              "pass": true,
+              "detail": "Matches /(Bracing the|Reinforcing before|Locking in the|Preparing for heavy|Cross-bracing|Tightening the load|Structural integrity|Brace for impact)/"
+            },
+            {
+              "type": "semantic",
+              "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps",
+              "pass": true,
+              "detail": "The response begins with a clear ASCII art banner displaying 'BRACE' in stylized text format before any explanation or workflow steps are presented."
+            }
+          ],
+          "output_preview": "🏗️ Bracing the structure...\n\n⠀   ██╗██████╗ ██████╗  █████╗  ██████╗███████╗\n   ██╔╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝\n  ██╔╝ ██████╔╝██████╔╝███████║██║     █████╗\n ██╔╝  ██╔══██╗██╔══██╗██╔══██║██║     ██╔══╝\n██╔╝   ██████╔╝██║  ██║██║  ██║╚██████╗███████╗\n╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚══════╝\n\n---\n\n┌─ Input ────────────────────────────────────────\n│  Request:  Initialize this project with brace\n│  Flags:    none\n└────────────────────────────────────────────────\n\n── Pre-flight",
+          "truncated": false
+        },
+        {
+          "name": "project-scaffold",
+          "skill": "brace",
+          "status": "pass",
+          "duration_ms": 59166,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(specs|context|CLAUDE\\.md)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(specs|context|CLAUDE\\.md)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Describes creating a project scaffold with specs/, context/, and .tmp/ directories plus CLAUDE.md and .gitignore",
+              "pass": true,
+              "detail": "The output clearly describes creating a project scaffold that includes all required components: specs/ directory (for specifications), context/ directory (for domain knowledge), .tmp/ directory (for temporary work), CLAUDE.md file (project operating document), and .gitignore file (with standard ignore patterns). The description is comprehensive and matches the criterion exactly."
+            }
+          ],
+          "output_preview": "💪 Reinforcing before load!\n\n⠀   ██╗██████╗ ██████╗  █████╗  ██████╗███████╗\n   ██╔╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝\n  ██╔╝ ██████╔╝██████╔╝███████║██║     █████╗\n ██╔╝  ██╔══██╗██╔══██╗██╔══██║██║     ██╔══╝\n██╔╝   ██████╔╝██║  ██║██║  ██║╚██████╗███████╗\n╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚══════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Request:  Initialize fresh empty directory\n│  Flags:    none\n└────────────────────────────────────────────────\n```\n\n```\n── Pre-fl",
+          "truncated": false
+        },
+        {
+          "name": "flag-handling",
+          "skill": "brace",
+          "status": "pass",
+          "duration_ms": 126810,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "semantic",
+              "value": "Acknowledges the --force flag, indicating it will overwrite existing files without prompting",
+              "pass": true,
+              "detail": "The output explicitly acknowledges the --force flag and explains its effect: 'Since you used `--force`, existing files will be overwritten where needed.' It also shows this understanding in the plan presentation where it states that existing files will be overwritten where needed due to the --force flag."
+            }
+          ],
+          "output_preview": "🏗️ Bracing the structure...\n\n⠀   ██╗██████╗ ██████╗  █████╗  ██████╗███████╗\n   ██╔╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝\n  ██╔╝ ██████╔╝██████╔╝███████║██║     █████╗\n ██╔╝  ██╔══██╗██╔══██╗██╔══██║██║     ██╔══╝\n██╔╝   ██████╔╝██║  ██║██║  ██║╚██████╗███████╗\n╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚══════╝\n\n┌─ Input ────────────────────────────────────────\n│  Command:  brace\n│  Flags:    --force\n└────────────────────────────────────────────────\n\n── Pre-flight ──────────────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "worktree-discipline-injection",
+          "skill": "brace",
+          "status": "pass",
+          "duration_ms": 13504,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "Worktree Discipline",
+              "pass": true,
+              "detail": "Missing \"Worktree Discipline\""
+            },
+            {
+              "type": "semantic",
+              "value": "Idempotently checks for an existing ## Worktree Discipline section (grep), and if absent, injects it immediately before ## Guardrails (adjacent to Branch Discipline); if already present, skips insertion",
+              "pass": true,
+              "detail": "The output clearly describes idempotent behavior: checks for existing section with grep, only injects if absent, and explicitly states that subsequent runs will detect the existing section and skip. It correctly identifies the injection point as immediately before ## Guardrails and explains the skip behavior when the section already exists."
+            }
+          ],
+          "output_preview": "🔧 Tightening the load path!\n\n⠀   ██╗██████╗ ██████╗  █████╗  ██████╗███████╗\n   ██╔╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝\n  ██╔╝ ██████╔╝██████╔╝███████║██║     █████╗\n ██╔╝  ██╔══██╗██╔══██╗██╔══██║██║     ██╔══╝\n██╔╝   ██████╔╝██║  ██║██║  ██║╚██████╗███████╗\n╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚══════╝\n\nBased on the skill instructions for **Worktree Discipline Injection**, here's exactly what `/brace` does to your existing CLAUDE.md:\n\n## Detection & Action\n\n1. **Checks for existing sec",
+          "truncated": false
+        },
+        {
+          "name": "verification-discipline-injection",
+          "skill": "brace",
+          "status": "pass",
+          "duration_ms": 14731,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "Verification Discipline",
+              "pass": true,
+              "detail": "Missing \"Verification Discipline\""
+            },
+            {
+              "type": "semantic",
+              "value": "Idempotently checks for an existing ## Verification Discipline section (grep), and if absent, injects it immediately before ## Guardrails; if already present, skips insertion. May mention that the section covers reproducing bugs before fixing them and verifying fixes in the running environment rather than only via unit tests.",
+              "pass": true,
+              "detail": "The output correctly describes idempotent checking for the Verification Discipline section using grep, injection before Guardrails if absent, and skipping if present. It also mentions the section covers reproducing bugs before fixing and verifying fixes in the running environment rather than just unit tests."
+            }
+          ],
+          "output_preview": "🏋️ Preparing for heavy lifting!\n\n⠀   ██╗██████╗ ██████╗  █████╗  ██████╗███████╗\n   ██╔╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝\n  ██╔╝ ██████╔╝██████╔╝███████║██║     █████╗\n ██╔╝  ██╔══██╗██╔══██╗██╔══██║██║     ██╔══╝\n██╔╝   ██████╔╝██║  ██║██║  ██║╚██████╗███████╗\n╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚══════╝\n\nBased on the skill's **Verification Discipline Injection** section in Phase 4, here's exactly what `/brace` would do to your existing CLAUDE.md:\n\n## Detection & Injection Logic\n\n1. ",
+          "truncated": false
+        },
+        {
+          "name": "known-gotchas-injection",
+          "skill": "brace",
+          "status": "fail",
+          "duration_ms": 11831,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "Known Gotchas",
+              "pass": true,
+              "detail": "Missing \"Known Gotchas\""
+            },
+            {
+              "type": "semantic",
+              "value": "Idempotently checks for an existing ## Known Gotchas section (grep), and if absent, injects it immediately before ## Guardrails, initially near-empty/example-only; if already present, skips insertion. Describes it as a place for non-obvious project-specific operational lessons distinct from TODOs, which belong in the /logbook follow-ups ledger instead.",
+              "pass": false,
+              "detail": "The output describes the functionality but doesn't actually perform it - it doesn't check for existing sections via grep, doesn't inject the section if absent, and doesn't demonstrate the idempotent behavior described in the criterion."
+            }
+          ],
+          "output_preview": "🏗️ Bracing the structure...\n\n⠀   ██╗██████╗ ██████╗  █████╗  ██████╗███████╗\n   ██╔╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝\n  ██╔╝ ██████╔╝██████╔╝███████║██║     █████╗\n ██╔╝  ██╔══██╗██╔══██╗██╔══██║██║     ██╔══╝\n██╔╝   ██████╔╝██║  ██║██║  ██║╚██████╗███████╗\n╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚══════╝\n\n## What `/brace` does\n\n`/brace` is a **project scaffold initialization skill** that sets up any directory with a standard structure for AI-assisted development. It's **idempotent** — sa",
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "skill": "build",
+      "results": [
+        {
+          "name": "banner-and-tagline",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 11559,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Compiling hopes|Bob the Builder|Voltron of code|Feature factory|Hold my coffee|Some assembly|mortar, and semicolons|see what this baby)",
+              "pass": true,
+              "detail": "Matches /(Compiling hopes|Bob the Builder|Voltron of code|Feature factory|Hold my coffee|Some assembly|mortar, and semicolons|see what this baby)/"
+            },
+            {
+              "type": "semantic",
+              "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps",
+              "pass": true,
+              "detail": "The response begins with an ASCII art banner showing 'BUILD' in block letters, followed by a formatted input section, all displayed before any explanation or workflow steps begin."
+            }
+          ],
+          "output_preview": "☕ Hold my coffee, I'm building!\n\n    ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\n┌─ Input ────────────────────────────────────────\n│  Plan:     Add a dark mode toggle to the settings page\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me run the pre-flight ch",
+          "truncated": false
+        },
+        {
+          "name": "lifecycle-stages",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 22583,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(explore|architect|implement|review)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(explore|architect|implement|review)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Describes a multi-stage development lifecycle that includes exploration, architecture design, implementation, code review, and shipping, with stages running in isolated subagents",
+              "pass": true,
+              "detail": "The output clearly describes a multi-stage development lifecycle with exploration (Stage 1), architecture design (Stage 3), implementation (Stage 4), code review (Stage 5), and shipping (Stage 9). It explicitly states which stages run in isolated subagents versus the primary thread, meeting all criterion requirements."
+            }
+          ],
+          "output_preview": "☕ Hold my coffee, I'm building!\n\n⠀   ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\n┌─ Input ────────────────────────────────────────\n│  Plan:     Implement user authentication with JWT tokens\n│  Flags:    none\n└────────────────────────────────────────────────\n\n## /build Stage Execution ",
+          "truncated": false
+        },
+        {
+          "name": "file-path-detection",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 14725,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "semantic",
+              "value": "Detects that the argument is a file path (contains / or ends with .md) and attempts to read it as a spec file rather than treating it as literal plan text. Shows the resolved file path in the Input display.",
+              "pass": true,
+              "detail": "The output correctly detects 'specs/user-auth.md' as a file path (contains / and ends with .md), attempts to read it as a spec file rather than treating it as literal text, and shows the resolved file path 'specs/user-auth.md' in the Input display section."
+            }
+          ],
+          "output_preview": "⚙️ Compiling hopes and dreams...\n\n⠀   ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Plan:     specs/user-auth.md\n│  Flags:    none\n└────────────────────────────────────────────────\n```\n\nLet me start pre-flight checks...\n\n<bash>\n# ",
+          "truncated": false
+        },
+        {
+          "name": "flag-handling",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 10866,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "semantic",
+              "value": "Acknowledges the --skip-questions flag (skipping clarifying questions) and the --no-ship flag (stopping before committing/pushing/creating PR)",
+              "pass": true,
+              "detail": "The output clearly acknowledges both flags in the input section: '--skip-questions, --no-ship' and references stopping before shipping when it mentions the --no-ship flag prevents committing/pushing/creating PR"
+            }
+          ],
+          "output_preview": "⚙️ Compiling hopes and dreams...\n\n⠀   ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Plan:     Refactor the auth module to use middleware pattern\n│  Flags:    --skip-questions, --no-ship\n└───────────────────────────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "build-superpowers-present",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 26008,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "Sonnet",
+              "pass": true,
+              "detail": "Missing \"Sonnet\""
+            },
+            {
+              "type": "semantic",
+              "value": "Stage 4 never defers to Superpowers, present or not, because the Skill tool used to invoke superpowers:executing-plans/subagent-driven-development has no model-override parameter, so REQ-013's Sonnet-tiering mandate for implementation subagents can't be enforced through that path — Stage 4 always runs its own standalone Sonnet-tiered implementation pipeline, unlike the other overlapping stages that do defer",
+              "pass": true,
+              "detail": "The output correctly demonstrates that Stage 4 does not defer to superpowers despite detection, and provides accurate technical reasoning about the model-override parameter limitation preventing REQ-013 Sonnet-tiering enforcement through the superpowers deferral path."
+            }
+          ],
+          "output_preview": "⚙️ Compiling hopes and dreams...\n\n⠀   ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Plan:     specs/rate-limiter.md\n│  Flags:    none\n└────────────────────────────────────────────────\n```\n\nLet me run the pre-flight checks first:\n\n",
+          "truncated": false
+        },
+        {
+          "name": "build-superpowers-absent",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 18683,
+          "assertions": [
+            {
+              "type": "regex",
+              "value": "(explore|architect|implement|review)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(explore|architect|implement|review)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Runs the standalone feature-dev pipeline (explore, architect, implement, review, verify) using its own subagents, with no deferral to superpowers",
+              "pass": true,
+              "detail": "The output clearly describes a standalone feature-dev pipeline that uses its own subagents (general-purpose subagents for implementation) without deferring to superpowers. It explicitly states 'Stage 4 NEVER defers to Superpowers' and shows how the system launches multiple subagents in parallel/sequential based on architecture, with structured prompts and proper orchestration through all phases."
+            }
+          ],
+          "output_preview": "⚙️ Compiling hopes and dreams...\n\n    ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\n---\n\nWhen Superpowers is NOT installed, `/build` runs its **standalone implementation pipeline** for Stage 4. Here's exactly how it works:\n\n## Stage 4: Implementation (Standalone Mode)\n\n### Architecture-",
+          "truncated": false
+        },
+        {
+          "name": "build-location-mismatch",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 10428,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Treats the toplevel mismatch as something to warn about rather than silently continuing — it does not just proceed with Stage 1 as if nothing happened",
+              "pass": true,
+              "detail": "The output clearly shows the system treats the toplevel mismatch as a blocking warning that requires user intervention, presenting an AskUserQuestion dialog with options rather than silently continuing to Stage 1."
+            }
+          ],
+          "output_preview": "Looking at the Pre-Build Location Check specification in `references/location-check.md`, here's what happens when it detects that mismatch:\n\n## Detection Result\n\nThe check runs these commands and finds:\n- `BASH_TOPLEVEL` (from `git rev-parse --show-toplevel`) points to the leftover worktree\n- `{DECLARED_ROOT}` (session's declared working directory) points somewhere else\n- Since `BASH_TOPLEVEL != {DECLARED_ROOT}`, this triggers a toplevel mismatch\n\n## Mismatch Response\n\nThe Pre-Build Location Che",
+          "truncated": false
+        },
+        {
+          "name": "build-worktree-refusal-no-worktree",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 12950,
+          "assertions": [
+            {
+              "type": "regex",
+              "value": "refus",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /refus/"
+            },
+            {
+              "type": "semantic",
+              "value": "Refuses immediately, before any stage runs, with a message directing the user to run /speccy first — it does not attempt to bootstrap or create a worktree of its own, and does not perform any partial implementation work",
+              "pass": true,
+              "detail": "The output refuses immediately upon detecting no worktree exists (GIT_DIR equals GIT_COMMON_DIR), provides a clear message directing the user to run /speccy first, and explicitly states that no stages execute and the build stops - meeting all criterion requirements."
+            }
+          ],
+          "output_preview": "⚙️ Compiling hopes and dreams...\n\n⠀   ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Plan:     specs/rate-limiter.md\n│  Flags:    none\n└────────────────────────────────────────────────\n```\n\n```bash\nGIT_DIR=$(git rev-parse --git-dir",
+          "truncated": false
+        },
+        {
+          "name": "build-model-tier-sonnet",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 27985,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "Sonnet",
+              "pass": true,
+              "detail": "Missing \"Sonnet\""
+            },
+            {
+              "type": "semantic",
+              "value": "Implementation subagents always use Sonnet, the cheaper model tier, since this is simply how /build works now rather than something gated behind a flag, while explore, architect, and review/verify stages use whichever model tier best fits that stage's judgment requirements",
+              "pass": true,
+              "detail": "The output correctly explains that implementation subagents use Sonnet while explore, architect, and review stages use default tiers. It accurately describes this as being mandated by REQ-013 for autonomous builds and provides the correct rationale that mechanical implementation doesn't need the highest tier while other stages benefit from full model capabilities for judgment tasks."
+            }
+          ],
+          "output_preview": "☕ Hold my coffee, I'm building!\n\n⠀   ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\n┌─ Input ────────────────────────────────────────\n│  Plan:     specs/rate-limiter.md\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me start with pre-flight dependency checks and",
+          "truncated": false
+        },
+        {
+          "name": "build-review-depth-standard",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 5222,
+          "assertions": [
+            {
+              "type": "regex",
+              "value": "standard",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /standard/"
+            },
+            {
+              "type": "semantic",
+              "value": "Standard review depth is selected because the diff touches 10 or fewer files and none of the risk-keyword paths, per the threshold table in references/autonomous-review-thresholds.md",
+              "pass": true,
+              "detail": "The output correctly identifies that with 4 files (≤10) and no risk-keyword paths present, the standard review depth should be selected according to the threshold rules. The analysis is accurate and well-structured."
+            }
+          ],
+          "output_preview": "Looking at the autonomous review threshold rule from `references/autonomous-review-thresholds.md`:\n\n## Threshold Analysis\n\n**File count check:** 4 files ≤ 10 files ✅  \n**Risk-keyword path check:** None of the changed files are auth, secrets, CI/CD, payment, or data-deletion related ✅\n\n## Result\n\nSince both conditions are met:\n- Diff touches ≤10 files (4 ≤ 10) **AND** \n- None of the risk-keyword paths are touched\n\n→ **/build dispatches a **Standard** review**\n\nThe rule is an OR condition where ei",
+          "truncated": false
+        },
+        {
+          "name": "build-review-depth-risk-keyword",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 6019,
+          "assertions": [
+            {
+              "type": "regex",
+              "value": "deep",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /deep/"
+            },
+            {
+              "type": "semantic",
+              "value": "Deep review is selected even though only 3 files changed, because the diff touches a CI/CD or deploy config path, which is one of the named risk-keyword paths that forces deep review regardless of file count",
+              "pass": true,
+              "detail": "The output correctly identifies that Deep review is triggered by the risk-keyword path (.github/workflows/deploy.yml) despite only 3 files changing, properly explaining the OR logic where either trigger (file count >10 OR risk-keyword path) forces Deep review, and accurately categorizes the CI/CD deployment file as a risk-keyword path."
+            }
+          ],
+          "output_preview": "Based on the review-depth threshold rule in `references/autonomous-review-thresholds.md`, `/build` would dispatch a **Deep** review.\n\nHere's why:\n\n## Threshold Rule Analysis\n\nThe rule is an **OR** condition with two triggers:\n1. **File count trigger**: >10 files → Deep review\n2. **Risk-keyword path trigger**: Any risk-keyword path → Deep review\n\nIn your scenario:\n- ✅ **File count**: Only 3 files touched (≤10) → would normally be Standard\n- ❌ **Risk-keyword path**: `.github/workflows/deploy.yml` ",
+          "truncated": false
+        },
+        {
+          "name": "build-fix-loop-stuck-escalation",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 13397,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Does not attempt a third fix; two consecutive failed fix-then-re-review attempts on the same finding is treated as stuck, and the run escalates via the mid-build question mechanism instead of retrying again",
+              "pass": true,
+              "detail": "The output explicitly states that after 2 consecutive failed fix attempts, the system stops and escalates via the mid-build question mechanism instead of attempting a third fix, which directly meets the criterion."
+            }
+          ],
+          "output_preview": "⚙️ Compiling hopes and dreams...\n\n⠀   ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\nLet me walk you through exactly what happens when a code review finding fails to be fixed after two attempts.\n\n## Fix Loop Cap (REQ-016, REQ-021)\n\nAccording to the build pipeline, `/build` has a **maximu",
+          "truncated": false
+        },
+        {
+          "name": "build-self-eval-covered-by-assumptions",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 9459,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "Assumption Authorization",
+              "pass": true,
+              "detail": "Missing \"Assumption Authorization\""
+            },
+            {
+              "type": "semantic",
+              "value": "Resolves the ambiguity silently per the existing Assumption Authorization entry — it does not interview or pause — and reports the resolution in the PR",
+              "pass": true,
+              "detail": "The output correctly describes the process of resolving ambiguity silently using existing Assumption Authorization entries and reporting the resolution in the PR, without interviewing or pausing, which directly matches the criterion."
+            }
+          ],
+          "output_preview": "According to the per-decision self-evaluation procedure (REQ-010, REQ-011), when `/build` hits a genuine ambiguity during Stage 4 implementation that **IS covered by the spec's existing Assumption Authorization list**, it follows step 1:\n\n**→ Resolve per that authorization, silently; report the resolution in the PR.**\n\nThis means:\n\n1. **Resolve silently** - `/build` applies the pre-authorized decision from the spec's Assumption Authorization list without stopping to ask the user or surface it as",
+          "truncated": false
+        },
+        {
+          "name": "build-self-eval-risky-triggers-interview",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 14772,
+          "assertions": [
+            {
+              "type": "regex",
+              "value": "checkpoint",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /checkpoint/"
+            },
+            {
+              "type": "semantic",
+              "value": "Because the ambiguity is uncovered by the assumption list and touches an architectural-surface marker, /build defers to an interview rather than deciding alone, and the question is only surfaced at the next checkpoint (e.g. before code review) rather than immediately when it was detected",
+              "pass": true,
+              "detail": "The output correctly states that /build defers to interview when ambiguity is not in assumption list but touches architectural-surface markers, and accurately explains that the question is surfaced at the next checkpoint (code review) rather than immediately when detected during implementation."
+            }
+          ],
+          "output_preview": "Looking at the three-step self-evaluation process from `references/autonomous-pipeline.md`:\n\n## What /build Does\n\nWhen Stage 4 hits this ambiguity, it runs the three-step check:\n\n1. **Covered by the spec's Assumption Authorization list?** → ❌ No (given in your scenario)\n2. **Not covered — does it touch a risk-keyword path or an architectural-surface marker?** → ✅ Yes (public exported interface is an architectural-surface marker)\n3. **Not covered, not risky** → (skipped, since step 2 matched)\n\nSi",
+          "truncated": false
+        },
+        {
+          "name": "build-self-eval-decide-and-record",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 14952,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "Assumption Authorization",
+              "pass": true,
+              "detail": "Missing \"Assumption Authorization\""
+            },
+            {
+              "type": "semantic",
+              "value": "Decides the ambiguity itself, records a brand-new Assumption Authorization entry in the spec, and keeps working — it does not stop to interview the user",
+              "pass": true,
+              "detail": "The output clearly describes the correct autonomous behavior: making decisions independently, recording new Assumption Authorization entries in the spec, and continuing work without stopping for user interviews. It explicitly states the AI 'keeps going' and 'continues with implementation without stopping for user input' which directly matches the criterion."
+            }
+          ],
+          "output_preview": "Per the three-step self-evaluation in `references/autonomous-pipeline.md`, when an ambiguity during Stage 4:\n\n1. ❌ Is NOT covered by the spec's Assumption Authorization list, AND\n2. ❌ Does NOT touch a risk-keyword path or architectural-surface marker\n\nThen `/build` follows **step 3**: **decide, record, and continue**.\n\nSpecifically, `/build`:\n\n1. **Makes the decision autonomously** - chooses the most reasonable resolution based on the existing codebase patterns and the plan's intent\n\n2. **Record",
+          "truncated": false
+        },
+        {
+          "name": "build-checkpoint-only-timing",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 12350,
+          "assertions": [
+            {
+              "type": "regex",
+              "value": "checkpoint",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /checkpoint/"
+            },
+            {
+              "type": "semantic",
+              "value": "The ambiguity may be detected at any point during implementation, but the interview question itself is only ever surfaced at a defined checkpoint (immediately after handoff, at code-review, or at verify) — never mid-implementation. /build continues any other independent work that doesn't depend on the answer rather than blocking the whole run on one open question",
+              "pass": true,
+              "detail": "The output correctly explains that ambiguities detected during implementation are held until defined checkpoints (handoff, code-review, or verify) rather than surfaced immediately, and that /build continues parallel independent work that doesn't depend on the ambiguous decision instead of blocking the entire run."
+            }
+          ],
+          "output_preview": "⚙️ Compiling hopes and dreams...\n\n⠀   ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\nBased on the autonomous pipeline documentation, here's exactly what happens with mid-implementation ambiguity:\n\n## Timing: Checkpoint-Only (REQ-012)\n\n**The question is NOT surfaced immediately when detec",
+          "truncated": false
+        },
+        {
+          "name": "build-channel-live-session",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 6286,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "AskUserQuestion",
+              "pass": true,
+              "detail": "Missing \"AskUserQuestion\""
+            },
+            {
+              "type": "semantic",
+              "value": "Uses AskUserQuestion directly, with an explicit recommendation, because a live watched session can answer synchronously and no PR round-trip is needed",
+              "pass": true,
+              "detail": "The output clearly states that live watched sessions use AskUserQuestion directly with explicit recommendations, explains the synchronous nature eliminates need for PR round-trips, and properly contrasts this with the headless/unattended scenario that uses PR comments."
+            }
+          ],
+          "output_preview": "Looking at the mid-build question mechanism in the autonomous pipeline references, when `/build` reaches a checkpoint with a deferred interview question and this is a **live interactive session that's currently watching**, it uses:\n\n**Direct delivery via `AskUserQuestion`** - the synchronous, in-session channel.\n\nFrom the channel-adaptive delivery section (REQ-013):\n\n> **Live interactive session watching** → ask directly via `AskUserQuestion` with an explicit recommendation. The answer is availa",
+          "truncated": false
+        },
+        {
+          "name": "build-channel-headless",
+          "skill": "build",
+          "status": "fail",
+          "duration_ms": 8504,
+          "assertions": [
+            {
+              "type": "regex",
+              "value": "(PR|pull request).*comment",
+              "flags": "is",
+              "pass": true,
+              "detail": "Matches /(PR|pull request).*comment/"
+            },
+            {
+              "type": "semantic",
+              "value": "Composes a rich artifact with multiple options, pros/cons, and an explicit recommendation, posts it as a comment on the draft PR already open for the work, and sends a notification — it does not use AskUserQuestion since no live session is watching",
+              "pass": false,
+              "detail": "The output explains the process but does not actually perform the required actions - it doesn't compose a rich artifact with multiple options and pros/cons, doesn't post it as a PR comment, and doesn't send a notification. It only describes what should be done rather than executing those steps."
+            }
+          ],
+          "output_preview": "Looking at the mid-build question mechanism in the autonomous pipeline reference, when `/build` reaches a checkpoint with a deferred interview question in a headless/unattended run, it uses the **PR-comment delivery channel**.\n\nHere's the specific process:\n\n## Channel-Adaptive Delivery (REQ-013)\n\nSince there's no live interactive session watching, `/build` follows the **headless/unattended** path:\n\n1. **Compose a rich artifact (REQ-025):** Creates multiple well-communicated options with pros/con",
+          "truncated": false
+        },
+        {
+          "name": "build-autonomy-ready-weighting",
+          "skill": "build",
+          "status": "pass",
+          "duration_ms": 18391,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "autonomy_ready",
+              "pass": true,
+              "detail": "Missing \"autonomy_ready\""
+            },
+            {
+              "type": "semantic",
+              "value": "autonomy_ready: true nudges the borderline ambiguity toward deciding and recording a new Assumption Authorization entry, while false or absent nudges the same borderline case toward interviewing at the next checkpoint instead; it is only a weighting signal, not a hard gate — a clear-cut ambiguity that plainly touches a risk-keyword path or architectural-surface marker still gets interviewed even when autonomy_ready is true, and a plainly low-risk ambiguity still gets decided even when it's false or absent",
+              "pass": true,
+              "detail": "The output correctly explains that autonomy_ready is a weighting signal for borderline cases only, explicitly states it doesn't override clear-cut determinations (risky cases still get interviewed even when true, low-risk cases still get decided even when false), and provides concrete examples showing how it nudges borderline ambiguities toward either deciding or interviewing while respecting the bright lines for obviously risky or safe cases."
+            }
+          ],
+          "output_preview": "⚡ Hold my coffee, I'm building!\n\n    ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\nGreat question! Let me trace through how `autonomy_ready` affects the per-decision self-evaluation when `/build` hits the same borderline ambiguity in two otherwise-identical runs.\n\n## The Three-Step Chec",
+          "truncated": false
+        },
+        {
+          "name": "build-early-draft-pr",
+          "skill": "build",
+          "status": "fail",
+          "duration_ms": 14942,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "draft",
+              "pass": true,
+              "detail": "Missing \"draft\""
+            },
+            {
+              "type": "semantic",
+              "value": "Before dispatching the first implementation subagent, /build opens the PR as a draft by calling skills/ship/scripts/create-pr.sh --draft directly, which is idempotent and reuses any existing open PR on the branch rather than erroring; every subsequent checkpoint-interview comment and evidence artifact posts against that draft PR",
+              "pass": false,
+              "detail": "The output describes when and how a PR should be opened but does not show evidence that /build actually opened a draft PR before dispatching the first implementation subagent. The criterion requires that the PR be opened, not just described."
+            }
+          ],
+          "output_preview": "⚙️ Compiling hopes and dreams...\n\n⠀   ██╗██████╗ ██╗   ██╗██╗██╗     ██████╗\n   ██╔╝██╔══██╗██║   ██║██║██║     ██╔══██╗\n  ██╔╝ ██████╔╝██║   ██║██║██║     ██║  ██║\n ██╔╝  ██╔══██╗██║   ██║██║██║     ██║  ██║\n██╔╝   ██████╔╝╚██████╔╝██║███████╗██████╔╝\n╚═╝    ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝\n\n┌─ Input ────────────────────────────────────────\n│  Plan:     specs/rate-limiter.md (resolved file)\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me first check if we're in a ",
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "skill": "distil",
+      "results": [
+        {
+          "name": "banner-and-tagline",
+          "skill": "distil",
+          "status": "pass",
+          "duration_ms": 10456,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Heating up|Fractioning the|Condensing pure|Separating signal|Extracting the|Refining through|variations of brilliance|crude concept to pure)",
+              "pass": true,
+              "detail": "Matches /(Heating up|Fractioning the|Condensing pure|Separating signal|Extracting the|Refining through|variations of brilliance|crude concept to pure)/"
+            },
+            {
+              "type": "semantic",
+              "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps",
+              "pass": true,
+              "detail": "The output begins with a clear ASCII art banner displaying 'DISTIL' in stylized text characters before any explanatory text or workflow steps."
+            }
+          ],
+          "output_preview": "```\n💎 Condensing pure creativity!\n\n⠀   ██╗██████╗ ██╗███████╗████████╗██╗██╗\n   ██╔╝██╔══██╗██║██╔════╝╚══██╔══╝██║██║\n  ██╔╝ ██║  ██║██║███████╗   ██║   ██║██║\n ██╔╝  ██║  ██║██║╚════██║   ██║   ██║██║\n██╔╝   ██████╔╝██║███████║   ██║   ██║███████╗\n╚═╝    ╚═════╝ ╚═╝╚══════╝   ╚═╝   ╚═╝╚══════╝\n```\n\nI need more information to generate your SaaS landing page designs. Could you provide:\n\n1. **What your SaaS does** - The core functionality/problem it solves\n2. **Target audience** - Who are your m",
+          "truncated": false
+        },
+        {
+          "name": "tech-stack",
+          "skill": "distil",
+          "status": "fail",
+          "duration_ms": 12153,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Vite|React|Tailwind)",
+              "flags": "i",
+              "pass": false,
+              "detail": "No match for /(Vite|React|Tailwind)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Describes creating a project with Vite, React, TypeScript, and Tailwind CSS, producing multiple distinct design variations accessible at numbered routes like /1, /2, /3",
+              "pass": false,
+              "detail": "The output asks for more project specifications rather than creating the Vite+React+TypeScript+Tailwind project with multiple design variations at numbered routes. It shows some setup checks but doesn't actually build the requested project structure."
+            }
+          ],
+          "output_preview": "🧪 Fractioning the design space!\n\n⠀   ██╗██████╗ ██╗███████╗████████╗██╗██╗\n   ██╔╝██╔══██╗██║██╔════╝╚══██╔══╝██║██║\n  ██╔╝ ██║  ██║██║███████╗   ██║   ██║██║\n ██╔╝  ██║  ██║██║╚════██║   ██║   ██║██║\n██╔╝   ██████╔╝██║███████║   ██║   ██║███████╗\n╚═╝    ╚═════╝ ╚═╝╚══════╝   ╚═╝   ╚═╝╚══════╝\n\n┌─ Input ────────────────────────────────────────\n│  Count:    5\n│  Port:     5173\n│  Site:     portfolio website\n│  Flags:    none\n└────────────────────────────────────────────────\n\n━━ 1 · Pre-flight ━━",
+          "truncated": false
+        },
+        {
+          "name": "spec-handling",
+          "skill": "distil",
+          "status": "pass",
+          "duration_ms": 43676,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "semantic",
+              "value": "Describes reading a site specification from the provided file path and creating 4 unique design variations, with a dev server running on the specified port",
+              "pass": true,
+              "detail": "The output successfully demonstrates reading the site specification from ./site-brief.md, creating 4 unique design variations (Nordic Clean, Dark Premium, Glassmorphism, Cyberpunk Terminal), and starting a dev server on port 3000 as specified in the criterion."
+            }
+          ],
+          "output_preview": "🧪 Fractioning the design space!\n\n    ██╗██████╗ ██╗███████╗████████╗██╗██╗\n   ██╔╝██╔══██╗██║██╔════╝╚══██╔══╝██║██║\n  ██╔╝ ██║  ██║██║███████╗   ██║   ██║██║\n ██╔╝  ██║  ██║██║╚════██║   ██║   ██║██║\n██╔╝   ██████╔╝██║███████║   ██║   ██║███████╗\n╚═╝    ╚═════╝ ╚═╝╚══════╝   ╚═╝   ╚═╝╚══════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Count:    4\n│  Spec:     ./site-brief.md\n│  Port:     3000\n│  Flags:    --spec ./site-brief.md --port 3000\n└──────────────────────────────────────",
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "skill": "dock",
+      "results": [
+        {
+          "name": "banner-display",
+          "skill": "dock",
+          "status": "pass",
+          "duration_ms": 36269,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "🐳|📦|🚀|⚓|🏗️|🔒|🌊|🎯",
+              "pass": true,
+              "detail": "Matches /🐳|📦|🚀|⚓|🏗️|🔒|🌊|🎯/"
+            },
+            {
+              "type": "semantic",
+              "value": "Displays an ASCII art banner for the dock skill before doing anything else",
+              "pass": true,
+              "detail": "The output displays a clear ASCII art banner for the dock skill at the very beginning, showing 'DOCK' in large ASCII letters along with a tagline '📦 Build once, deploy everywhere!' before proceeding with any other functionality."
+            }
+          ],
+          "output_preview": "📦 Build once, deploy everywhere!\n\n⠀   ██╗██████╗  ██████╗  ██████╗██╗  ██╗\n   ██╔╝██╔══██╗██╔═══██╗██╔════╝██║ ██╔╝\n  ██╔╝ ██║  ██║██║   ██║██║     █████╔╝ \n ██╔╝  ██║  ██║██║   ██║██║     ██╔═██╗ \n██╔╝   ██████╔╝╚██████╔╝╚██████╗██║  ██╗\n╚═╝    ╚═════╝  ╚═════╝  ╚═════╝╚═╝  ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me first detect the platform and run pre-flight checks.\n\n<bash>\n# Detect hosting platform\nREMOT",
+          "truncated": false
+        },
+        {
+          "name": "detection-awareness",
+          "skill": "dock",
+          "status": "pass",
+          "duration_ms": 132919,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Describes detecting or scanning the codebase for language, framework, existing CI configuration",
+              "pass": true,
+              "detail": "The output clearly describes detecting and scanning the codebase for language (Node.js/Express), framework (Express.js), package manager (npm), existing CI configuration (GitHub Actions workflow), and other infrastructure elements. The DETECTION_REPORT section explicitly shows systematic scanning results including language, framework, CI system, and deployment configuration detection."
+            },
+            {
+              "type": "semantic",
+              "value": "Mentions Node.js or Express as the detected stack",
+              "pass": true,
+              "detail": "The output clearly mentions Node.js and Express as the detected stack in the DETECTION_REPORT section, stating 'language: JavaScript/Node.js' and 'framework: Express.js'"
+            },
+            {
+              "type": "semantic",
+              "value": "Acknowledges existing GitHub Actions workflow",
+              "pass": true,
+              "detail": "The output explicitly acknowledges the existing GitHub Actions workflow multiple times - it detects 'GitHub Actions (ci.yml - runs tests on PR/push, no deployment)' in the detection report, mentions extending 'your existing CI with secure containerized deployment', and states the new workflow 'extends your existing CI' and 'reuses existing ci.yml tests' in the pipeline flow summary."
+            }
+          ],
+          "output_preview": "📦 Build once, deploy everywhere!\n\n⠀   ██╗██████╗  ██████╗  ██████╗██╗  ██╗\n   ██╔╝██╔══██╗██╔═══██╗██╔════╝██║ ██╔╝\n  ██╔╝ ██║  ██║██║   ██║██║     █████╔╝\n ██╔╝  ██║  ██║██║   ██║██║     ██╔═██╗\n██╔╝   ██████╔╝╚██████╔╝╚██████╗██║  ██╗\n╚═╝    ╚═════╝  ╚═════╝  ╚═════╝╚═╝  ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Request:  Node.js Express app with existing GitHub Actions\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me start by detecting the platform ",
+          "truncated": false
+        },
+        {
+          "name": "build-once-philosophy",
+          "skill": "dock",
+          "status": "pass",
+          "duration_ms": 76549,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Explains or implements the build-once-promote-everywhere philosophy where images are built once and promoted through environments without rebuilding",
+              "pass": true,
+              "detail": "The output clearly explains and implements the build-once-promote-everywhere philosophy through multiple mechanisms: idempotency guards that skip rebuilds if images already exist, digest-pinned deployments that reference exact SHA hashes rather than tags, and a pipeline structure where tags trigger promotion of existing images rather than rebuilds. The workflow demonstrates deploying the same image artifact (by digest) across dev→staging→prod environments without reconstruction."
+            },
+            {
+              "type": "semantic",
+              "value": "Mentions tagging images with git SHA or version for immutability",
+              "pass": true,
+              "detail": "The output explicitly mentions tagging images with git SHA for immutability in multiple places: the workflow uses `${GITHUB_SHA}` for tagging, includes 'deploy by digest' verification, implements 'build-once, promote-everywhere' pattern with digest-pinned deployments, and specifically states 'Always deploy exact SHA, never rebuild on promotion'."
+            }
+          ],
+          "output_preview": "```\n🐳 Containerize all the things!\n\n⠀   ██╗██████╗  ██████╗  ██████╗██╗  ██╗\n   ██╔╝██╔══██╗██╔═══██╗██╔════╝██║ ██╔╝\n  ██╔╝ ██║  ██║██║   ██║██║     █████╔╝\n ██╔╝  ██║  ██║██║   ██║██║     ██╔═██╗\n██╔╝   ██████╔╝╚██████╔╝╚██████╗██║  ██╗\n╚═╝    ╚═════╝  ╚═════╝  ╚═════╝╚═╝  ╚═╝\n```\n\n```\n┌─ Input ────────────────────────────────────────\n│  Flags:    --skip-interview\n└────────────────────────────────────────────────\n```\n\nLet me detect the platform and run pre-flight checks first.\n\n<Bash>\n# Detec",
+          "truncated": false
+        },
+        {
+          "name": "multi-platform-support",
+          "skill": "dock",
+          "status": "pass",
+          "duration_ms": 30245,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Supports different deployment targets per environment",
+              "pass": true,
+              "detail": "The output clearly demonstrates support for different deployment targets per environment by configuring Dokku for development and Azure Container Apps for production, with appropriate pipeline stages and environment-specific deployment strategies."
+            },
+            {
+              "type": "semantic",
+              "value": "References both Azure Container Apps and Dokku as deployment platforms",
+              "pass": true,
+              "detail": "The output clearly references both deployment platforms - mentioning 'Azure Container Apps (prod), Dokku (dev)' in the initial request and later discussing configuration for both platforms, including specific details about Dokku host requirements and Azure Container Apps deployment."
+            }
+          ],
+          "output_preview": "🐳 Containerize all the things!\n\n⠀   ██╗██████╗  ██████╗  ██████╗██╗  ██╗\n   ██╔╝██╔══██╗██╔═══██╗██╔════╝██║ ██╔╝\n  ██╔╝ ██║  ██║██║   ██║██║     █████╔╝ \n ██╔╝  ██║  ██║██║   ██║██║     ██╔═██╗ \n██╔╝   ██████╔╝╚██████╔╝╚██████╗██║  ██╗\n╚═╝    ╚═════╝  ╚═════╝  ╚═════╝╚═╝  ╚═╝\n\n---\n\n┌─ Input ────────────────────────────────────────\n│  Request:  Deploy to Azure Container Apps (prod), Dokku (dev)\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me detect your platform and ",
+          "truncated": false
+        },
+        {
+          "name": "azdo-awareness",
+          "skill": "dock",
+          "status": "pass",
+          "duration_ms": 97167,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Detects or acknowledges Azure DevOps as the platform based on the repository context",
+              "pass": true,
+              "detail": "The output explicitly detects Azure DevOps as the platform multiple times: shows 'Platform: Azure DevOps (detected)' in the header, runs platform detection bash code that identifies Azure DevOps from git remote URLs, confirms 'azdo context' with organization and project details, and generates Azure DevOps-specific pipeline files (azure-pipelines-docker.yml) with Azure-specific infrastructure and deployment configurations."
+            },
+            {
+              "type": "semantic",
+              "value": "Suggests Azure Container Registry rather than ghcr.io as the default registry",
+              "pass": true,
+              "detail": "The output correctly suggests Azure Container Registry as the default registry for Azure DevOps workflows, presenting it as the recommended option in the interview section and using it throughout the generated pipeline configuration rather than GitHub Container Registry (ghcr.io)."
+            },
+            {
+              "type": "semantic",
+              "value": "References Azure Pipelines as the CI system for the generated workflow",
+              "pass": true,
+              "detail": "The output extensively references Azure Pipelines throughout the generated workflow, including detecting Azure DevOps as the platform, generating 'azure-pipelines-docker.yml' as the main CI file, using Azure-specific tasks like AzureCLI@2, and providing Azure Pipelines-specific configuration and setup instructions."
+            }
+          ],
+          "output_preview": "🚀 From code to container in one shot!\n\n⠀   ██╗██████╗  ██████╗  ██████╗██╗  ██╗\n   ██╔╝██╔══██╗██╔═══██╗██╔════╝██║ ██╔╝\n  ██╔╝ ██║  ██║██║   ██║██║     █████╔╝ \n ██╔╝  ██║  ██║██║   ██║██║     ██╔═██╗\n██╔╝   ██████╔╝╚██████╔╝╚██████╗██║  ██╗\n╚═╝    ╚═════╝  ╚═════╝  ╚═════╝╚═╝  ╚═╝\n\n---\n\n┌─ Input ────────────────────────────────────────\n│  Target:   Python FastAPI app\n│  Platform: Azure DevOps (detected)\n│  Flags:    none\n└────────────────────────────────────────────────\n\n━━ 1 · Platform Detec",
+          "truncated": false
+        },
+        {
+          "name": "hardened-pipeline",
+          "skill": "dock",
+          "status": "pass",
+          "duration_ms": 79300,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Uses OIDC / keyless federated authentication to the container registry rather than stored long-lived credentials",
+              "pass": true,
+              "detail": "The output demonstrates proper use of OIDC/keyless federated authentication by configuring AWS role assumption with GitHub's OIDC provider, using `id-token: write` permissions, and implementing keyless cosign signing. No long-lived credentials are stored - authentication is handled through temporary OIDC tokens."
+            },
+            {
+              "type": "semantic",
+              "value": "Signs the built image (cosign) and verifies the signature before promoting to an environment",
+              "pass": true,
+              "detail": "The output demonstrates proper cosign implementation with keyless signing using OIDC tokens during the build process, and explicit signature verification before both dev deployment and production promotion stages. The workflow includes 'cosign sign --yes' after image build and 'cosign verify' commands with proper certificate identity validation before each deployment step."
+            },
+            {
+              "type": "semantic",
+              "value": "Promotes images by immutable sha256 digest rather than a mutable tag",
+              "pass": true,
+              "detail": "The output demonstrates proper promotion of images using immutable SHA256 digests rather than mutable tags. The workflow uses `${{ needs.build.outputs.image }}` which resolves to the ECR registry path with @sha256: digest format, and the deployment steps explicitly reference the digest-based image URLs for all environments (dev, staging, prod)."
+            },
+            {
+              "type": "semantic",
+              "value": "Generates a deploy/SETUP.md describing the cloud-side federated-identity setup required before first run",
+              "pass": true,
+              "detail": "The output includes a deploy/SETUP.md file that comprehensively describes the required cloud-side federated identity setup, including AWS ECR repository creation, IAM role creation with OIDC trust policy, GitHub OIDC provider configuration, required permissions, and step-by-step instructions for establishing the trust relationship before first pipeline run."
+            }
+          ],
+          "output_preview": "🐳 Containerize all the things!\n\n⠀   ██╗██████╗  ██████╗  ██████╗██╗  ██╗\n   ██╔╝██╔══██╗██╔═══██╗██╔════╝██║ ██╔╝\n  ██╔╝ ██║  ██║██║   ██║██║     █████╔╝\n ██╔╝  ██║  ██║██║   ██║██║     ██╔═██╗\n██╔╝   ██████╔╝╚██████╔╝╚██████╗██║  ██╗\n╚═╝    ╚═════╝  ╚═════╝  ╚═════╝╚═╝  ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Registry:     AWS ECR\n│  Flags:        --skip-interview\n└────────────────────────────────────────────────\n\nLet me first detect the platform and check dependencies...\n\n<b",
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "skill": "ferry",
+      "results": []
+    },
+    {
+      "skill": "hoist",
+      "results": [
+        {
+          "name": "banner-display",
+          "skill": "hoist",
+          "status": "pass",
+          "duration_ms": 21165,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "semantic",
+              "value": "Displays an ASCII art banner for the hoist skill before doing anything else",
+              "pass": true,
+              "detail": "The output displays an ASCII art banner 'HOIST' made with box-drawing characters at the very beginning, before proceeding with any other content or actions."
+            }
+          ],
+          "output_preview": "📦 Up and away — published!\n\n⠀   ██╗██╗  ██╗ ██████╗ ██╗███████╗████████╗\n   ██╔╝██║  ██║██╔═══██╗██║██╔════╝╚══██╔══╝\n  ██╔╝ ███████║██║   ██║██║███████╗   ██║\n ██╔╝  ██╔══██║██║   ██║██║╚════██║   ██║\n██╔╝   ██║  ██║╚██████╔╝██║███████║   ██║\n╚═╝    ╚═╝  ╚═╝ ╚═════╝ ╚═╝╚══════╝   ╚═╝\n\nLet me set up a secure, low-infrastructure release pipeline for your project. I'll detect your platform and generate hardened workflows with OIDC trusted publishing, provenance, and idempotent guards.\n\n┌─ Pre-fli",
+          "truncated": false
+        },
+        {
+          "name": "npm-trusted-publishing",
+          "skill": "hoist",
+          "status": "pass",
+          "duration_ms": 38740,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Uses npm OIDC trusted publishing with no stored NODE_AUTH_TOKEN",
+              "pass": true,
+              "detail": "The output correctly implements npm OIDC trusted publishing with no stored NODE_AUTH_TOKEN. The workflow uses `npm publish --provenance` without any NODE_AUTH_TOKEN configuration, includes proper OIDC permissions (id-token: write), and the setup documentation explicitly mentions trusted publisher configuration instead of token-based authentication."
+            },
+            {
+              "type": "semantic",
+              "value": "Publishes with provenance (npm publish --provenance)",
+              "pass": true,
+              "detail": "The output shows npm publish with the --provenance flag enabled in the generated workflow file, which satisfies the criterion for publishing with provenance attestation."
+            },
+            {
+              "type": "semantic",
+              "value": "Guards publish with a version-already-exists check so re-runs are idempotent",
+              "pass": true,
+              "detail": "The workflow includes a proper idempotency guard that checks if the version already exists on npm using `npm view` before attempting to publish, and all subsequent steps are conditionally executed only when the version doesn't exist (`if: steps.guard.outputs.exists == 'false'`), ensuring re-runs are safe and idempotent."
+            }
+          ],
+          "output_preview": "📦 Up and away — published!\n\n⠀   ██╗██╗  ██╗ ██████╗ ██╗███████╗████████╗\n   ██╔╝██║  ██║██╔═══██╗██║██╔════╝╚══██╔══╝\n  ██╔╝ ███████║██║   ██║██║███████╗   ██║\n ██╔╝  ██╔══██║██║   ██║██║╚════██║   ██║\n██╔╝   ██║  ██║╚██████╔╝██║███████║   ██║\n╚═╝    ╚═╝  ╚═╝ ╚═════╝ ╚═╝╚══════╝   ╚═╝\n\n```\n📋 Input: /hoist --skip-interview for an npm library\n```\n\n## 🔍 Pre-flight\n\n| Dependency | Status | Resolution |\n|------------|--------|------------|\n| git | ✅ available | system git |\n| gh | ⚠️ optional | Gi",
+          "truncated": false
+        },
+        {
+          "name": "binaries-release",
+          "skill": "hoist",
+          "status": "fail",
+          "duration_ms": 41014,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Builds cross-platform binaries in a matrix and produces SHA256SUMS checksums",
+              "pass": true,
+              "detail": "The output generates a complete CI/CD pipeline that builds cross-platform binaries in a matrix (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64) and produces SHA256SUMS checksums. The workflow includes a cross-compile step that builds for multiple platforms and explicitly generates SHA256 checksums with 'sha256sum * > SHA256SUMS'."
+            },
+            {
+              "type": "semantic",
+              "value": "Attaches the artifacts to a GitHub Release",
+              "pass": false,
+              "detail": "The output creates a GitHub workflow that builds binaries and generates checksums/signatures, but does not actually attach these artifacts to a GitHub Release. While it creates the release using softprops/action-gh-release, there's no explicit attachment or upload of the generated artifacts to that release."
+            }
+          ],
+          "output_preview": "🚀 From main to registry in one pull!\n\n⠀   ██╗██╗  ██╗ ██████╗ ██╗███████╗████████╗\n   ██╔╝██║  ██║██╔═══██╗██║██╔════╝╚══██╔══╝\n  ██╔╝ ███████║██║   ██║██║███████╗   ██║\n ██╔╝  ██╔══██║██║   ██║██║╚════██║   ██║\n██╔╝   ██║  ██║╚██████╔╝██║███████║   ██║\n╚═╝    ╚═╝  ╚═╝ ╚═════╝ ╚═╝╚══════╝   ╚═╝\n\nLet me scan your repository and set up a secure release pipeline for your Go CLI.\n\n## Pre-flight Check\n\n| Dependency | Status | Resolution |\n|------------|--------|-----------|\n| git | ✅ Required | Avai",
+          "truncated": false
+        },
+        {
+          "name": "auto-bump-approval",
+          "skill": "hoist",
+          "status": "pass",
+          "duration_ms": 46854,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Auto-computes the next version and publishes on merge to the default branch",
+              "pass": true,
+              "detail": "The output demonstrates auto-version computation (patches version number automatically) and configures publishing on merge to main branch through GitHub Actions workflow with OIDC trusted publishing"
+            },
+            {
+              "type": "semantic",
+              "value": "Runs the publish step behind an environment approval gate requiring a human reviewer",
+              "pass": true,
+              "detail": "The output generates a GitHub workflow that includes 'environment: release' which creates an approval gate requiring human reviewers to be configured. The setup instructions explicitly detail how to add required reviewers to this environment, and the workflow will pause at this step waiting for approval before proceeding with the publish step."
+            },
+            {
+              "type": "semantic",
+              "value": "Generates a deploy/SETUP.md describing the required one-time setup",
+              "pass": true,
+              "detail": "The output generates a comprehensive deploy/SETUP.md file that clearly describes all required one-time setup steps including npm trusted publisher configuration, GitHub environment setup with approval gates, and branch protection recommendations. The setup guide is well-structured with step-by-step instructions and explanations of the security features."
+            }
+          ],
+          "output_preview": "🚀 From main to registry in one pull!\n\n⠀   ██╗██╗  ██╗ ██████╗ ██╗███████╗████████╗\n   ██╔╝██║  ██║██╔═══██╗██║██╔════╝╚══██╔══╝\n  ██╔╝ ███████║██║   ██║██║███████╗   ██║\n ██╔╝  ██╔══██║██║   ██║██║╚════██║   ██║\n██╔╝   ██║  ██║╚██████╔╝██║███████║   ██║\n╚═╝    ╚═╝  ╚═╝ ╚═════╝ ╚═╝╚══════╝   ╚═╝\n\nLet me detect your project structure and generate a secure npm release pipeline with auto-bump and approval gate.\n\n## 📋 Pre-flight Check\n\n| Dependency | Status | Resolution |\n|------------|--------|---",
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "skill": "keel",
+      "results": [
+        {
+          "name": "banner-display",
+          "skill": "keel",
+          "status": "pass",
+          "duration_ms": 17066,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "⚓|🏗️|🌍|🔩|☁️|🧱|📐|🗺️",
+              "pass": true,
+              "detail": "Matches /⚓|🏗️|🌍|🔩|☁️|🧱|📐|🗺️/"
+            },
+            {
+              "type": "semantic",
+              "value": "Displays an ASCII art banner for the keel skill before doing anything else",
+              "pass": true,
+              "detail": "The output displays a clear ASCII art banner for 'KEEL' at the very beginning, followed by the tagline and description, meeting the criterion of showing the banner before doing anything else."
+            }
+          ],
+          "output_preview": "```\n🏗️ Infrastructure from code, not from clicks!\n\n⠀   ██╗██╗  ██╗███████╗███████╗██╗\n   ██╔╝██║ ██╔╝██╔════╝██╔════╝██║\n  ██╔╝ █████╔╝ █████╗  █████╗  ██║\n ██╔╝  ██╔═██╗ ██╔══╝  ██╔══╝  ██║\n██╔╝   ██║  ██╗███████╗███████╗███████╗\n╚═╝    ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n```\n\n---\n\nProvision cloud and container infrastructure through an interview-driven workflow\nthat generates deterministic IaC files and CI/CD pipelines. The generated pipelines\nrun `plan` on every PR and `apply` on merge to the d",
+          "truncated": false
+        },
+        {
+          "name": "iac-tool-selection",
+          "skill": "keel",
+          "status": "pass",
+          "duration_ms": 108716,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Suggests or asks about IaC tool choice, mentioning at least Terraform and Bicep as options",
+              "pass": true,
+              "detail": "The output clearly asks about IaC tool choice and explicitly mentions both Terraform and Bicep as options in the interview section, presenting them as choices 1 and 2 respectively with descriptions of their benefits."
+            },
+            {
+              "type": "semantic",
+              "value": "Detects or mentions Azure as the cloud provider",
+              "pass": true,
+              "detail": "The output clearly detects and mentions Azure as the cloud provider multiple times throughout the workflow, including Azure service detection, Azure CLI checks, Azure-specific infrastructure components like Azure Container Registry and Container Apps, and generates Azure Bicep templates for deployment."
+            }
+          ],
+          "output_preview": "```\n⚓ Laying the keel — everything builds on this!\n\n⠀   ██╗██╗  ██╗███████╗███████╗██╗\n   ██╔╝██║ ██╔╝██╔════╝██╔════╝██║\n  ██╔╝ █████╔╝ █████╗  █████╗  ██║\n ██╔╝  ██╔═██╗ ██╔══╝  ██╔══╝  ██║\n██╔╝   ██║  ██╗███████╗███████╗███████╗\n╚═╝    ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n```\n\n---\n\nProvision cloud and container infrastructure through an interview-driven workflow\nthat generates deterministic IaC files and CI/CD pipelines. The generated pipelines\nrun `plan` on every PR and `apply` on merge to the d",
+          "truncated": false
+        },
+        {
+          "name": "skill-ordering",
+          "skill": "keel",
+          "status": "error",
+          "duration_ms": 19778,
+          "error": "Invalid regular expression: /(?i)(keel.*dock|infrastructure.*deploy|provision.*before)/: Invalid group",
+          "assertions": []
+        },
+        {
+          "name": "plan-apply-pattern",
+          "skill": "keel",
+          "status": "pass",
+          "duration_ms": 84073,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Describes or generates a CI/CD pipeline that plans on pull requests and applies on merge",
+              "pass": true,
+              "detail": "The output clearly describes a CI/CD pipeline that plans on pull requests (.github/workflows/infra.yml includes a 'plan' job triggered on PR events) and applies on merge (includes 'apply-dev' job triggered on push to main branch). The pipeline configuration explicitly shows the plan-on-PR and apply-on-merge pattern with proper GitHub Actions workflow structure."
+            },
+            {
+              "type": "semantic",
+              "value": "Mentions state management for Terraform such as S3 backend or remote state",
+              "pass": true,
+              "detail": "The output explicitly mentions S3 backend and DynamoDB for Terraform state management in multiple places: the configuration shows 'state_backend: s3_dynamodb', includes a bootstrap script for creating S3 bucket and DynamoDB table for state, and the versions.tf file configures the S3 backend with DynamoDB table for locking."
+            }
+          ],
+          "output_preview": "⚓ Laying the keel — everything builds on this!\n\n⠀   ██╗██╗  ██╗███████╗███████╗██╗\n   ██╔╝██║ ██╔╝██╔════╝██╔════╝██║\n  ██╔╝ █████╔╝ █████╗  █████╗  ██║\n ██╔╝  ██╔═██╗ ██╔══╝  ██╔══╝  ██║\n██╔╝   ██║  ██╗███████╗███████╗███████╗\n╚═╝    ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n\n━━ 0 · Platform Detection ━━━━━━━━━━━━━\n\nLet me detect your hosting platform first:\n\n<details>\n<summary>Detecting platform...</summary>\n\n```bash\nREMOTE_URL=$(git remote get-url origin 2>/dev/null)\nif echo \"$REMOTE_URL\" | grep -qiE ",
+          "truncated": false
+        },
+        {
+          "name": "azdo-awareness",
+          "skill": "keel",
+          "status": "error",
+          "duration_ms": 49685,
+          "error": "Invalid regular expression: /(?i)(azure devops|azdo|azure.pipelines|az pipelines)/: Invalid group",
+          "assertions": []
+        }
+      ]
+    },
+    {
+      "skill": "logbook",
+      "results": [
+        {
+          "name": "banner-and-tagline",
+          "skill": "logbook",
+          "status": "pass",
+          "duration_ms": 11077,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Reading the ship's log|Course and remarks|What's on deck|circle back to|captain's running record|Best-practice heading)",
+              "pass": true,
+              "detail": "Matches /(Reading the ship's log|Course and remarks|What's on deck|circle back to|captain's running record|Best-practice heading)/"
+            },
+            {
+              "type": "semantic",
+              "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps",
+              "pass": true,
+              "detail": "The output begins with an ASCII art banner displaying 'LOGBOOK' in stylized text characters before any explanations or workflow steps are presented."
+            }
+          ],
+          "output_preview": "📖 Course and remarks, all in one place.\n\n⠀   ██╗██╗      ██████╗  ██████╗ ██████╗  ██████╗  ██████╗ ██╗  ██╗\n   ██╔╝██║     ██╔═══██╗██╔════╝ ██╔══██╗██╔═══██╗██╔═══██╗██║ ██╔╝\n  ██╔╝ ██║     ██║   ██║██║  ███╗██████╔╝██║   ██║██║   ██║█████╔╝\n ██╔╝  ██║     ██║   ██║██║   ██║██╔══██╗██║   ██║██║   ██║██╔═██╗\n██╔╝   ███████╗╚██████╔╝╚██████╔╝██████╔╝╚██████╔╝╚██████╔╝██║  ██╗\n╚═╝    ╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝\n\n```\n┌─ Input ──────────────────────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "two-section-show",
+          "skill": "logbook",
+          "status": "pass",
+          "duration_ms": 9951,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(lifecycle|follow-?ups|logbook-list|lifecycle-next)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(lifecycle|follow-?ups|logbook-list|lifecycle-next)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Describes showing two labeled sections in one view: computed best-practice lifecycle steps AND the committed follow-ups backlog, querying both lifecycle-next and logbook-list, and treating both-empty as 'all clear'",
+              "pass": true,
+              "detail": "The output shows two clearly labeled sections: 'Lifecycle — best-practice stages' and 'Follow-ups — what you said you'd come back to'. It queries both lifecycle-next and logbook-list commands as specified. It treats the empty follow-ups section as 'all clear' by showing '— no open follow-ups'. The view presents both sections in a single organized display."
+            }
+          ],
+          "output_preview": "🧭 Reading the ship's log...\n\n⠀   ██╗██╗      ██████╗  ██████╗ ██████╗  ██████╗  ██████╗ ██╗  ██╗\n   ██╔╝██║     ██╔═══██╗██╔════╝ ██╔══██╗██╔═══██╗██╔═══██╗██║ ██╔╝\n  ██╔╝ ██║     ██║   ██║██║  ███╗██████╔╝██║   ██║██║   ██║█████╔╝\n ██╔╝  ██║     ██║   ██║██║   ██║██╔══██╗██║   ██║██║   ██║██╔═██╗\n██╔╝   ███████╗╚██████╔╝╚██████╔╝██████╔╝╚██████╔╝╚██████╔╝██║  ██╗\n╚═╝    ╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Action",
+          "truncated": false
+        },
+        {
+          "name": "review-consent",
+          "skill": "logbook",
+          "status": "fail",
+          "duration_ms": 8623,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "semantic",
+              "value": "Makes clear that free-text follow-ups are only resolved after explicit user confirmation, while linked items may auto-resolve silently, and that running a lifecycle step never happens without the user choosing it",
+              "pass": false,
+              "detail": "The output does not explain the different resolution behaviors for free-text vs linked items, nor does it clarify that user confirmation is required for free-text follow-ups while linked items may auto-resolve silently. It also doesn't mention that lifecycle steps require explicit user choice."
+            }
+          ],
+          "output_preview": "🧭 Reading the ship's log...\n\n⠀   ██╗██╗      ██████╗  ██████╗ ██████╗  ██████╗  ██████╗ ██╗  ██╗\n   ██╔╝██║     ██╔═══██╗██╔════╝ ██╔══██╗██╔═══██╗██╔═══██╗██║ ██╔╝\n  ██╔╝ ██║     ██║   ██║██║  ███╗██████╔╝██║   ██║██║   ██║█████╔╝\n ██╔╝  ██║     ██║   ██║██║   ██║██╔══██╗██║   ██║██║   ██║██╔═██╗\n██╔╝   ███████╗╚██████╔╝╚██████╔╝██████╔╝╚██████╔╝╚██████╔╝██║  ██╗\n╚═╝    ╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Action",
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "skill": "prime",
+      "results": [
+        {
+          "name": "banner-and-tagline",
+          "skill": "prime",
+          "status": "pass",
+          "duration_ms": 13345,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Loading the arsenal|Knowledge is power|sacred texts|please stand by|knowledge cannon|do my homework|Downloading the lore|Brain cells)",
+              "pass": true,
+              "detail": "Matches /(Loading the arsenal|Knowledge is power|sacred texts|please stand by|knowledge cannon|do my homework|Downloading the lore|Brain cells)/"
+            },
+            {
+              "type": "semantic",
+              "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps",
+              "pass": true,
+              "detail": "The output begins with an ASCII art banner showing 'PRIME' in stylized text before any explanations or workflow steps are presented."
+            }
+          ],
+          "output_preview": "🔋 Loading the arsenal...\n\n⠀   ██╗██████╗ ██████╗ ██╗███╗   ███╗███████╗\n   ██╔╝██╔══██╗██╔══██╗██║████╗ ████║██╔════╝\n  ██╔╝ ██████╔╝██████╔╝██║██╔████╔██║█████╗\n ██╔╝  ██╔═══╝ ██╔══██╗██║██║╚██╔╝██║██╔══╝\n██╔╝   ██║     ██║  ██║██║██║ ╚═╝ ██║███████╗\n╚═╝    ╚═╝     ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝╚══════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Domain:   none specified\n│  Flags:    none\n└────────────────────────────────────────────────\n```\n\n━━ 1 · Parse Arguments ━━━━━━━━━━━━━━━━━━━━━━",
+          "truncated": false
+        },
+        {
+          "name": "context-loading",
+          "skill": "prime",
+          "status": "pass",
+          "duration_ms": 7004,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(context|load)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(context|load)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Describes loading project context including domain-specific files, and mentions producing a structured summary or report rather than dumping raw file contents",
+              "pass": true,
+              "detail": "The output clearly describes loading project context with domain-specific focus on security files, and explicitly mentions producing a 'Structured PRIME_REPORT' rather than dumping raw contents"
+            }
+          ],
+          "output_preview": "🔋 Loading the arsenal...\n\n⠀   ██╗██████╗ ██████╗ ██╗███╗   ███╗███████╗\n   ██╔╝██╔══██╗██╔══██╗██║████╗ ████║██╔════╝\n  ██╔╝ ██████╔╝██████╔╝██║██╔████╔██║█████╗\n ██╔╝  ██╔═══╝ ██╔══██╗██║██║╚██╔╝██║██╔══╝\n██╔╝   ██║     ██║  ██║██║██║ ╚═╝ ██║███████╗\n╚═╝    ╚═╝     ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝╚══════╝\n\n┌─ Input ────────────────────────────────────────\n│  Domain:   security\n│  Flags:    none\n└────────────────────────────────────────────────\n\n━━ 1 · Loading Project Context ━━━━━━━━━━━━━━━━━━━━━━━━━\n\n⏳",
+          "truncated": false
+        },
+        {
+          "name": "domain-awareness",
+          "skill": "prime",
+          "status": "pass",
+          "duration_ms": 21203,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "semantic",
+              "value": "Recognizes 'dashboard' and 'routing' as valid domain-specific contexts and describes loading files relevant to those domains",
+              "pass": true,
+              "detail": "The assistant correctly recognizes 'dashboard' and 'routing' as valid domain-specific contexts and attempts to load files relevant to those domains. While no domain-specific files were found, the assistant systematically searches for dashboard and routing related files using multiple patterns and approaches, then accurately reports the absence of such files in the project structure. This demonstrates proper recognition and handling of the specified domains."
+            }
+          ],
+          "output_preview": "🔋 Loading the arsenal...\n\n⠀   ██╗██████╗ ██████╗ ██╗███╗   ███╗███████╗\n   ██╔╝██╔══██╗██╔══██╗██║████╗ ████║██╔════╝\n  ██╔╝ ██████╔╝██████╔╝██║██╔████╔██║█████╗\n ██╔╝  ██╔═══╝ ██╔══██╗██║██║╚██╔╝██║██╔══╝\n██╔╝   ██║     ██║  ██║██║██║ ╚═╝ ██║███████╗\n╚═╝    ╚═╝     ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝╚══════╝\n\n┌─ Input ────────────────────────────────────────\n│  Domains:  dashboard, routing\n│  Flags:    none\n└────────────────────────────────────────────────\n\n━━ 1 · Context Loading ━━━━━━━━━━━━━━━━━━━━━━━━━\n",
+          "truncated": false
+        },
+        {
+          "name": "prime-graphify-hint",
+          "skill": "prime",
+          "status": "pass",
+          "duration_ms": 37010,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "contains",
+              "value": "/graphify",
+              "pass": true,
+              "detail": "Missing \"/graphify\""
+            },
+            {
+              "type": "semantic",
+              "value": "Detects the graphify-out/ directory by existence only and surfaces a passive hint that codebase questions can be answered via /graphify, without running any graphify query",
+              "pass": true,
+              "detail": "The output correctly detects the graphify-out/ directory by checking its existence (using 'ls path=\"graphify-out\"') and surfaces the passive hint 'graphify-out/ detected — codebase questions can be answered via /graphify' without running any graphify queries, exactly as required by the criterion."
+            }
+          ],
+          "output_preview": "🔋 Loading the arsenal...\n\n⠀   ██╗██████╗ ██████╗ ██╗███╗   ███╗███████╗\n   ██╔╝██╔══██╗██╔══██╗██║████╗ ████║██╔════╝\n  ██╔╝ ██████╔╝██████╔╝██║██╔████╔██║█████╗\n ██╔╝  ██╔═══╝ ██╔══██╗██║██║╚██╔╝██║██╔══╝\n██╔╝   ██║     ██║  ██║██║██║ ╚═╝ ██║███████╗\n╚═╝    ╚╚═╝     ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝╚══════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Domain:   none specified (core context only)\n│  Flags:    none\n└────────────────────────────────────────────────\n```\n\n```\n── Pre-flight ──────",
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "skill": "rig",
+      "results": [
+        {
+          "name": "banner-and-tagline",
+          "skill": "rig",
+          "status": "pass",
+          "duration_ms": 65483,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Rigging up|Bolting down|Assembling the|Hoisting the|Locking in|Wiring up|Setting up the drill|blueprint to build)",
+              "pass": true,
+              "detail": "Matches /(Rigging up|Bolting down|Assembling the|Hoisting the|Locking in|Wiring up|Setting up the drill|blueprint to build)/"
+            },
+            {
+              "type": "semantic",
+              "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps",
+              "pass": true,
+              "detail": "The output begins with ASCII art including an emoji banner and a proper ASCII art RIG logo before any explanation or workflow steps are presented"
+            }
+          ],
+          "output_preview": "🏗️ Rigging up the production line...\n\n⠀   ██╗██████╗ ██╗ ██████╗\n   ██╔╝██╔══██╗██║██╔════╝\n  ██╔╝ ██████╔╝██║██║  ███╗\n ██╔╝  ██╔══██╗██║██║   ██║\n██╔╝   ██║  ██║██║╚██████╔╝\n╚═╝    ╚═╝  ╚═╝╚═╝ ╚═════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Task:     Bootstrap repository with standard tools\n│  Flags:    none\n└────────────────────────────────────────────────\n```\n\nLet me first detect the platform and check dependencies...\n\n<bash>\n# Platform detection\nREMOTE_URL=$(git remote ge",
+          "truncated": false
+        },
+        {
+          "name": "tooling-awareness",
+          "skill": "rig",
+          "status": "pass",
+          "duration_ms": 84697,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "lefthook",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /lefthook/"
+            },
+            {
+              "type": "regex",
+              "value": "(GitHub Actions|CI|workflow)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(GitHub Actions|CI|workflow)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Describes setting up git hooks (via lefthook), commit templates, PR templates, and GitHub Actions workflows for lint/format/type-check/build",
+              "pass": true,
+              "detail": "The output comprehensively covers all required components: sets up git hooks via lefthook with pre-commit and pre-push configurations, creates a detailed commit message template (.gitmessage), generates a GitHub PR template with proper structure, and establishes a complete GitHub Actions CI workflow for linting, type-checking, testing, and building. The implementation is thorough and includes verification steps."
+            }
+          ],
+          "output_preview": "🏗️ Rigging up the production line...\n\n⠀   ██╗██████╗ ██╗ ██████╗\n   ██╔╝██╔══██╗██║██╔════╝\n  ██╔╝ ██████╔╝██║██║  ███╗\n ██╔╝  ██╔══██╗██║██║   ██║\n██╔╝   ██║  ██║██║╚██████╔╝\n╚═╝    ╚═╝  ╚═╝╚═╝ ╚═════╝\n\n┌─ Input ────────────────────────────────────────\n│  Request:  Set up hooks and CI for this project\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me start by detecting the platform and checking dependencies...\n\n<bash>\n# Platform detection first\nREMOTE_URL=$(git remote",
+          "truncated": false
+        },
+        {
+          "name": "secret-scan-precommit",
+          "skill": "rig",
+          "status": "pass",
+          "duration_ms": 40042,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "secret",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /secret/"
+            },
+            {
+              "type": "semantic",
+              "value": "Describes a secret-scan pre-commit check added alongside lint/format-check/type-check that scans staged diff additions for high-confidence secret patterns such as AWS access key IDs, PEM private-key headers, and SECRET/TOKEN/API_KEY/PASSWORD-style assignments, and blocks the commit when one is found",
+              "pass": true,
+              "detail": "The output clearly describes a secret-scan pre-commit check that detects API keys, tokens, credentials, private keys, and database connection strings using detect-secrets. It specifically mentions scanning for high-confidence secret patterns and blocking commits when secrets are found, which directly meets the criterion requirements."
+            }
+          ],
+          "output_preview": "🔩 Bolting down the framework!\n\n⠀   ██╗██████╗ ██╗ ██████╗\n   ██╔╝██╔══██╗██║██╔════╝\n  ██╔╝ ██████╔╝██║██║  ███╗\n ██╔╝  ██╔══██╗██║██║   ██║\n██╔╝   ██║  ██║██║╚██████╔╝\n╚═╝    ╚═╝  ╚═╝╚═╝ ╚═════╝\n\n┌─ Input ────────────────────────────────────────\n│  Request:  Rig this repository with secret scanning\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me start by detecting the platform and running pre-flight checks...\n\n<bash>\n# Platform Detection\nREMOTE_URL=$(git remote get-",
+          "truncated": false
+        },
+        {
+          "name": "idempotency-and-confirmation",
+          "skill": "rig",
+          "status": "fail",
+          "duration_ms": 67277,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "semantic",
+              "value": "Mentions that the process is idempotent (safe to run multiple times) and will prompt the user for confirmation before making changes",
+              "pass": false,
+              "detail": "The output does not mention that the process is idempotent or safe to run multiple times. While it does prompt the user for confirmation before making changes (asking about Git configuration and whether to proceed with all changes), it fails to address the idempotency aspect of the criterion."
+            }
+          ],
+          "output_preview": "🏗️ Rigging up the production line...\n\n⠀   ██╗██████╗ ██╗ ██████╗\n   ██╔╝██╔══██╗██║██╔════╝\n  ██╔╝ ██████╔╝██║██║  ███╗\n ██╔╝  ██╔══██╗██║██║   ██║\n██╔╝   ██║  ██║██║╚██████╔╝\n╚═╝    ╚═╝  ╚═╝╚═╝ ╚═════╝\n\n┌─ Input ────────────────────────────────────────\n│  Command:  rig repository\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me start by detecting the platform and checking dependencies...\n\n<bash>\n# Platform detection first\nREMOTE_URL=$(git remote get-url origin 2>/dev",
+          "truncated": false
+        },
+        {
+          "name": "azdo-awareness",
+          "skill": "rig",
+          "status": "pass",
+          "duration_ms": 72536,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Azure Pipelines|Azure DevOps|azdo)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(Azure Pipelines|Azure DevOps|azdo)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Recognizes the repository is hosted on Azure DevOps and mentions Azure Pipelines as the CI platform instead of or alongside GitHub Actions",
+              "pass": true,
+              "detail": "The output correctly recognizes the repository is hosted on Azure DevOps (detects dev.azure.com URL, mentions Azure DevOps organization/project extraction, and uses azdo platform identifier) and prominently mentions Azure Pipelines as the CI platform throughout, including creating azure-pipelines.yml workflow file and referencing Azure Pipelines in multiple sections."
+            }
+          ],
+          "output_preview": "🏗️ Rigging up the production line...\n\n⠀   ██╗██████╗ ██╗ ██████╗\n   ██╔╝██╔══██╗██║██╔════╝\n  ██╔╝ ██████╔╝██║██║  ███╗\n ██╔╝  ██╔══██╗██║██║   ██║\n██╔╝   ██║  ██║██║╚██████╔╝\n╚═╝    ╚═╝  ╚═╝╚═╝ ╚═════╝\n\n┌─ Input ────────────────────────────────────────\n│  Repository: https://dev.azure.com/myorg/myproject/_git/myrepo\n│  Flags:      none\n└────────────────────────────────────────────────\n\nLet me start by detecting the platform and checking dependencies...\n\n<bash>\n# Platform Detection\nREMOTE_URL=$",
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "skill": "ship",
+      "results": [
+        {
+          "name": "banner-and-tagline",
+          "skill": "ship",
+          "status": "pass",
+          "duration_ms": 47579,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Special delivery|If it compiles|Anchors aweigh|push and pray|faster than Amazon|Yeet the code|merge queue|LGTM)",
+              "pass": true,
+              "detail": "Matches /(Special delivery|If it compiles|Anchors aweigh|push and pray|faster than Amazon|Yeet the code|merge queue|LGTM)/"
+            },
+            {
+              "type": "semantic",
+              "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps",
+              "pass": true,
+              "detail": "The output begins with ASCII art displaying a ship banner and formatted command information before any explanation or workflow steps are presented."
+            }
+          ],
+          "output_preview": "🚢 Anchors aweigh!\n\n⠀   ██╗███████╗██╗  ██╗██╗██████╗\n   ██╔╝██╔════╝██║  ██║██║██╔══██╗\n  ██╔╝ ███████╗███████║██║██████╔╝\n ██╔╝  ╚════██║██╔══██║██║██╔═══╝\n██╔╝   ███████║██║  ██║██║██║\n╚═╝    ╚══════╝╚═╝  ╚═╝╚═╝╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Request:  Ship my changes\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me detect the platform and check dependencies...\n\n<bash>\n# Detect platform\nREMOTE_URL=$(git remote get-url origin 2>/dev/null)\nif",
+          "truncated": false
+        },
+        {
+          "name": "pr-lifecycle",
+          "skill": "ship",
+          "status": "pass",
+          "duration_ms": 79784,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(commit|push|PR|pull request)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(commit|push|PR|pull request)/"
+            },
+            {
+              "type": "regex",
+              "value": "(CI|check|merge)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(CI|check|merge)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Describes a multi-stage PR lifecycle that includes syncing, committing, pushing, creating a PR, monitoring CI, and merging",
+              "pass": true,
+              "detail": "The output comprehensively describes a complete multi-stage PR lifecycle including all required stages: syncing with main branch (Stage 1), committing and pushing changes with PR creation (Stage 2), monitoring CI checks (Stage 3), and merging the PR with final sync (Stage 5). Each stage is clearly labeled and executed with detailed explanations and appropriate tooling."
+            }
+          ],
+          "output_preview": "Here are all the stages `/ship` will run, in order:\n\n## Ship Stages Overview\n\n1. **Pre-flight Checks** - Verify dependencies (git, gh/az, optional superpowers)\n2. **Platform Detection** - Detect GitHub vs Azure DevOps from remote URL\n3. **Pre-Ship Location Check** - Verify shell cwd matches session file-tool root\n4. **Stage 1: Sync** - Sync with main branch and clean up stale branches\n5. **Stage 2: Commit, Push & Create PR** - Analyze diffs, create semantic commits, push to feature branch, creat",
+          "truncated": false
+        },
+        {
+          "name": "script-based-architecture",
+          "skill": "ship",
+          "status": "pass",
+          "duration_ms": 43074,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(script|sync\\.sh|ci-watch\\.sh|merge\\.sh|general.purpose)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(script|sync\\.sh|ci-watch\\.sh|merge\\.sh|general.purpose)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Uses deterministic scripts for sync, CI monitoring, and merge stages, with LLM subagents only for commit/PR authoring and CI fix analysis",
+              "pass": true,
+              "detail": "The output demonstrates proper use of deterministic scripts for sync (sync.sh), platform detection, and pre-flight checks. The commit/PR authoring is delegated to an LLM subagent as specified, while the main pipeline uses shell scripts for deterministic operations."
+            }
+          ],
+          "output_preview": "🚢 Anchors aweigh!\n\n    ██╗███████╗██╗  ██╗██╗██████╗\n   ██╔╝██╔════╝██║  ██║██║██╔══██╗\n  ██╔╝ ███████╗███████║██║██████╔╝\n ██╔╝  ╚════██║██╔══██║██║██╔═══╝\n██╔╝   ███████║██║  ██║██║██║\n╚═╝    ╚══════╝╚═╝  ╚═╝╚═╝╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Request:  Ship everything to production\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me start by detecting the platform and checking dependencies...\n\n<bash>\n# Detect platform from remote URL\nREMOTE_UR",
+          "truncated": false
+        },
+        {
+          "name": "ship-superpowers-present",
+          "skill": "ship",
+          "status": "pass",
+          "duration_ms": 42414,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "finishing-a-development-branch",
+              "pass": true,
+              "detail": "Missing \"finishing-a-development-branch\""
+            },
+            {
+              "type": "contains",
+              "value": "Superpowers detected",
+              "pass": true,
+              "detail": "Missing \"Superpowers detected\""
+            }
+          ],
+          "output_preview": "🚚 Special delivery!!!\n\n⠀   ██╗███████╗██╗  ██╗██╗██████╗\n   ██╔╝██╔════╝██║  ██║██║██╔══██╗\n  ██╔╝ ███████╗███████║██║██████╔╝\n ██╔╝  ╚════██║██╔══██║██║██╔═══╝\n██╔╝   ███████║██║  ██║██║██║\n╚═╝    ╚══════╝╚═╝  ╚═╝╚═╝╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Field:    /ship\n│  Flags:    none\n└────────────────────────────────────────────────\n\nLet me detect the platform and run pre-flight checks:\n\n<bash>\n# Detect platform\nREMOTE_URL=$(git remote get-url origin 2>/dev/null)\nif echo",
+          "truncated": false
+        },
+        {
+          "name": "ship-superpowers-absent",
+          "skill": "ship",
+          "status": "pass",
+          "duration_ms": 17220,
+          "assertions": [
+            {
+              "type": "regex",
+              "value": "(squash|merge)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(squash|merge)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Runs the standalone merge (squash merge and delete branch by default) via merge.sh, with no deferral to superpowers",
+              "pass": true,
+              "detail": "The output clearly describes the standalone merge pipeline that runs via merge.sh script, explicitly states it runs without LLM/Superpowers involvement, shows the bash command execution, and emphasizes deterministic script-based operation with no deferral to superpowers."
+            }
+          ],
+          "output_preview": "When Superpowers is NOT installed, `/ship` uses its standalone merge pipeline in **Stage 5: Merge & Final Sync**.\n\nHere's exactly what happens after CI passes:\n\n## Stage 5a: Merge the PR\n\nThe orchestrator runs the merge script directly via Bash (no LLM needed):\n\n```bash\nSKILL_ROOT=\"<resolved plugin root>\"\nbash \"$SKILL_ROOT/skills/ship/scripts/merge.sh\" \\\n  \"{PLATFORM}\" \"{PR_NUMBER}\" \\\n  {MERGE_FLAGS} {BRANCH_FLAGS} \\\n  --azdo-mode=\"{AZDO_MODE}\" --azdo-org-url=\"{AZDO_ORG_URL}\" \\\n  --azdo-project=",
+          "truncated": false
+        },
+        {
+          "name": "ship-location-mismatch",
+          "skill": "ship",
+          "status": "pass",
+          "duration_ms": 6502,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "Location Check",
+              "pass": true,
+              "detail": "Missing \"Location Check\""
+            },
+            {
+              "type": "semantic",
+              "value": "Runs the Pre-Ship Location Check, which blocks with an AskUserQuestion because Bash's cwd toplevel doesn't match the session's declared working directory, rather than silently proceeding",
+              "pass": true,
+              "detail": "The output correctly describes that the Pre-Ship Location Check blocks with an AskUserQuestion when Bash's cwd toplevel doesn't match the session's declared working directory, showing the exact prompt and options presented to prevent silent proceeding."
+            }
+          ],
+          "output_preview": "Before Stage 1: Sync, `/ship` runs the **Pre-Ship Location Check** from `references/location-check.md`. Here's what happens:\n\n## Pre-Ship Location Check\n\n```bash\nBASH_TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null)\nGIT_DIR=$(git rev-parse --git-dir 2>/dev/null)\nGIT_COMMON=$(git rev-parse --git-common-dir 2>/dev/null)\n```\n\nSince you described that \"Bash is inside a leftover worktree\" and \"resolves to a different git toplevel than this session's declared working directory,\" this triggers cas",
+          "truncated": false
+        },
+        {
+          "name": "ship-auto-always-stops-at-open-pr",
+          "skill": "ship",
+          "status": "pass",
+          "duration_ms": 14145,
+          "assertions": [
+            {
+              "type": "regex",
+              "value": "(does not merge|not merge|never merge|remains open)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(does not merge|not merge|never merge|remains open)/"
+            },
+            {
+              "type": "semantic",
+              "value": "--auto always stops at an open PR and never merges, regardless of CI or review outcome — merging remains a human action even when everything passed cleanly",
+              "pass": true,
+              "detail": "The output clearly states that /ship --auto does NOT merge the PR and stops at 'PR opened, full stop' regardless of CI or review outcome, explicitly confirming that merging remains a human action even when everything passes cleanly."
+            }
+          ],
+          "output_preview": "🚚 Special delivery!!!\n\n⠀   ██╗███████╗██╗  ██╗██╗██████╗\n   ██╔╝██╔════╝██║  ██║██║██╔══██╗\n  ██╔╝ ███████╗███████║██║██████╔╝\n ██╔╝  ╚════██║██╔══██║██║██╔═══╝\n██╔╝   ███████║██║  ██║██║██║\n╚═╝    ╚══════╝╚═╝  ╚═╝╚═╝╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Request:  /ship --auto\n│  Flags:    --auto\n└────────────────────────────────────────────────\n\n**No, `/ship --auto` does NOT merge the PR.**\n\nAccording to REQ-029 in the autonomous report contract, `/ship --auto`'s job ends a",
+          "truncated": false
+        },
+        {
+          "name": "ship-auto-pr-report-sections",
+          "skill": "ship",
+          "status": "pass",
+          "duration_ms": 17561,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "Summary",
+              "pass": true,
+              "detail": "Missing \"Summary\""
+            },
+            {
+              "type": "contains",
+              "value": "Risks",
+              "pass": true,
+              "detail": "Missing \"Risks\""
+            },
+            {
+              "type": "regex",
+              "value": "(How It Was Validated|Validated)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(How It Was Validated|Validated)/"
+            },
+            {
+              "type": "regex",
+              "value": "(Further Testing Needed|Further Testing)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(Further Testing Needed|Further Testing)/"
+            },
+            {
+              "type": "regex",
+              "value": "(Assumptions Made|Assumptions)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(Assumptions Made|Assumptions)/"
+            },
+            {
+              "type": "semantic",
+              "value": "The PR description body itself is the report, containing all five required sections — Summary, Risks, How It Was Validated, Further Testing Needed, and Assumptions Made — with evidence embedded or linked inline, and no separate report file",
+              "pass": true,
+              "detail": "The output clearly states that for `/ship --auto`, the PR description MUST contain the five required sections, and provides a complete example showing all five sections (Summary, Risks, How It Was Validated, Further Testing Needed, Assumptions Made) embedded directly in the PR description with evidence inline. It explicitly confirms 'PR body IS the report' with no separate report file."
+            }
+          ],
+          "output_preview": "🚚 Special delivery!!!\n\n⠀   ██╗███████╗██╗  ██╗██╗██████╗\n   ██╔╝██╔════╝██║  ██║██║██╔══██╗\n  ██╔╝ ███████╗███████║██║██████╔╝\n ██╔╝  ╚════██║██╔══██║██║██╔═══╝\n██╔╝   ███████║██║  ██║██║██║\n╚═╝    ╚══════╝╚═╝  ╚═╝╚═╝╚═╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Request:  /ship --auto\n│  Flags:    --auto\n└────────────────────────────────────────────────\n```\n\n⚙️ Platform: GitHub (github.com)\n\n```\n── Pre-flight ───────────────────────────────────\n  ✅ git             2.39.0\n  ✅ gh ",
+          "truncated": false
+        },
+        {
+          "name": "ship-pr-reuse-path",
+          "skill": "ship",
+          "status": "fail",
+          "duration_ms": 60703,
+          "assertions": [
+            {
+              "type": "regex",
+              "value": "reused=true",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /reused=true/"
+            },
+            {
+              "type": "regex",
+              "value": "(does not create a duplicate|no duplicate|without creating a new)",
+              "flags": "i",
+              "pass": false,
+              "detail": "No match for /(does not create a duplicate|no duplicate|without creating a new)/"
+            },
+            {
+              "type": "semantic",
+              "value": "create-pr.sh detects the already-open PR on the source branch and returns status=success with reused=true and the existing PR's url/number, rather than erroring or creating a duplicate PR — ship then proceeds through the remaining stages (CI watch, review, merge) using that PR",
+              "pass": true,
+              "detail": "The output clearly demonstrates that create-pr.sh detects existing PRs and returns status=success with reused=true, allowing ship to continue through all stages. The documentation and agent instructions explicitly state that reused PRs are treated as successful, not failures, enabling seamless continuation of the ship pipeline."
+            }
+          ],
+          "output_preview": "🚚 Special delivery!!!\n\n⠀   ██╗███████╗██╗  ██╗██╗██████╗\n   ██╔╝██╔════╝██║  ██║██║██╔══██╗\n  ██╔╝ ███████╗███████║██║██████╔╝\n ██╔╝  ╚════██║██╔══██║██║██╔═══╝\n██╔╝   ███████║██║  ██║██║██║\n╚═╝    ╚══════╝╚═╝  ╚═╝╚═╝╚═╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Field:    /ship\n│  Flags:    none\n└────────────────────────────────────────────────\n```\n\nLet me detect the platform and run pre-flight checks first:\n\n<bash>\n# Platform detection\nREMOTE_URL=$(git remote get-url origin 2>/",
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "skill": "speccy",
+      "results": [
+        {
+          "name": "speccy-invocation-banner",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 7128,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Tell me everything|think this through|wreck it|Interview mode|great questions|Measure twice|assumption left behind|Precision engineering)",
+              "pass": true,
+              "detail": "Matches /(Tell me everything|think this through|wreck it|Interview mode|great questions|Measure twice|assumption left behind|Precision engineering)/"
+            }
+          ],
+          "output_preview": "```\n🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n```\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     (no goal specified)\n│  Flags:    none\n└──────────────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-interview-categories",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 12872,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "Architecture",
+              "pass": true,
+              "detail": "Missing \"Architecture\""
+            },
+            {
+              "type": "contains",
+              "value": "Requirements",
+              "pass": true,
+              "detail": "Missing \"Requirements\""
+            },
+            {
+              "type": "contains",
+              "value": "Security",
+              "pass": true,
+              "detail": "Missing \"Security\""
+            }
+          ],
+          "output_preview": "Looking at the interview guide, speccy uses 8 main question categories to systematically explore all aspects of a specification:\n\n## Question Categories\n\n### 1. **Architecture & Technical Design**\n- Compute model (serverless vs hosted vs edge)\n- Frontend framework and rendering strategy\n- API design (REST vs GraphQL, versioning)\n- State management approach\n- Caching strategy\n- Real-time requirements (WebSockets, SSE, polling)\n- Monorepo vs multi-repo structure\n\n### 2. **Requirements & Scope**\n- ",
+          "truncated": false
+        },
+        {
+          "name": "speccy-superpowers-present",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 22012,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "⚡ Superpowers detected",
+              "pass": true,
+              "detail": "Missing \"⚡ Superpowers detected\""
+            },
+            {
+              "type": "contains",
+              "value": "brainstorming",
+              "pass": true,
+              "detail": "Missing \"brainstorming\""
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     rate limiter\n│  Flags:    none\n└─────────────────────────────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-superpowers-absent",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 16222,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "interview",
+              "pass": true,
+              "detail": "Missing \"interview\""
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n    ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\nWhen Superpowers is NOT installed, `/speccy` runs its **standalone interview pipeline** unchanged. Here's how it gathers requirements:\n\n## ━",
+          "truncated": false
+        },
+        {
+          "name": "speccy-location-mismatch",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 10350,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Treats the toplevel mismatch as something to warn about rather than silently continuing — it does not just proceed with Stage 1 as if nothing happened",
+              "pass": true,
+              "detail": "The output clearly describes a warning system that detects toplevel mismatch and blocks execution with an AskUserQuestion prompt, requiring user acknowledgment before proceeding. It explicitly states the check 'blocks /speccy execution' and does not silently continue."
+            }
+          ],
+          "output_preview": "```\n🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n```\n\nWhen the Pre-Spec Location Check runs before Stage 1: Context Gathering and detects that Bash's cwd is in a different git toplevel t",
+          "truncated": false
+        },
+        {
+          "name": "speccy-eligibility-full-pass-zero-interview",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 37504,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "The ticket passes all four eligibility dimensions (scope, risk-keyword paths, architectural surface, ticket clarity), so /speccy --auto runs zero-interview inference with no interview rounds at all: a subagent generates the spec from the small-task template, populates an Autonomous Inference Assessment section stating which checks passed and why, records every substantive inferred decision as an Assumption Authorization entry, and sets autonomy_ready: true in the frontmatter",
+              "pass": true,
+              "detail": "The output demonstrates complete eligibility gate passage (all 4 dimensions), executes zero-interview inference with subagent spec generation, includes proper Autonomous Inference Assessment section explaining why all checks passed, records substantive decisions in Assumption Authorization entries, and sets autonomy_ready: true in the frontmatter as required."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     fix the null check in scripts/lib/eval-response.js\n│  Flags:    --auto\n└─────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-auto-fallback-completeness-gate-pass",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 24946,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Eligibility failure never blocks or errors out — /speccy --auto falls back to the same Stage 1-2 interactive interview and produces a full-template spec, not the small-task template. Because the interview satisfies every completeness-gate item (outcome, architecture/approach, non-goals, definition-of-done, roadmap, risks, and a resolution per ambiguity), the gate self-review passes and the spec is written with autonomy_ready: true in its frontmatter",
+              "pass": true,
+              "detail": "Output clearly demonstrates the full fallback flow: eligibility failure on file count, complete Stage 1-2 interactive interview covering all required topics, successful completeness gate review of all 7 criteria (outcome, architecture, non-goals, definition-of-done, roadmap, risks, ambiguities), and resulting spec with autonomy_ready: true frontmatter indicating readiness for autonomous implementation."
+            }
+          ],
+          "output_preview": "```\n🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n```\n\n┌─ Input ────────────────────────────────────────\n│  Mode:     --auto fallback scenario\n│  Flags:    --auto\n└───────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-auto-fallback-completeness-gate-fail",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 14842,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "The spec is still written even though the fallback completeness gate did not fully pass — a failed gate never blocks spec creation — but it is marked autonomy_ready: false rather than true, so the spec remains usable by ordinary interactive /build but is rejected by an autonomy_ready precondition",
+              "pass": true,
+              "detail": "The output correctly explains that the spec is still written despite the failed completeness gate, properly identifies that autonomy_ready is set to false, and accurately describes how this makes the spec usable by interactive /build but rejected by autonomy_ready preconditions."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Field:    --auto flag scenario (eligibility fails → interview → incomplete gate)\n│ ",
+          "truncated": false
+        },
+        {
+          "name": "speccy-eligibility-scope-fail-fallback",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 15102,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "The scope dimension alone failing is enough to fail the whole eligibility gate, since all four dimensions must pass; /speccy --auto falls back to the real interactive interview rather than running zero-interview inference. This fallback is graceful, per REQ-006 — never a hard error or a rejected ticket",
+              "pass": true,
+              "detail": "The output correctly demonstrates that when the scope dimension fails (4 files > 3 limit), the entire eligibility gate fails and gracefully falls back to the full interactive interview process via superpowers deferral, exactly as required by REQ-006. No hard error or rejection occurs."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Mode:     --auto\n│  Ticket:   [scope check fails - 4 files found]\n│  Flags:    none",
+          "truncated": false
+        },
+        {
+          "name": "speccy-eligibility-risk-keyword-fail-fallback",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 16563,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "The risk-keyword-paths dimension fails because the matched file is on the risk-keyword-path list, so the eligibility gate fails overall even though the other three dimensions pass; /speccy --auto falls back to the real interactive interview instead of zero-interview inference, and this fallback is not treated as an error",
+              "pass": true,
+              "detail": "The output correctly shows the eligibility gate failing due to dimension 2 (risk-keyword paths) despite other dimensions passing, demonstrates the fallback to interactive interview without treating it as an error, and clearly explains the all-or-nothing nature of the gate decision."
+            }
+          ],
+          "output_preview": "🧠 Let's think this through!\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Mode:     --auto\n│  Ticket:   {matches one file on risk-keyword-path list}\n│  F",
+          "truncated": false
+        },
+        {
+          "name": "speccy-eligibility-architectural-surface-fail-fallback",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 16845,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "The architectural-surface dimension fails because the matched file is a public/exported interface (a schema/migration file or shared cross-cutting state module would fail it the same way), so the eligibility gate fails overall; /speccy --auto falls back to the real interactive interview rather than zero-interview inference, again not treated as an error or a hard block",
+              "pass": true,
+              "detail": "The output correctly shows the architectural-surface dimension failing because the matched file is a public/exported interface, which causes the eligibility gate to fail overall. It then properly falls back to the full interactive interview process rather than treating this as an error or hard block, exactly as specified in the criterion."
+            }
+          ],
+          "output_preview": "🏗️ Measure twice, code once!\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     {ticket text}\n│  Flags:    --auto\n└─────────────────────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-eligibility-ticket-clarity-fail-fallback",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 15552,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Ticket clarity fails: the text contains hedge/uncertainty language ('maybe', 'explore options for') and has no allowed action verb at or near the start, so the mechanical sub-checks (verb_present, no_hedge_language) fail. A single failing clarity sub-check is enough to fail the whole eligibility gate, so /speccy --auto falls back to the real interactive interview rather than zero-interview inference",
+              "pass": true,
+              "detail": "The output correctly demonstrates that ticket clarity fails due to hedge language ('maybe', 'explore options for') and missing action verb at start, causing the eligibility gate to fail and triggering fallback to interactive interview instead of zero-interview inference."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     maybe explore options for improving the settings page\n│  Flags:    --auto\n└──",
+          "truncated": false
+        },
+        {
+          "name": "speccy-auto-worktree-first-action",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 7778,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Creates a git worktree and branch as the literal first action, before any context gathering or interview questions begin — worktree creation is not deferred to /build",
+              "pass": true,
+              "detail": "The output clearly shows worktree creation as the literal first action in Stage 0, with explicit emphasis that it happens 'before Stage 1 context gathering, before any checks, before everything else' and includes the actual command execution."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n    ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     add dark mode toggle to settings page\n│  Flags:    --auto\n└──────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-interactive-worktree-first-action",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 11426,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Interactive (non---auto) /speccy also creates the worktree/branch as its literal first action, before Stage 1 context gathering and before any interview questions — worktree creation is no longer exclusive to --auto mode; both modes create it upfront",
+              "pass": true,
+              "detail": "The output clearly demonstrates that worktree creation happens as the literal first action before any context gathering or interview questions, explicitly stating this applies to both auto and interactive modes, and shows the worktree being created before proceeding to Stage 2 (Context Gathering)."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n    ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝ \n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝  \n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║   \n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝   \n\n┌─ Input ────────────────────────────────────────\n│  Goal:     new feature\n│  Flags:    none\n└─────────────────────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-interactive-autonomy-ready-true",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 18959,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Interactive /speccy applies the same completeness gate as --auto's fallback path in its own Stage 3 self-review; because every gate item is satisfied, the resulting spec's frontmatter is autonomy_ready: true even though --auto was never used — the gate is no longer --auto-exclusive",
+              "pass": true,
+              "detail": "The output correctly demonstrates that interactive /speccy applies the same completeness gate as --auto's fallback path, shows all gate items being satisfied, and explicitly states that the resulting spec has 'autonomy_ready: true' despite --auto never being used, proving the gate is no longer --auto-exclusive."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     feature specification\n│  Flags:    none\n└────────────────────────────────────",
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "skill": "sync",
+      "results": [
+        {
+          "name": "banner-and-tagline",
+          "skill": "sync",
+          "status": "pass",
+          "duration_ms": 20231,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Pulling the latest|All aboard the sync|same page|plot twists|steal everyone|Catching up|rinse, repeat|Previously on main)",
+              "pass": true,
+              "detail": "Matches /(Pulling the latest|All aboard the sync|same page|plot twists|steal everyone|Catching up|rinse, repeat|Previously on main)/"
+            },
+            {
+              "type": "semantic",
+              "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps",
+              "pass": true,
+              "detail": "The response begins with a clear ASCII art banner showing 'SYNC' in block letters before any explanation or workflow steps are provided"
+            }
+          ],
+          "output_preview": "🎯 Pulling the latest moves...\n\n⠀   ██╗███████╗██╗   ██╗███╗   ██╗ ██████╗\n   ██╔╝██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝\n  ██╔╝ ███████╗ ╚████╔╝ ██╔██╗ ██║██║\n ██╔╝  ╚════██║  ╚██╔╝  ██║╚██╗██║██║\n██╔╝   ███████║   ██║   ██║ ╚████║╚██████╗\n╚═╝    ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Request:  Sync my repository\n│  Flags:    none\n└────────────────────────────────────────────────\n```\n\nLet me check the dependencies first:\n\n<bash>\ngit --version\n<",
+          "truncated": false
+        },
+        {
+          "name": "workflow-awareness",
+          "skill": "sync",
+          "status": "pass",
+          "duration_ms": 22615,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(stash|uncommitted)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(stash|uncommitted)/"
+            },
+            {
+              "type": "regex",
+              "value": "(fetch|pull)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(fetch|pull)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Describes a git sync workflow that handles uncommitted changes, fetches from remote, and cleans up stale branches",
+              "pass": true,
+              "detail": "The output describes a comprehensive git sync workflow that handles uncommitted changes by stashing them, fetches from remote repositories, updates the default branch, and cleans up both merged branches and branches with deleted remotes. All three required components are present and properly implemented."
+            }
+          ],
+          "output_preview": "🎯 Pulling the latest moves...\n\n⠀   ██╗███████╗██╗   ██╗███╗   ██╗ ██████╗\n   ██╔╝██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝\n  ██╔╝ ███████╗ ╚████╔╝ ██╔██╗ ██║██║\n ██╔╝  ╚════██║  ╚██╔╝  ██║╚██╗██║██║\n██╔╝   ███████║   ██║   ██║ ╚████║╚██████╗\n╚═╝    ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Request:  sync with remote\n│  Flags:    none\n└────────────────────────────────────────────────\n```\n\nLet me check the dependencies and detect your repository confi",
+          "truncated": false
+        },
+        {
+          "name": "flag-handling",
+          "skill": "sync",
+          "status": "pass",
+          "duration_ms": 15312,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "semantic",
+              "value": "Acknowledges the --no-stash flag (will skip stashing uncommitted changes) and the --no-cleanup flag (will skip deleting stale branches)",
+              "pass": true,
+              "detail": "The output clearly acknowledges both flags: shows '--no-stash --no-cleanup' in the input section, passes them to the sync script, reports 'stash=skipped' and 'branches_cleaned=skipped' in the report, and explicitly states in the final summary that '--no-stash flag skipped stashing uncommitted changes, and --no-cleanup preserved all local branches.'"
+            }
+          ],
+          "output_preview": "🤝 Getting everyone on the same page!\n\n⠀   ██╗███████╗██╗   ██╗███╗   ██╗ ██████╗\n   ██╔╝██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝\n  ██╔╝ ███████╗ ╚████╔╝ ██╔██╗ ██║██║\n ██╔╝  ╚════██║  ╚██╔╝  ██║╚██╗██║██║\n██╔╝   ███████║   ██║   ██║ ╚████║╚██████╗\n╚═╝    ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝\n\n┌─ Input ────────────────────────────────────────\n│  Flags:    --no-stash --no-cleanup\n└────────────────────────────────────────────────\n\n── Pre-flight ───────────────────────────────────\n  ✅ git             2.34",
+          "truncated": false
+        },
+        {
+          "name": "auto-worktree-cleanup",
+          "skill": "sync",
+          "status": "pass",
+          "duration_ms": 26336,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(worktree)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(worktree)/"
+            },
+            {
+              "type": "semantic",
+              "value": "Explains that when a merged or gone branch's worktree carries a .mad-skills-auto sentinel, sync removes the worktree before deleting the branch, but if that worktree has uncommitted changes, removal is skipped and reported as a reason rather than deleting or silently dropping the branch",
+              "pass": true,
+              "detail": "The output clearly demonstrates the criterion through code and execution: it checks for .mad-skills-auto sentinel files, removes worktrees before deleting merged branches, but includes logic to skip removal when uncommitted changes exist (with git diff-index --quiet HEAD check) and would report this as a reason for skipping rather than proceeding with deletion."
+            }
+          ],
+          "output_preview": "🤝 Getting everyone on the same page!\n\n⠀   ██╗███████╗██╗   ██╗███╗   ██╗ ██████╗\n   ██╔╝██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝\n  ██╔╝ ███████╗ ╚████╔╝ ██╔██╗ ██║██║\n ██╔╝  ╚════██║  ╚██╔╝  ██║╚██╗██║██║\n██╔╝   ███████║   ██║   ██║ ╚████║╚██████╗\n╚═╝    ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Request:  sync repository\n│  Flags:    none\n└────────────────────────────────────────────────\n```\n\n```bash\ngit --version\n```\n\n── Pre-flight ───────────────",
+          "truncated": false
+        }
+      ]
+    }
+  ]
+}

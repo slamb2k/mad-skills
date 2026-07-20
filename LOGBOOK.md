@@ -5,9 +5,11 @@
 
 ## Ideas
 - [ ] Consider a dedicated debugging skill (e.g. /diagnose) mirroring /build's subagent-isolated pipeline but scoped to root-causing a reported bug rather than implementing a plan — reproduce/hypothesize/verify/fix/reverify stages, deferring to superpowers:systematic-debugging when present, same deferral pattern /build already uses for implementation — unfurl project session debugging a Flow-mode drill-through bug (2026-07-18)
-- [ ] Fully autonomous /speccy (inferring a complete spec from a bare one-line ticket, zero interview) is explicitly out of scope for autonomous-execution-mode.md — named as deliberate future work, not solved now — /speccy autonomous-execution-mode (2026-07-19) <!-- link:spec:autonomous-execution-mode -->
+- [ ] /speccy default auto-chain to /build via /ferry unless --no-build — reverses the explicit "STOP, do NOT invoke /build yourself" instruction in current SKILL.md. Depends on the unified /build model (Spec A) existing first to define what it chains into — /speccy fully-autonomous-speccy brainstorming (2026-07-20) (2026-07-20)
+- [ ] /ship role shift once /build opens its draft PR early — /ship no longer needs to CREATE the PR (Stage 2), only finalize it (mark ready-for-review/undraft, final CI watch). Small, narrow amendment to /ship, separable from the unified-autonomous-build spec that motivates it — /speccy unified-autonomous-build brainstorming (2026-07-20) (2026-07-20)
 
 ## Deferred fixes
+- [ ] skills/keel/tests/evals.json has 2 eval cases using invalid inline-flag regex syntax (?i)(...) instead of the separate flags:"i" field every other eval case in this repo uses — JS RegExp does not support (?i), so both cases (skill-ordering, azdo-awareness) error out on every eval run instead of asserting anything — /build unified-autonomous-build verify (2026-07-20)
 
 ## Open questions
 - [ ] Redesign /ship (interactive mode) to stop at open PR by default, with trigger-based post-merge trunk-sync + branch/worktree cleanup, instead of merge-and-wait — user-stated principle during autonomous-execution-mode build, scoped out of that spec (CON-003 limits it to --auto only) — /build clarifying questions (autonomous-execution-mode) (2026-07-19)
@@ -17,6 +19,9 @@
 ## Tech debt
 
 ## Archive
+- [x] Zero-interview /speccy eligibility scoring (LOGBOOK item #2, original scope) — deterministic hybrid eligibility gate (scope/risk-keyword/architectural-surface/ticket-clarity checks), inference-as-judgment-within-deterministic-envelope, Autonomous Inference Assessment spec section — fully designed via brainstorming Q1-Q6 but deferred as a follow-on spec once the unified /build model (Spec A) exists to build on top of — /speccy fully-autonomous-speccy brainstorming (2026-07-20) (2026-07-20) <!-- resolved:2026-07-20 -->
+- [x] Universal worktree policy — both /speccy and /build always work in a dedicated worktree (not --auto-gated), reverses REQ-005 (interactive /speccy MUST NOT create a worktree). Needed to support /build running standalone without a prior /speccy --auto worktree — /speccy fully-autonomous-speccy brainstorming (2026-07-20) (2026-07-20) <!-- resolved:2026-07-20 -->
+- [x] Fully autonomous /speccy (inferring a complete spec from a bare one-line ticket, zero interview) is explicitly out of scope for autonomous-execution-mode.md — named as deliberate future work, not solved now — /speccy autonomous-execution-mode (2026-07-19) <!-- link:spec:autonomous-execution-mode resolved:2026-07-20 -->
 - [x] merge.sh (AzDO CLI/REST paths) never casts a self-approve reviewer vote before waiting on PR policies — orgs with self-approval allowed require the user to manually POST vote:10 to unblock every PR, all day, per report from another project on this ledger item — user report, external project ledger item #2 (2026-07-19) <!-- resolved:2026-07-19 -->
 - [x] global-preferences-template.md new ### Agent Workflow subsection has a blank line before its first bullet, breaking this file's no-blank-line-after-heading convention that every other subsection follows — /build verification-discipline-prompt review (2026-07-18) <!-- resolved:2026-07-19 -->
 - [x] Agent Workflow bullets in global-preferences-template.md are more verbose/explanatory (2-3 lines with embedded rationale) than sibling bullets' terse single-clause style — /build verification-discipline-prompt review (2026-07-18) <!-- resolved:2026-07-19 -->
