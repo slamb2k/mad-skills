@@ -189,12 +189,16 @@ Task(
 
 Substitute `{USER_INTENT}`, `{FILES_TO_INCLUDE}`, `{FILES_TO_EXCLUDE}`,
 `{REMOTE}`, `{DEFAULT_BRANCH}`, `{PLATFORM}`, `{AZDO_MODE}`, `{AZDO_ORG}`,
-`{AZDO_PROJECT}`, `{AZDO_ORG_URL}`, `{PAT}` into the prompt.
+`{AZDO_PROJECT}`, `{AZDO_PROJECT_URL_SAFE}`, `{AZDO_ORG_URL}`, `{PAT}`,
+`{SKILL_ROOT}` into the prompt.
 
 Parse SHIP_REPORT. Abort if failed.
 
-**Rollback:** If push succeeds but PR creation fails, report the error and
-suggest the manual PR creation command. Do NOT revert the push.
+**Rollback:** PR creation runs through `scripts/create-pr.sh`, which is
+idempotent — it reuses an already-open PR on the branch (`reused=true`)
+instead of erroring, so that is never a failure. If push succeeds but
+`create-pr.sh` reports `status=failed`, report the error from its `errors`
+field and suggest the manual PR creation command. Do NOT revert the push.
 - GitHub: `gh pr create --head {branch}`
 - Azure DevOps (cli): `az repos pr create --source-branch {branch} --target-branch {DEFAULT_BRANCH} --org {AZDO_ORG_URL} --project {AZDO_PROJECT}`
 - Azure DevOps (rest): Create PR via `{AZDO_ORG_URL}/{AZDO_PROJECT}/_apis/git/repositories/{repo}/pullrequests?api-version=7.0`

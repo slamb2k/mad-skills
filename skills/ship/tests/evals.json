@@ -70,5 +70,14 @@
       { "type": "regex", "value": "(Assumptions Made|Assumptions)", "flags": "i" },
       { "type": "semantic", "value": "The PR description body itself is the report, containing all five required sections — Summary, Risks, How It Was Validated, Further Testing Needed, and Assumptions Made — with evidence embedded or linked inline, and no separate report file" }
     ]
+  },
+  {
+    "name": "ship-pr-reuse-path",
+    "prompt": "Run /ship. This branch was started with /build --auto, which already opened a draft PR on it earlier. In Stage 2, create-pr.sh finds that open PR still on the branch. What happens?",
+    "assertions": [
+      { "type": "regex", "value": "reused=true", "flags": "i" },
+      { "type": "regex", "value": "(duplicate|reuse|reusing|proceed)", "flags": "i" },
+      { "type": "semantic", "value": "create-pr.sh detects the already-open PR on the source branch and returns status=success with reused=true and the existing PR's url/number, rather than erroring or creating a duplicate PR — ship then proceeds through the remaining stages (CI watch, review, merge) using that PR" }
+    ]
   }
 ]

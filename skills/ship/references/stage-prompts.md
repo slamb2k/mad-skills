@@ -95,9 +95,11 @@ Bad examples:
 5. **Create PR**
    - Read: git log {REMOTE}/{DEFAULT_BRANCH}..HEAD --format="%h %s%n%b"
    - Read: git diff {REMOTE}/{DEFAULT_BRANCH} (skim for PR description context)
+   - Compose the PR title ("<type>: <concise title>") and write the PR body to
+     a temp file:
 
-   **If PLATFORM == github:**
-     gh pr create --title "<type>: <concise title>" --body "$(cat <<'EOF'
+     PR_BODY_FILE=$(mktemp)
+     cat > "$PR_BODY_FILE" <<'EOF'
      ## Summary
      <1-3 sentences: what and why>
 
@@ -107,56 +109,30 @@ Bad examples:
      ## Testing
      - [ ] <verification steps>
      EOF
-     )"
 
-   **If PLATFORM == azdo AND AZDO_MODE == cli:**
-     az repos pr create \
-       --title "<type>: <concise title>" \
-       --description "$(cat <<'EOF'
-     ## Summary
-     <1-3 sentences: what and why>
+   - Run the shared PR-creation script — it handles GitHub, AzDO CLI, and
+     AzDO REST internally, and reuses an already-open PR on the branch
+     instead of erroring. Do not call `gh`/`az repos`/`curl` directly:
 
-     ## Changes
-     <bullet list of key changes>
+     PR_OUTPUT=$(bash "{SKILL_ROOT}/skills/ship/scripts/create-pr.sh" \
+       "{PLATFORM}" "<type>: <concise title>" "$PR_BODY_FILE" "$BRANCH" \
+       --target-branch="{DEFAULT_BRANCH}" --remote="{REMOTE}" \
+       --azdo-mode="{AZDO_MODE}" --azdo-org-url="{AZDO_ORG_URL}" \
+       --azdo-project="{AZDO_PROJECT}" --azdo-project-url-safe="{AZDO_PROJECT_URL_SAFE}")
+     rm -f "$PR_BODY_FILE"
 
-     ## Testing
-     - [ ] <verification steps>
-     EOF
-     )" \
-       --source-branch "$BRANCH" \
-       --target-branch "{DEFAULT_BRANCH}" \
-       --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" \
-       --output json
+6. **Parse PR result**
 
-   **If PLATFORM == azdo AND AZDO_MODE == rest:**
-     REPO_NAME=$(basename -s .git "$(git remote get-url origin)")
-     AUTH="Authorization: Basic $(printf ":%s" "{PAT}" | base64 | tr -d '\n')"
-     PR_JSON=$(curl -s -X POST \
-       -H "$AUTH" \
-       -H "Content-Type: application/json" \
-       "{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/git/repositories/$REPO_NAME/pullrequests?api-version=7.0" \
-       -d "{\"sourceRefName\": \"refs/heads/$BRANCH\", \"targetRefName\": \"refs/heads/{DEFAULT_BRANCH}\", \"title\": \"<type>: <concise title>\", \"description\": \"## Summary\\n<1-3 sentences>\\n\\n## Changes\\n<bullets>\\n\\n## Testing\\n- [ ] <steps>\"}")
+   Extract fields from the `PR_REPORT_BEGIN`/`END` block in `$PR_OUTPUT`:
+     STATUS=$(echo "$PR_OUTPUT" | sed -n 's/^status=//p')
+     PR_URL=$(echo "$PR_OUTPUT" | sed -n 's/^pr_url=//p')
+     PR_NUMBER=$(echo "$PR_OUTPUT" | sed -n 's/^pr_number=//p')
+     PR_ERRORS=$(echo "$PR_OUTPUT" | sed -n 's/^errors=//p')
 
-6. **Gather info**
-
-   **If PLATFORM == github:**
-     PR_URL=$(gh pr view --json url -q .url)
-     PR_NUMBER=$(gh pr view --json number -q .number)
-
-   **If PLATFORM == azdo AND AZDO_MODE == cli:**
-     # If az repos pr create returned JSON, parse it directly:
-     PR_NUMBER=$(echo "$PR_JSON" | jq -r '.pullRequestId')
-     # Otherwise list to find it:
-     PR_NUMBER=$(az repos pr list --source-branch "$BRANCH" --status active \
-       --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" \
-       --query '[0].pullRequestId' -o tsv)
-     PR_URL="{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_git/$(basename -s .git "$(git remote get-url origin)")/pullrequest/$PR_NUMBER"
-
-   **If PLATFORM == azdo AND AZDO_MODE == rest:**
-     # Parse from the create response JSON:
-     PR_NUMBER=$(echo "$PR_JSON" | jq -r '.pullRequestId')
-     REPO_NAME=$(basename -s .git "$(git remote get-url origin)")
-     PR_URL="{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_git/$REPO_NAME/pullrequest/$PR_NUMBER"
+   `status` is the sole source of truth for success/failure — a `reused=true`
+   PR is still `status=success`; only `status=failed` is a real failure. If
+   STATUS is not "success", stop and report status: failed below, with
+   PR_ERRORS as the errors field.
 
    COMMITS=$(git log {REMOTE}/{DEFAULT_BRANCH}..HEAD --oneline)
    DIFF_STAT=$(git diff {REMOTE}/{DEFAULT_BRANCH} --shortstat)
