@@ -28,7 +28,7 @@ version: 1.0
 date_created: [YYYY-MM-DD]
 last_updated: [YYYY-MM-DD]
 tags: [e.g., infrastructure, process, design, app, schema, tool, data, architecture]
-autonomy_ready: true | false   # NEW — set only by /speccy --auto's gate
+autonomy_ready: true | false   # NEW — set when the completeness gate passes, --auto or interactive
 ---
 
 # Introduction

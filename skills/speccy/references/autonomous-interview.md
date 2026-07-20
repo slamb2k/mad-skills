@@ -1,11 +1,14 @@
 # Speccy Autonomous Interview (`--auto`)
 
 The `--auto`-mode procedure for `/speccy`, dispatched from SKILL.md (REQ-002 —
-no inline branching lives in SKILL.md). Reuses the interactive interview
-wholesale; the only differences are worktree-first setup (REQ-003), a
-completeness gate (REQ-009), and a subagent-run spec write (REQ-033). Where
-this file says "as interactive speccy," follow SKILL.md's existing stages
-unchanged.
+no inline branching lives in SKILL.md). Before any interview happens, `--auto`
+first runs a deterministic Eligibility Gate; a full pass skips the interview
+entirely via Zero-Interview Inference (Stage A). On any single eligibility
+check failing, `--auto` falls back to the interactive interview wholesale —
+the only differences from plain interactive `/speccy` in that fallback path
+are worktree-first setup (REQ-003), a completeness gate (REQ-009), and a
+subagent-run spec write (REQ-033). Where this file says "as interactive
+speccy," follow SKILL.md's existing stages unchanged.
 
 ---
 
@@ -39,20 +42,124 @@ description of the mechanism.
 
 ---
 
-## Stage 1–2: Context & Interview (as interactive speccy)
+## Eligibility Gate (`--auto` only, REQ-002)
 
-Run Stage 1 (Context Gathering) and Stage 2 (Interview Rounds) exactly as the
-interactive flow in SKILL.md, including Superpowers deferral when detected. The
-interview runs **for real** — same AskUserQuestion round style, same 4-per-round
-limit, same recommendations. `--auto` does **not** infer a spec from a one-line
-ticket with zero interview; that is explicitly out of scope (spec §1). The
-only thing `--auto` changes is that the interview must additionally surface, for
-every ambiguity it raises, a resolution — decided now, or explicitly delegated
-to `/build` (recorded in the Assumption Authorization list, Stage 3).
+Runs immediately after Stage 0's worktree creation and before any interview
+stage — only when `--auto` was passed. Interactive (non-`--auto`) `/speccy`
+never runs this gate; it goes straight to SKILL.md's existing interview flow.
+
+A ticket is eligible for zero-interview inference only if **all four** of
+the following dimensions pass:
+
+1. **Estimated scope** — a keyword/glob exploration of the ticket text
+   against the codebase finds ≤3 plausibly-touched files.
+2. **Risk-keyword paths** — none of the matched files fall on the
+   risk-keyword-path list in `references/autonomous-review-thresholds.md`
+   (repo root) — LLM-judged against that table, not duplicated here.
+3. **Architectural surface** — none of the matched files are a public/
+   exported interface, a schema/migration file, or shared cross-cutting
+   state module, per `references/autonomous-architecture-surface-markers.md`
+   (repo root) — LLM-judged against that table, not duplicated here.
+4. **Ticket clarity** — three mechanically-checkable sub-checks, all of
+   which must pass: an allowed action verb at/near the start (add, fix,
+   remove, rename, update, deprecate, document, extend); no hedge/
+   uncertainty language (maybe, perhaps, "explore options for", "not sure",
+   TBD, "some kind of"); the same exploration step resolves ≥1 concrete
+   file/symbol match.
+
+### Procedure
+
+1. Run a keyword/glob exploration of the ticket text against the codebase
+   (narrower version of Stage 1's Context Gathering) to find plausibly-
+   touched files and resolve concrete file/symbol matches.
+2. Run the mechanical half of the gate:
+   ```
+   bash skills/speccy/scripts/spec-eligibility-check.sh <ticket-file> <matched-file-count> <symbol-match-count>
+   ```
+   This covers dimension 1 (scope) and the three sub-checks of dimension 4
+   (ticket clarity). It always exits 0 and prints a pass/fail report per
+   item — treat any ❌ line as a failed dimension.
+3. Judge dimensions 2 and 3 directly against the two reference tables above
+   — no script covers these; combine your own reading of the matched files
+   with the tables' categories.
+4. Eligibility requires a full pass of all four dimensions. On any single
+   failure, stop here and fall through to Stage 1–2 below (fallback) — do
+   not partially apply zero-interview inference.
 
 ---
 
-## Stage 3: Completeness gate + spec write (in a subagent, REQ-033)
+## Stage A: Zero-Interview Inference (on full eligibility pass, REQ-003–REQ-005)
+
+Dispatch a single subagent to generate the spec from the ticket text, the
+exploration matches, and codebase conventions — no interview rounds occur.
+
+### Subagent prompt
+
+```
+Write a specification by inference from the ticket below. No interview
+occurred, so every substantive decision you make must become an Assumption
+Authorization entry (REQ-004).
+
+## Ticket
+{TICKET_TEXT}
+
+## Exploration matches
+{MATCHED_FILES_AND_SYMBOLS}
+
+## Eligibility checks passed
+{GATE_RESULTS}
+
+## Your tasks
+
+1. Read skills/speccy/references/spec-template-small.md and fill every
+   section, informed by the matched files' existing conventions.
+2. For every substantive choice you make that the ticket didn't specify
+   (naming, exact approach, edge-case handling, etc.), add an Assumption
+   Authorization entry: what's unresolved → what you decided → what the PR
+   must report about it (REQ-004).
+3. Fill the Autonomous Inference Assessment section with which of the four
+   eligibility checks passed and why the ticket qualified (REQ-005).
+4. Write the spec to specs/{slug}.md with the Write tool. Set
+   `autonomy_ready: true` — zero-interview inference only reaches this stage
+   after a full eligibility-gate pass.
+
+## Output Format
+SPEC_REPORT:
+- spec_path: specs/{slug}.md
+- autonomy_ready: true
+- eligibility_checks: {the four dimensions and why each passed}
+- key_decisions: {3-5 bullets}
+- assumption_count: {count}
+```
+
+The orchestrator keeps only the subagent's returned report, not raw file
+output (REQ-032, same discipline as Stage 3). No completeness-gate
+self-review runs on this path — the small template is `autonomy_ready: true`
+by construction via the eligibility gate plus REQ-004/005's assumption-
+authorization process, not the completeness gate Stage 3 uses. Skip straight
+to Stage 4 (first commit).
+
+---
+
+## Stage 1–2: Context & Interview (fallback — on eligibility failure, REQ-006)
+
+Reached whenever the Eligibility Gate above fails any single check (REQ-006)
+— the fallback is silent and graceful, never an error or a "rejected"
+message. Run Stage 1 (Context Gathering) and Stage 2 (Interview Rounds)
+exactly as the interactive flow in SKILL.md, including Superpowers deferral
+when detected. The interview runs **for real** — same AskUserQuestion round
+style, same 4-per-round limit, same recommendations. Zero-interview
+inference (Stage A) only ever applies to a ticket that passes the
+eligibility gate in full; once any single dimension fails, `--auto` falls
+back to this real interview — never a partial or forced inference. The only
+thing `--auto` changes is that the interview must additionally surface, for
+every ambiguity it raises, a resolution — decided now, or explicitly
+delegated to `/build` (recorded in the Assumption Authorization list,
+Stage 3).
+
+---
+
+## Stage 3: Completeness gate + spec write (fallback, REQ-033)
 
 On a full pass — every gate item below satisfied — the written spec's
 frontmatter literally contains:
@@ -61,6 +168,12 @@ autonomy_ready: true
 ```
 On any gate item failing, that line reads `autonomy_ready: false` instead,
 and the spec is written anyway — the gate never blocks spec creation.
+
+This same completeness gate is no longer exclusive to `--auto`: interactive
+(non-`--auto`) `/speccy` applies the identical gate criteria in its own
+Stage 3 self-review, and when its interview answers satisfy every item below,
+its spec's frontmatter is also `autonomy_ready: true` (REQ-007) — even
+though `--auto` was never passed.
 
 Dispatch a single general-purpose subagent to write the spec. The orchestrator
 passes it the GOAL, the confirmed decisions from Stage 2, the Stage 1 context
@@ -137,9 +250,11 @@ SPEC_REPORT:
 
 ## Stage 4: First commit (REQ-006)
 
-Once the subagent returns and the spec exists, commit the spec file inside the
+Once the subagent returns (from Stage A's zero-interview inference or the
+fallback Stage 3) and the spec exists, commit the spec file inside the
 worktree as the branch's **first commit** — pass or fail on the gate (REQ-010
-writes it either way). Use a conventional-commit message, e.g.
+writes it either way; Stage A's spec is always `autonomy_ready: true`). Use a
+conventional-commit message, e.g.
 `docs(specs): add {slug} spec (autonomy_ready: {true|false})`. Update the
 `.mad-skills-auto` sentinel's `stage:` line to `speccy` per
 `references/autonomous-worktree-lifecycle.md` (repo root).
@@ -149,7 +264,9 @@ writes it either way). Use a conventional-commit message, e.g.
 ## Output & Handoff
 
 Report as the interactive flow does (Speccy · Report box), then add one line
-stating `autonomy_ready` and, if `false`, which gate items failed and that
-`/build --auto` will refuse this spec (REQ-011) while interactive `/build`
-will not. Write the pending-build marker as usual. Do NOT invoke `/build`
-yourself — the handoff artifact is the committed spec.
+stating which path ran — zero-interview inference (Stage A) or fallback
+interview (Stage 1–3) — and the resulting `autonomy_ready` value. If
+`false`, name which gate items failed and note that `/build --auto` will
+refuse this spec (REQ-011) while interactive `/build` will not. Write the
+pending-build marker as usual. Do NOT invoke `/build` yourself — the handoff
+artifact is the committed spec.

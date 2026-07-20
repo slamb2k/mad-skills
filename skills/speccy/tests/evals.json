@@ -66,22 +66,72 @@
     ]
   },
   {
-    "name": "speccy-auto-completeness-gate-pass",
-    "prompt": "Run /speccy --auto for a well-scoped feature. The interview completes with clear answers on outcome, architecture, non-goals, definition-of-done, roadmap, and risks, and every ambiguity has a resolution. What does the completeness gate self-review do, and what value is written for autonomy_ready?",
+    "name": "speccy-eligibility-full-pass-zero-interview",
+    "prompt": "Run /speccy --auto \"fix the null check in scripts/lib/eval-response.js\" — a keyword/glob exploration finds 1 plausibly-touched file, it is not on the risk-keyword-path list or the architectural-surface list, the ticket text starts with an allowed action verb, contains no hedge/uncertainty language, and resolves a concrete symbol match. What does /speccy --auto do, and what does the resulting spec look like?",
     "assertions": [
       {
         "type": "semantic",
-        "value": "The completeness gate self-review passes because all required items (outcome, architecture/approach, non-goals, definition-of-done, roadmap, risks, and a resolution per ambiguity) are present, and the spec is written with autonomy_ready: true in its frontmatter"
+        "value": "The ticket passes all four eligibility dimensions (scope, risk-keyword paths, architectural surface, ticket clarity), so /speccy --auto runs zero-interview inference with no interview rounds at all: a subagent generates the spec from the small-task template, populates an Autonomous Inference Assessment section stating which checks passed and why, records every substantive inferred decision as an Assumption Authorization entry, and sets autonomy_ready: true in the frontmatter"
       }
     ]
   },
   {
-    "name": "speccy-auto-completeness-gate-fail",
-    "prompt": "Run /speccy --auto. Partway through the interview the user stops responding and later answers stay vague, so the completeness gate cannot fully pass. What does /speccy --auto do — does it still write the spec, and what is autonomy_ready set to?",
+    "name": "speccy-auto-fallback-completeness-gate-pass",
+    "prompt": "Run /speccy --auto for a ticket that fails the eligibility gate (it touches more than 3 plausibly-touched files). /speccy --auto falls back to a real interactive interview, which completes with clear answers on outcome, architecture, non-goals, definition-of-done, roadmap, and risks, and every ambiguity has a resolution. What does the fallback completeness gate self-review do, and what value is written for autonomy_ready?",
     "assertions": [
       {
         "type": "semantic",
-        "value": "The spec is still written even though the completeness gate did not pass, but it is marked autonomy_ready: false rather than true — the spec remains usable by ordinary interactive /build but is rejected by /build --auto"
+        "value": "Eligibility failure never blocks or errors out — /speccy --auto falls back to the same Stage 1-2 interactive interview and produces a full-template spec, not the small-task template. Because the interview satisfies every completeness-gate item (outcome, architecture/approach, non-goals, definition-of-done, roadmap, risks, and a resolution per ambiguity), the gate self-review passes and the spec is written with autonomy_ready: true in its frontmatter"
+      }
+    ]
+  },
+  {
+    "name": "speccy-auto-fallback-completeness-gate-fail",
+    "prompt": "Run /speccy --auto for a ticket that fails the eligibility gate, so it falls back to a real interview. Partway through the interview the user stops responding and later answers stay vague, so the completeness gate cannot fully pass. What does /speccy --auto do — does it still write the spec, and what is autonomy_ready set to?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "The spec is still written even though the fallback completeness gate did not fully pass — a failed gate never blocks spec creation — but it is marked autonomy_ready: false rather than true, so the spec remains usable by ordinary interactive /build but is rejected by an autonomy_ready precondition"
+      }
+    ]
+  },
+  {
+    "name": "speccy-eligibility-scope-fail-fallback",
+    "prompt": "Run /speccy --auto for a ticket whose keyword/glob exploration finds 4 plausibly-touched files — the scope check allows at most 3 — even though the risk-keyword-path, architectural-surface, and ticket-clarity dimensions would all pass. What happens?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "The scope dimension alone failing is enough to fail the whole eligibility gate, since all four dimensions must pass; /speccy --auto falls back to the real interactive interview rather than running zero-interview inference. This fallback is graceful, per REQ-006 — never a hard error or a rejected ticket"
+      }
+    ]
+  },
+  {
+    "name": "speccy-eligibility-risk-keyword-fail-fallback",
+    "prompt": "Run /speccy --auto for a ticket whose exploration matches exactly one file, but that file falls on the risk-keyword-path list in references/autonomous-review-thresholds.md, even though scope, architectural surface, and ticket clarity would all pass. What happens?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "The risk-keyword-paths dimension fails because the matched file is on the risk-keyword-path list, so the eligibility gate fails overall even though the other three dimensions pass; /speccy --auto falls back to the real interactive interview instead of zero-interview inference, and this fallback is not treated as an error"
+      }
+    ]
+  },
+  {
+    "name": "speccy-eligibility-architectural-surface-fail-fallback",
+    "prompt": "Run /speccy --auto for a ticket whose exploration matches exactly one file, but that file is a public/exported interface per references/autonomous-architecture-surface-markers.md, even though scope, risk-keyword paths, and ticket clarity would all pass. What happens?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "The architectural-surface dimension fails because the matched file is a public/exported interface (a schema/migration file or shared cross-cutting state module would fail it the same way), so the eligibility gate fails overall; /speccy --auto falls back to the real interactive interview rather than zero-interview inference, again not treated as an error or a hard block"
+      }
+    ]
+  },
+  {
+    "name": "speccy-eligibility-ticket-clarity-fail-fallback",
+    "prompt": "Run /speccy --auto for the ticket text \"maybe explore options for improving the settings page\" — scope, risk-keyword paths, and architectural surface would all pass. What does the ticket-clarity check do with this text, and what happens overall?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "Ticket clarity fails: the text contains hedge/uncertainty language ('maybe', 'explore options for') and has no allowed action verb at or near the start, so the mechanical sub-checks (verb_present, no_hedge_language) fail. A single failing clarity sub-check is enough to fail the whole eligibility gate, so /speccy --auto falls back to the real interactive interview rather than zero-interview inference"
       }
     ]
   },
@@ -96,12 +146,22 @@
     ]
   },
   {
-    "name": "speccy-auto-interactive-no-worktree",
+    "name": "speccy-interactive-worktree-first-action",
     "prompt": "Run /speccy (no --auto flag) to spec out a new feature. Does it create a git worktree before or during the interview?",
     "assertions": [
       {
         "type": "semantic",
-        "value": "Interactive (non---auto) /speccy does not create a worktree at any point — worktree creation is exclusive to --auto mode, and this behavior is unchanged from before"
+        "value": "Interactive (non---auto) /speccy also creates the worktree/branch as its literal first action, before Stage 1 context gathering and before any interview questions — worktree creation is no longer exclusive to --auto mode; both modes create it upfront"
+      }
+    ]
+  },
+  {
+    "name": "speccy-interactive-autonomy-ready-true",
+    "prompt": "Run /speccy (no --auto flag) to spec out a feature. The interactive interview covers outcome, architecture, non-goals, definition-of-done, roadmap, and risks, and every ambiguity raised gets a resolution. Even though --auto was never passed, what does Stage 3's self-review do, and what value is written for autonomy_ready?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "Interactive /speccy applies the same completeness gate as --auto's fallback path in its own Stage 3 self-review; because every gate item is satisfied, the resulting spec's frontmatter is autonomy_ready: true even though --auto was never used — the gate is no longer --auto-exclusive"
       }
     ]
   }

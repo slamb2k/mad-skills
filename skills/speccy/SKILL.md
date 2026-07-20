@@ -70,7 +70,7 @@ Spec template and writing guidelines: `references/spec-template.md`
 
 Parse optional flags from the request:
 - `--no-superpowers`: Force the standalone interview even when Superpowers is installed
-- `--auto`: Run autonomously — create a worktree/branch first, then run the interview and completeness-gated spec write via `references/autonomous-interview.md`. Dispatch only; see Stage 1 and Stage 3 below.
+- `--auto`: Run autonomously — after the worktree/branch is created (unconditional in both modes, see Stage 1), run the interview and completeness-gated spec write via `references/autonomous-interview.md`. Dispatch only; see Stage 1 and Stage 3 below.
 
 ## Pre-flight
 
@@ -91,7 +91,9 @@ For each row, in order:
 
 ## Stage 1: Context Gathering
 
-**If `--auto`:** before any context gathering — including the checks below — create the worktree/branch per `references/autonomous-worktree-lifecycle.md` (repo root; worktree creation is `/speccy --auto`'s literal first action), then read `skills/speccy/references/autonomous-interview.md` and follow it for the rest of this skill instead of the interactive flow below. Interactive (non-`--auto`) `/speccy` MUST NOT create a worktree (REQ-005) — the flow below is unchanged.
+**Worktree creation (REQ-001):** before any context gathering — including the checks below — create the worktree/branch per `references/autonomous-worktree-lifecycle.md` (repo root; worktree creation is `/speccy`'s literal first action in **both** `--auto` and interactive modes). This supersedes the old REQ-005, which prohibited worktree creation in interactive mode.
+
+**If `--auto`:** after worktree creation, read `skills/speccy/references/autonomous-interview.md` and follow it for the rest of this skill instead of the interactive flow below.
 
 ### Pre-Spec Location Check
 
@@ -203,6 +205,11 @@ proceeding to spec generation.
 ## Stage 3: Generate Specification
 
 **If `--auto`:** this stage runs in a subagent (REQ-033) and the completeness gate decides `autonomy_ready` — see `references/autonomous-interview.md`.
+
+**Interactive mode (REQ-007):** before writing the spec, self-review it against
+the same completeness gate — criteria in `references/autonomous-interview.md`'s
+Stage 3. Set the `autonomy_ready` frontmatter field to `true` when every gate
+item passes, `false` otherwise; the gate is no longer `--auto`-exclusive.
 
 Once the interview is complete and decisions are confirmed:
 
