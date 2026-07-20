@@ -1,17 +1,25 @@
 # Autonomous Worktree Lifecycle Contract
 
-Shared worktree-lifecycle rule for `--auto` runs of `speccy`, `build`, and
-`ship` (REQ-003–REQ-007). mad-skills does not invent its own worktree
+Shared worktree-lifecycle rule for `speccy`, `build`, and `ship`
+(REQ-003–REQ-007, plus REQ-001/REQ-009 from
+`specs/unified-autonomous-build.md`, which generalize creation to both
+`--auto` and interactive modes and decouple `/build`'s worktree check from
+the `--auto`-only sentinel). mad-skills does not invent its own worktree
 creation or teardown mechanism — this file only defines *when* creation
 happens and how the resulting worktree is marked, reusing the mechanisms
 already established by `specs/worktree-discipline-guardrails.md`.
 
-## Creation (REQ-003)
+## Creation (REQ-003, generalized by REQ-001)
 
-`/speccy --auto` creates the worktree and branch as its **first action**,
-before Stage 1 (Context Gathering) begins — earlier than the existing
-Pre-Spec Branch Check and `references/location-check.md` check, both of
-which still run afterward as normal.
+`/speccy` creates the worktree and branch as its **first action**, before
+Stage 1 (Context Gathering) begins, in **both `--auto` and interactive
+modes** — earlier than the existing Pre-Spec Branch Check and
+`references/location-check.md` check, both of which still run afterward as
+normal. This supersedes the original REQ-005, which prohibited worktree
+creation in interactive mode; REQ-001 (`specs/unified-autonomous-build.md`)
+removes that split so every `/speccy` run, not just `--auto` ones,
+establishes a worktree for the downstream `/build` and `/ship` stages to
+operate in.
 
 Use whichever of these two mechanisms is available, in this order, exactly
 as `specs/worktree-discipline-guardrails.md` already establishes for the
@@ -52,8 +60,11 @@ rooted at that worktree for every file-tool call (per the existing
 absolute-path rule in `skills/build/references/stage-prompts.md` and the
 advisory note in `references/superpowers-deferral.md`).
 
-Interactive (non-`--auto`) `/speccy` MUST NOT create a worktree — this
-split is deliberate; the existing interactive flow is unchanged (REQ-005).
+Interactive (non-`--auto`) `/speccy` now creates a worktree too (REQ-001,
+above) — the old REQ-005 prohibition no longer applies. `/build` and
+`/ship` do not need to know which mode created the worktree they're
+operating in; both simply require one to already exist (see `/build`'s
+refusal check, below).
 
 ## First commit (REQ-006)
 
@@ -61,6 +72,23 @@ Once `/speccy --auto`'s completeness gate passes and the spec is written
 with `autonomy_ready: true`, the spec file MUST be committed inside the
 worktree as the branch's first commit — before any implementation work
 begins. This makes the spec the self-documenting root of the PR history.
+
+## `/build`'s worktree-refusal check (REQ-009)
+
+`/build` MUST NOT create its own worktree under any circumstance. Invoked
+without an existing worktree, it MUST refuse immediately, directing the
+user to run `/speccy` first — the same fail-fast, do-no-partial-work shape
+as the original `autonomy_ready`-missing check, but for a missing worktree
+instead.
+
+This check MUST use pure git-native worktree detection, not the
+`.mad-skills-auto` sentinel (below) — the sentinel is written only by
+`--auto` runs, but REQ-001 means an interactive `/speccy` run also produces
+a worktree `/build` must recognize as valid. Compare
+`git rev-parse --git-common-dir` against `git rev-parse --git-dir`: they
+differ when run inside a linked worktree and are identical inside a main
+working copy. `/build` treats "they differ" as "a worktree exists" and
+proceeds; "they match" as "no worktree" and refuses.
 
 ## Sentinel file: `.mad-skills-auto`
 
@@ -76,6 +104,7 @@ worktree created manually or by interactive mad-skills usage.
 spec: specs/{slug}.md
 created: {ISO-8601 timestamp}
 stage: speccy
+mode: auto
 ```
 
 - `spec` — repo-relative path to the spec file this run is building.
@@ -83,6 +112,9 @@ stage: speccy
 - `stage` — the `--auto` stage that last touched the worktree
   (`speccy` → `build` → `ship`), updated in place as the run progresses,
   so a later stage or a cleanup consumer can tell how far the run got.
+- `mode` — `auto` or `interactive`; inert for this build, no consumer reads
+  it yet. Documented now for future parity once interactive runs also
+  write the sentinel.
 
 **Consumer**: `/sync`'s cleanup extension (implemented separately, not by
 this file) reads `.mad-skills-auto` to identify autonomous-run worktrees
