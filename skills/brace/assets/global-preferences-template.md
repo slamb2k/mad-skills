@@ -54,16 +54,9 @@ These defaults apply to all projects. Override in a project-level CLAUDE.md.
 - Verify output format before chaining into another tool or step
 
 ### Agent Workflow
-
-- Offload broad codebase exploration, log analysis, and open-ended research
-  to subagents rather than doing it inline — it keeps the primary
-  conversation's context budget for synthesis and decision-making.
-- Before reading a large file in full, consider whether a subagent can
-  extract just the relevant section instead of loading the whole thing into
-  the primary context.
-- Prefer targeted search (grep/glob for a known symbol or pattern) over
-  broad exploration when the target is already known; reserve subagents for
-  genuinely open-ended searches.
+- Offload broad codebase exploration, log analysis, and open-ended research to subagents.
+- Before reading a large file in full, consider having a subagent extract just the relevant section.
+- Prefer targeted search (grep/glob for a known symbol) over broad exploration when the target is already known.
 
 ## Commit Discipline
 

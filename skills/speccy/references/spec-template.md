@@ -28,6 +28,7 @@ version: 1.0
 date_created: [YYYY-MM-DD]
 last_updated: [YYYY-MM-DD]
 tags: [e.g., infrastructure, process, design, app, schema, tool, data, architecture]
+autonomy_ready: true | false   # NEW — set only by /speccy --auto's gate
 ---
 
 # Introduction
@@ -110,4 +111,23 @@ tags: [e.g., infrastructure, process, design, app, schema, tool, data, architect
 ## 11. Related Specifications / Further Reading
 
 [Links to related specs or relevant external documentation.]
+
+## Definition of Done
+
+[`/speccy --auto` only — a literal, checkable completion signal for
+`/build --auto`. Omit for interactive specs unless the interview produced
+one anyway.]
+
+- [ ] {checkable, testable statement}
+- [ ] {checkable, testable statement}
+
+## Assumption Authorization
+
+[`/speccy --auto` only — one entry per ambiguity the interview surfaced but
+did not resolve outright, mapping it to what `/build` may decide alone and
+how that decision must be reported. Omit for interactive specs.]
+
+- **Ambiguity**: {what's unresolved}
+  **Authorized decision**: {what /build may decide alone}
+  **Must report**: {what the PR must say about this decision}
 ```

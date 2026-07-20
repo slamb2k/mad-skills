@@ -71,6 +71,7 @@ Parse optional flags from the request:
 - `--no-squash`: Use regular merge instead of squash
 - `--keep-branch`: Don't delete the source branch after merge
 - `--no-superpowers`: Force standalone merge even when Superpowers is installed
+- `--auto`: Autonomous mode — stop at an open PR and never merge, regardless of CI/review outcome (REQ-029). The PR description body is the report; see `references/autonomous-report.md`.
 
 ---
 
@@ -209,6 +210,8 @@ immediately. This stage loops: watch → detect failure → fix → push → wat
 
 **Maximum 2 fix attempts.** If CI still fails after 2 rounds, report to user and stop.
 
+**`--auto` mode:** CI-watch/fix-loop behavior is unchanged from interactive `/ship` — the 2-attempt cap already matches `--auto`'s bound (REQ-031). No dispatch needed here.
+
 ### Watch
 
 Run the CI watch script directly (no LLM needed — just polling):
@@ -298,6 +301,11 @@ verification fails), display the failure banner and STOP:
 ---
 
 ## Stage 5: Merge & Final Sync
+
+**If `--auto`: STOP HERE — do not merge.** `--auto` mode ends at an open PR
+regardless of CI/review outcome (REQ-029). Read `references/autonomous-report.md`
+for the `--auto` completion report format instead of proceeding to the merge
+stage below.
 
 Once checks pass, **immediately proceed to merge — do not ask the user for
 confirmation.** The user invoked `/ship` expecting the full lifecycle; stopping

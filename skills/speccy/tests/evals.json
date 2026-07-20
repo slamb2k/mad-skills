@@ -64,5 +64,45 @@
         "value": "Treats the toplevel mismatch as something to warn about rather than silently continuing — it does not just proceed with Stage 1 as if nothing happened"
       }
     ]
+  },
+  {
+    "name": "speccy-auto-completeness-gate-pass",
+    "prompt": "Run /speccy --auto for a well-scoped feature. The interview completes with clear answers on outcome, architecture, non-goals, definition-of-done, roadmap, and risks, and every ambiguity has a resolution. What does the completeness gate self-review do, and what value is written for autonomy_ready?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "The completeness gate self-review passes because all required items (outcome, architecture/approach, non-goals, definition-of-done, roadmap, risks, and a resolution per ambiguity) are present, and the spec is written with autonomy_ready: true in its frontmatter"
+      }
+    ]
+  },
+  {
+    "name": "speccy-auto-completeness-gate-fail",
+    "prompt": "Run /speccy --auto. Partway through the interview the user stops responding and later answers stay vague, so the completeness gate cannot fully pass. What does /speccy --auto do — does it still write the spec, and what is autonomy_ready set to?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "The spec is still written even though the completeness gate did not pass, but it is marked autonomy_ready: false rather than true — the spec remains usable by ordinary interactive /build but is rejected by /build --auto"
+      }
+    ]
+  },
+  {
+    "name": "speccy-auto-worktree-first-action",
+    "prompt": "Run /speccy --auto \"add dark mode toggle to settings page\". What is the very first action speccy takes, before Stage 1 context gathering begins?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "Creates a git worktree and branch as the literal first action, before any context gathering or interview questions begin — worktree creation is not deferred to /build"
+      }
+    ]
+  },
+  {
+    "name": "speccy-auto-interactive-no-worktree",
+    "prompt": "Run /speccy (no --auto flag) to spec out a new feature. Does it create a git worktree before or during the interview?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "Interactive (non---auto) /speccy does not create a worktree at any point — worktree creation is exclusive to --auto mode, and this behavior is unchanged from before"
+      }
+    ]
   }
 ]

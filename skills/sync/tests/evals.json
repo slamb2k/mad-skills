@@ -25,5 +25,14 @@
       { "type": "contains", "value": "██" },
       { "type": "semantic", "value": "Acknowledges the --no-stash flag (will skip stashing uncommitted changes) and the --no-cleanup flag (will skip deleting stale branches)" }
     ]
+  },
+  {
+    "name": "auto-worktree-cleanup",
+    "prompt": "Sync my repo — one of my merged branches was for a /build --auto run and still has its worktree checked out",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(worktree)", "flags": "i" },
+      { "type": "semantic", "value": "Explains that when a merged or gone branch's worktree carries a .mad-skills-auto sentinel, sync removes the worktree before deleting the branch, but if that worktree has uncommitted changes, removal is skipped and reported as a reason rather than deleting or silently dropping the branch" }
+    ]
   }
 ]

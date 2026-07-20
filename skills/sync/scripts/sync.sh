@@ -25,6 +25,7 @@ CURRENT_BRANCH=""
 STASH_STATUS="none"
 REBASE_STATUS="skipped"
 BRANCHES_CLEANED="none"
+WORKTREES_SKIPPED="none"
 ERRORS="none"
 STASH_CREATED=false
 EXIT_CODE=0
@@ -39,6 +40,7 @@ emit_report() {
   echo "stash=$STASH_STATUS"
   echo "rebase=$REBASE_STATUS"
   echo "branches_cleaned=$BRANCHES_CLEANED"
+  echo "worktrees_skipped=$WORKTREES_SKIPPED"
   echo "errors=$ERRORS"
   echo "SYNC_REPORT_END"
   exit "$EXIT_CODE"
@@ -125,33 +127,78 @@ if [ "$STASH_CREATED" = true ]; then
   fi
 fi
 
+# Print the worktree path a branch is checked out in, if any.
+worktree_path_for_branch() {
+  local target="$1" wt=""
+  while IFS= read -r line; do
+    case "$line" in
+      "worktree "*) wt="${line#worktree }" ;;
+      "branch refs/heads/$target")
+        echo "$wt"; return 0 ;;
+    esac
+  done < <(git worktree list --porcelain 2>/dev/null)
+  return 1
+}
+
+# Ensure a branch flagged for deletion is free of its worktree first.
+# Returns 0 if safe to delete, 1 if it must be skipped (dirty --auto worktree).
+prepare_branch_for_delete() {
+  local branch="$1" wt
+  wt=$(worktree_path_for_branch "$branch") || return 0
+  [ -f "$wt/.mad-skills-auto" ] || return 0
+  # Dirty if anything other than our own untracked sentinel is present.
+  if [ -n "$(git -C "$wt" status --porcelain 2>/dev/null | grep -v '^?? \.mad-skills-auto$')" ]; then
+    SKIPPED+=("$branch: worktree has uncommitted changes")
+    return 1
+  fi
+  # Remove our sentinel first so a plain (non-force) worktree removal succeeds,
+  # keeping its content so it can be restored if removal fails below.
+  local sentinel_backup
+  sentinel_backup=$(cat "$wt/.mad-skills-auto" 2>/dev/null)
+  rm -f "$wt/.mad-skills-auto"
+  if git worktree remove "$wt" 2>/dev/null; then
+    return 0
+  fi
+  # Removal failed (lock, race, etc.) — restore the sentinel so this worktree
+  # is still recognized as an auto worktree and retried on the next /sync.
+  printf '%s\n' "$sentinel_backup" > "$wt/.mad-skills-auto"
+  SKIPPED+=("$branch: worktree removal failed")
+  return 1
+}
+
 # Step 6: Cleanup branches
 if [ "$NO_CLEANUP" = false ]; then
   git fetch --prune 2>/dev/null
 
   CLEANED=()
+  SKIPPED=()
 
   # Delete branches whose remote is gone
   while IFS= read -r b; do
     [ -z "$b" ] && continue
     [ "$b" = "$CURRENT_BRANCH" ] && continue
+    prepare_branch_for_delete "$b" || continue
     if git branch -d "$b" 2>/dev/null; then
       CLEANED+=("$b")
     fi
-  done < <(git branch -vv 2>/dev/null | grep ': gone]' | awk '{print $1}')
+  done < <(git branch -vv 2>/dev/null | grep ': gone]' | sed 's/^[+*]//' | awk '{print $1}')
 
   # Delete branches fully merged into default branch
   while IFS= read -r b; do
     b=$(echo "$b" | xargs)
     [ -z "$b" ] && continue
     [ "$b" = "$CURRENT_BRANCH" ] && continue
+    prepare_branch_for_delete "$b" || continue
     if git branch -d "$b" 2>/dev/null; then
       CLEANED+=("$b")
     fi
-  done < <(git branch --merged "$DEFAULT_BRANCH" 2>/dev/null | grep -v '^\*' | grep -v "$DEFAULT_BRANCH")
+  done < <(git branch --merged "$DEFAULT_BRANCH" --format='%(refname:short)' 2>/dev/null | grep -vxF "$DEFAULT_BRANCH")
 
   if [ ${#CLEANED[@]} -gt 0 ]; then
     BRANCHES_CLEANED=$(IFS=,; echo "${CLEANED[*]}")
+  fi
+  if [ ${#SKIPPED[@]} -gt 0 ]; then
+    WORKTREES_SKIPPED=$(IFS=';'; echo "${SKIPPED[*]}")
   fi
 fi
 
