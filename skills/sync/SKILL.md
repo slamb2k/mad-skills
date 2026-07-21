@@ -155,6 +155,10 @@ finished (merged or its upstream is gone) and the worktree is clean — removes
 the worktree and deletes the branch. A dirty finished worktree is left alone
 (`worktree_removed=skipped (dirty)`); an unfinished branch is rebased in
 place as usual. `--no-cleanup` skips the removal but still syncs main.
+Branch deletion falls back to git's force delete (`-D`) only when the
+branch's upstream is confirmed gone (the squash-merge case); a
+force-deleted branch tip is not lost — it remains reflog-recoverable
+(`git reflog`, `git fsck --lost-found`) until git's normal reflog expiry.
 
 **Session return (worktree mode).** If the report shows
 `worktree_removed=<path>` (an actual path, not `none` or a `skipped …`

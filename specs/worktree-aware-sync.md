@@ -193,6 +193,18 @@ failure: exit `2`.
 - Session return lives in SKILL.md, not the script, because a child
   process cannot change the session's working directory — the same split
   the design discussion settled on.
+- **Accepted risk — sanctioned `-D` fallback (AC-003).** The gone-upstream
+  `-D` fallback can't distinguish "this branch's content is safely on
+  `DEFAULT_BRANCH` via squash-merge" from "this branch has unpushed commits
+  made after the remote branch was deleted" — both look identical (local
+  branch, no upstream). A `git cherry`/patch-id check was considered and
+  rejected: it false-positives on the common case of a multi-commit branch
+  squashed into one commit, since none of the individual commits' patch-ids
+  match the squash commit. This risk is accepted rather than guarded in
+  code. Recovery path if it ever deletes real unpushed work: the branch
+  tip is not destroyed, only unreferenced — `git reflog` (or
+  `git fsck --lost-found` if the reflog entry has expired) recovers the
+  commit SHA to `git branch <name> <sha>` it back.
 
 # 8. Dependencies & External Integrations
 
