@@ -21,7 +21,7 @@
     "prompt": "/keel",
     "assertions": [
       { "type": "semantic", "value": "Describes the recommended skill ordering where /keel runs before /dock to provision infrastructure" },
-      { "type": "regex", "value": "(?i)(keel.*dock|infrastructure.*deploy|provision.*before)" }
+      { "type": "regex", "value": "(keel.*dock|infrastructure.*deploy|provision.*before)", "flags": "i" }
     ]
   },
   {
@@ -38,7 +38,7 @@
     "assertions": [
       { "type": "semantic", "value": "Detects or acknowledges Azure DevOps as the hosting platform rather than assuming GitHub" },
       { "type": "semantic", "value": "Mentions Azure Pipelines or Azure DevOps pipeline generation rather than GitHub Actions" },
-      { "type": "regex", "value": "(?i)(azure devops|azdo|azure.pipelines|az pipelines)" }
+      { "type": "regex", "value": "(azure devops|azdo|azure.pipelines|az pipelines)", "flags": "i" }
     ]
   }
 ]

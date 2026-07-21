@@ -1,0 +1,140 @@
+{
+  "timestamp": "2026-07-21T05:32:20.699Z",
+  "model": "claude-sonnet-4-20250514",
+  "summary": {
+    "pass": 5,
+    "fail": 0,
+    "error": 0
+  },
+  "skills": [
+    {
+      "skill": "keel",
+      "results": [
+        {
+          "name": "banner-display",
+          "skill": "keel",
+          "status": "pass",
+          "duration_ms": 54179,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "⚓|🏗️|🌍|🔩|☁️|🧱|📐|🗺️",
+              "pass": true,
+              "detail": "Matches /⚓|🏗️|🌍|🔩|☁️|🧱|📐|🗺️/"
+            },
+            {
+              "type": "semantic",
+              "value": "Displays an ASCII art banner for the keel skill before doing anything else",
+              "pass": true,
+              "detail": "The output displays a clear ASCII art banner for the keel skill with the ship's keel design made of box-drawing characters, followed by the anchor emoji and descriptive text. This appears before any other content or actions."
+            }
+          ],
+          "output_preview": "⚓ Laying the keel — everything builds on this!\n\n⠀   ██╗██╗  ██╗███████╗███████╗██╗\n   ██╔╝██║ ██╔╝██╔════╝██╔════╝██║\n  ██╔╝ █████╔╝ █████╗  █████╗  ██║\n ██╔╝  ██╔═██╗ ██╔══╝  ██╔══╝  ██║\n██╔╝   ██║  ██╗███████╗███████╗███████╗\n╚═╝    ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n\n---\n\nProvision cloud and container infrastructure through an interview-driven workflow\nthat generates deterministic IaC files and CI/CD pipelines. The generated pipelines\nrun `plan` on every PR and `apply` on merge to the default b",
+          "truncated": false
+        },
+        {
+          "name": "iac-tool-selection",
+          "skill": "keel",
+          "status": "pass",
+          "duration_ms": 64448,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Suggests or asks about IaC tool choice, mentioning at least Terraform and Bicep as options",
+              "pass": true,
+              "detail": "The output explicitly asks about IaC tool choice, presenting three options including both Terraform and Bicep as mentioned in the criterion. The user selects Bicep, and the system proceeds to generate Bicep-based infrastructure code."
+            },
+            {
+              "type": "semantic",
+              "value": "Detects or mentions Azure as the cloud provider",
+              "pass": true,
+              "detail": "The output clearly detects and mentions Azure as the cloud provider multiple times throughout, including in the detection report ('cloud_provider: azure'), interview section ('Based on your Azure-hosted Node.js app'), and infrastructure components (Azure Container Registry, Azure Container Apps, etc.)."
+            }
+          ],
+          "output_preview": "```\n⚓ Laying the keel — everything builds on this!\n\n⠀   ██╗██╗  ██╗███████╗███████╗██╗\n   ██╔╝██║ ██╔╝██╔════╝██╔════╝██║\n  ██╔╝ █████╔╝ █████╗  █████╗  ██║\n ██╔╝  ██╔═██╗ ██╔══╝  ██╔══╝  ██║\n██╔╝   ██║  ██╗███████╗███████╗███████╗\n╚═╝    ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n```\n\nProvision cloud and container infrastructure through an interview-driven workflow\nthat generates deterministic IaC files and CI/CD pipelines. The generated pipelines\nrun `plan` on every PR and `apply` on merge to the defaul",
+          "truncated": false
+        },
+        {
+          "name": "skill-ordering",
+          "skill": "keel",
+          "status": "pass",
+          "duration_ms": 55019,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Describes the recommended skill ordering where /keel runs before /dock to provision infrastructure",
+              "pass": true,
+              "detail": "The output clearly states the recommended skill order as `/brace` → `/rig` → `/build` → `/ship` → `/keel` → `/dock` and explicitly explains that `/keel lays the infrastructure (registries, compute, networking, databases)` while `/dock creates the deployment pipelines that push containers onto that infrastructure`, demonstrating that /keel runs before /dock to provision infrastructure."
+            },
+            {
+              "type": "regex",
+              "value": "(keel.*dock|infrastructure.*deploy|provision.*before)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(keel.*dock|infrastructure.*deploy|provision.*before)/"
+            }
+          ],
+          "output_preview": "🏗️ Infrastructure from code, not from clicks!\n\n⠀   ██╗██╗  ██╗███████╗███████╗██╗\n   ██╔╝██║ ██╔╝██╔════╝██╔════╝██║\n  ██╔╝ █████╔╝ █████╗  █████╗  ██║\n ██╔╝  ██╔═██╗ ██╔══╝  ██╔══╝  ██║\n██╔╝   ██║  ██╗███████╗███████╗███████╗\n╚═╝    ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n\n---\n\nProvision cloud and container infrastructure through an interview-driven workflow\nthat generates deterministic IaC files and CI/CD pipelines. The generated pipelines\nrun `plan` on every PR and `apply` on merge to the default b",
+          "truncated": false
+        },
+        {
+          "name": "plan-apply-pattern",
+          "skill": "keel",
+          "status": "pass",
+          "duration_ms": 106869,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Describes or generates a CI/CD pipeline that plans on pull requests and applies on merge",
+              "pass": true,
+              "detail": "The output clearly describes a CI/CD pipeline that plans on pull requests (via the 'plan' job that runs when 'github.event_name == pull_request') and applies on merge to main (via the 'apply-dev' job that runs when 'github.ref == refs/heads/main' && github.event_name == 'push'). The GitHub Actions workflow implements the exact pattern specified in the criterion."
+            },
+            {
+              "type": "semantic",
+              "value": "Mentions state management for Terraform such as S3 backend or remote state",
+              "pass": true,
+              "detail": "The output extensively mentions Terraform state management, including S3 backend configuration in versions.tf, DynamoDB table for state locking, bootstrap script that creates the S3 bucket and DynamoDB table for state backend, and CI/CD pipeline that uses the remote state backend with proper configuration."
+            }
+          ],
+          "output_preview": "🌍 Terraforming your cloud, one resource at a time!\n\n⠀   ██╗██╗  ██╗███████╗███████╗██╗\n   ██╔╝██║ ██╔╝██╔════╝██╔════╝██║\n  ██╔╝ █████╔╝ █████╗  █████╗  ██║\n ██╔╝ ██╔═██╗ ██╔══╝  ██╔══╝  ██║\n██╔╝   ██║  ██╗███████╗███████╗███████╗\n╚═╝    ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n\n---\n\n┌─ Input │ Tool: terraform │ Provider: aws │ Skip interview: true └─\n\n── Pre-flight ── ✅ ──\n\nDetecting platform from git remote...\n\n<bash>\nREMOTE_URL=$(git remote get-url origin 2>/dev/null)\nif echo \"$REMOTE_URL\" | grep -q",
+          "truncated": false
+        },
+        {
+          "name": "azdo-awareness",
+          "skill": "keel",
+          "status": "pass",
+          "duration_ms": 21696,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Detects or acknowledges Azure DevOps as the hosting platform rather than assuming GitHub",
+              "pass": true,
+              "detail": "The output explicitly detects and acknowledges Azure DevOps as the hosting platform through multiple mechanisms: platform detection logic that checks for dev.azure.com URLs, displays '✅ Platform detected: Azure DevOps', configures AzDO-specific context variables, and references Azure DevOps Pipelines throughout the workflow rather than assuming GitHub."
+            },
+            {
+              "type": "semantic",
+              "value": "Mentions Azure Pipelines or Azure DevOps pipeline generation rather than GitHub Actions",
+              "pass": true,
+              "detail": "The output clearly mentions Azure DevOps and Azure Pipelines multiple times - it detects 'Azure DevOps' as the platform, references 'azure devops pipelines' in the CI system detection, mentions 'azure-pipelines.yml' file detection, and discusses Azure DevOps-specific configuration and pipeline generation rather than GitHub Actions."
+            },
+            {
+              "type": "regex",
+              "value": "(azure devops|azdo|azure.pipelines|az pipelines)",
+              "flags": "i",
+              "pass": true,
+              "detail": "Matches /(azure devops|azdo|azure.pipelines|az pipelines)/"
+            }
+          ],
+          "output_preview": "⚓ Laying the keel — everything builds on this!\n\n⠀   ██╗██╗  ██╗███████╗███████╗██╗\n   ██╔╝██║ ██╔╝██╔════╝██╔════╝██║\n  ██╔╝ █████╔╝ █████╗  █████╗  ██║\n ██╔╝  ██╔═██╗ ██╔══╝  ██╔══╝  ██║\n██╔╝   ██║  ██╗███████╗███████╗███████╗\n╚═╝    ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝\n\n---\n\nProvision cloud and container infrastructure through an interview-driven workflow\nthat generates deterministic IaC files and CI/CD pipelines. The generated pipelines\nrun `plan` on every PR and `apply` on merge to the default b",
+          "truncated": false
+        }
+      ]
+    }
+  ]
+}

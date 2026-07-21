@@ -80,21 +80,43 @@ if [ "$PLATFORM" = "github" ]; then
     emit_report; exit 0
   fi
 
-  # gh pr checks --watch blocks until done; --fail-fast stops on first failure
-  gh pr checks "$PR_NUMBER" --watch --fail-fast 2>/dev/null || true
+  # gh pr checks --watch blocks until done, but can return early — e.g. right
+  # after a branch update while checks are still (re-)registering, or with an
+  # external check (GitGuardian) still in_progress. Loop until every check is
+  # terminal AND the set of check names is stable across two consecutive
+  # polls, so late-registering required checks aren't read as already passed.
+  WATCH_DEADLINE=$(( $(date +%s) + 1800 ))
+  PREV_NAMES=""
+  while :; do
+    gh pr checks "$PR_NUMBER" --watch --fail-fast 2>/dev/null || true
 
-  # Parse final status. This determines whether /ship proceeds to merge —
-  # a call failure here must not silently read as "[]" (which would fall
-  # through to FAIL_COUNT=0 and falsely report all_passed).
-  CHECKS_ERR=$(mktemp)
-  CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json name,state 2>"$CHECKS_ERR")
-  if [ $? -ne 0 ]; then
-    STATUS="no_checks"; FAILING="none"
-    CHECKS="error:checks lookup failed: $(tr '\n' ' ' <"$CHECKS_ERR" | cut -c1-200)"
+    # Parse status. This determines whether /ship proceeds to merge —
+    # a call failure here must not silently read as "[]" (which would fall
+    # through to FAIL_COUNT=0 and falsely report all_passed).
+    CHECKS_ERR=$(mktemp)
+    CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json name,state 2>"$CHECKS_ERR")
+    if [ $? -ne 0 ]; then
+      STATUS="no_checks"; FAILING="none"
+      CHECKS="error:checks lookup failed: $(tr '\n' ' ' <"$CHECKS_ERR" | cut -c1-200)"
+      rm -f "$CHECKS_ERR"
+      emit_report; exit 3
+    fi
     rm -f "$CHECKS_ERR"
-    emit_report; exit 3
-  fi
-  rm -f "$CHECKS_ERR"
+
+    PENDING_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state=="PENDING" or .state=="QUEUED" or .state=="IN_PROGRESS" or .state=="EXPECTED" or .state=="REQUESTED" or .state=="WAITING")] | length')
+    CUR_NAMES=$(echo "$CHECKS_JSON" | jq -r '[.[].name] | sort | join(",")')
+    if [ "${PENDING_COUNT:-0}" -eq 0 ] && [ "$CUR_NAMES" = "$PREV_NAMES" ]; then
+      break
+    fi
+    PREV_NAMES="$CUR_NAMES"
+    if [ "$(date +%s)" -ge "$WATCH_DEADLINE" ]; then
+      STATUS="pending"
+      CHECKS=$(echo "$CHECKS_JSON" | jq -r '.[] | "\(.name):\(.state | ascii_downcase)"' | paste -sd, -)
+      FAILING="none"
+      emit_report; exit 2
+    fi
+    sleep 10
+  done
 
   FAIL_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state=="FAILURE")] | length')
   CHECKS=$(echo "$CHECKS_JSON" | jq -r '.[] | "\(.name):\(.state | ascii_downcase)"' | paste -sd, -)
