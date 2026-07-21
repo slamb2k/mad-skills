@@ -153,10 +153,11 @@
   },
   {
     "name": "build-early-draft-pr",
-    "prompt": "Run /build specs/rate-limiter.md. Stage 4 is about to dispatch its first implementation subagent. Has a PR been opened yet, and if so, how?",
+    "prompt": "Run /build specs/rate-limiter.md. Stage 4 is about to dispatch its first implementation subagent. /speccy's post-approval handoff bundle already opened a draft PR for this branch. Does /build still call create-pr.sh --draft here, and does it create a second PR?",
     "assertions": [
       { "type": "contains", "value": "draft" },
-      { "type": "semantic", "value": "Before dispatching the first implementation subagent, /build opens the PR as a draft by calling skills/ship/scripts/create-pr.sh --draft directly, which is idempotent and reuses any existing open PR on the branch rather than erroring; every subsequent checkpoint-interview comment and evidence artifact posts against that draft PR" }
+      { "type": "regex", "value": "reus", "flags": "i" },
+      { "type": "semantic", "value": "Before dispatching the first implementation subagent, /build still calls skills/ship/scripts/create-pr.sh --draft directly, but this is now an idempotent backstop rather than the PR's origin: since /speccy's handoff bundle already opened the draft PR, create-pr.sh finds and reuses it (reused=true, no duplicate PR — AC-005). /build only actually creates a PR in the degraded case where the bundle's PR step failed. Either way every subsequent checkpoint-interview comment and evidence artifact posts against that draft PR" }
     ]
   },
   {

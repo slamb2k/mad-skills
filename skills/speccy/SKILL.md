@@ -70,7 +70,7 @@ Spec template and writing guidelines: `references/spec-template.md`
 
 Parse optional flags from the request:
 - `--no-superpowers`: Force the standalone interview even when Superpowers is installed
-- `--auto`: Run autonomously — after the worktree/branch is created (unconditional in both modes, see Stage 1), run the interview and completeness-gated spec write via `references/autonomous-interview.md`. Dispatch only; see Stage 1 and Stage 3 below.
+- `--auto`: Run autonomously — run the interview and completeness-gated spec write via `references/autonomous-interview.md` in the plain working directory (no git state until approval), then the post-approval handoff bundle. Dispatch only; see Stage 1 and Stage 3 below.
 
 ## Pre-flight
 
@@ -91,9 +91,9 @@ For each row, in order:
 
 ## Stage 1: Context Gathering
 
-**Worktree creation (REQ-001):** before any context gathering — including the checks below — create the worktree/branch per `references/autonomous-worktree-lifecycle.md` (repo root; worktree creation is `/speccy`'s literal first action in **both** `--auto` and interactive modes). This supersedes the old REQ-005, which prohibited worktree creation in interactive mode.
+**No git state before approval (bundled-approval-handoff.md REQ-001, superseding unified-autonomous-build.md's REQ-001):** `/speccy` creates no worktree, branch, commit, or PR before the spec is approved, in **both** `--auto` and interactive modes. The interview and inference run in the plain invoking working directory; all git state is created at the approval moment by the post-approval handoff bundle (see Output & Handoff, and `references/autonomous-worktree-lifecycle.md` repo root). This supersedes the former worktree-first model, per `specs/bundled-approval-handoff.md`.
 
-**If `--auto`:** after worktree creation, read `skills/speccy/references/autonomous-interview.md` and follow it for the rest of this skill instead of the interactive flow below.
+**If `--auto`:** read `skills/speccy/references/autonomous-interview.md` and follow it for the rest of this skill instead of the interactive flow below.
 
 ### Pre-Spec Location Check
 
@@ -269,7 +269,12 @@ After the spec is created, report to the user:
 └─────────────────────────────────────────────────
 ```
 
-Then write a **pending-build marker** so the next session knows about this spec:
+**Handoff bundle (bundled-approval-handoff.md REQ-002):** at the approval moment — in **both** `--auto`
+and interactive modes — run the 8-step post-approval handoff bundle (canonical
+list, blocking semantics, and step details in
+`references/autonomous-worktree-lifecycle.md`, repo root, "Creation — the
+handoff bundle" section). The pending-build marker below is the bundle's final
+step, written per those semantics:
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"

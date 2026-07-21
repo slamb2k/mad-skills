@@ -13,6 +13,7 @@
 
 ## Open questions
 - [ ] Redesign /ship (interactive mode) to stop at open PR by default, with trigger-based post-merge trunk-sync + branch/worktree cleanup, instead of merge-and-wait — user-stated principle during autonomous-execution-mode build, scoped out of that spec (CON-003 limits it to --auto only) — /build clarifying questions (autonomous-execution-mode) (2026-07-19)
+- [ ] Unlinked-state detection/resolution for bundled approval handoff — when a spec is committed+pushed but its draft PR was never created (bundle step 7 degraded), something should later detect the missing spec-PR link (live branch lookup returns nothing) and resolve it by rerunning the idempotent create-pr.sh; candidates: session-guard ambient check or a /logbook lifecycle step — /speccy bundled-approval-handoff brainstorming (2026-07-21)
 
 ## Risks
 

@@ -4,26 +4,62 @@ Shared worktree-lifecycle rule for `speccy`, `build`, and `ship`
 (REQ-003–REQ-007, plus REQ-001/REQ-009 from
 `specs/unified-autonomous-build.md`, which generalize creation to both
 `--auto` and interactive modes and decouple `/build`'s worktree check from
-the `--auto`-only sentinel). mad-skills does not invent its own worktree
-creation or teardown mechanism — this file only defines *when* creation
-happens and how the resulting worktree is marked, reusing the mechanisms
-already established by `specs/worktree-discipline-guardrails.md`.
+the `--auto`-only sentinel). `specs/bundled-approval-handoff.md` further
+amends REQ-001: worktree/branch creation is no longer `/speccy`'s literal
+first action — it moves into a post-approval handoff bundle (see Creation,
+below). mad-skills does not invent its own worktree creation or teardown
+mechanism — this file only defines *when* creation happens and how the
+resulting worktree is marked, reusing the mechanisms already established by
+`specs/worktree-discipline-guardrails.md`.
 
-## Creation (REQ-003, generalized by REQ-001)
+## Creation — the handoff bundle (bundled-approval-handoff.md REQ-002)
 
-`/speccy` creates the worktree and branch as its **first action**, before
-Stage 1 (Context Gathering) begins, in **both `--auto` and interactive
-modes** — earlier than the existing Pre-Spec Branch Check and
-`references/location-check.md` check, both of which still run afterward as
-normal. This supersedes the original REQ-005, which prohibited worktree
-creation in interactive mode; REQ-001 (`specs/unified-autonomous-build.md`)
-removes that split so every `/speccy` run, not just `--auto` ones,
-establishes a worktree for the downstream `/build` and `/ship` stages to
-operate in.
+`/speccy` (both `--auto` and interactive) runs its entire interview/inference
+flow in the plain invoking working directory and creates **no git state at
+all** — no worktree, no branch, no commit, no PR — until the spec is approved
+(REQ-001). At the **approval moment** — the user confirms the Decision Summary
+(interactive) or zero-interview inference completes and passes its checks
+(`--auto`) — `/speccy` runs the **handoff bundle**: one ordered eight-step
+sequence that always runs together, every time, immediately before the
+stop-and-marker handoff to `/build`. The property that matters is not *when*
+each step happens individually but that they always happen together at the
+moment the spec becomes stable.
 
-Use whichever of these two mechanisms is available, in this order, exactly
-as `specs/worktree-discipline-guardrails.md` already establishes for the
-rest of mad-skills:
+The eight steps, in order:
+
+1. **Freeze** — compute a SHA-256 content hash over the finalized spec body
+   *below* the frontmatter block (the frontmatter carries the hash field
+   itself, so it is excluded from the input). Use `sha256sum` (fallback
+   `shasum -a 256`) and record it in frontmatter as `content_hash:
+   sha256:<hex>` (bundled-approval-handoff.md REQ-005) — proof of exactly what was approved.
+2. **Sync base** — actively fetch and pull the remote default branch so the
+   feature branches off current main. Reuse `/sync`'s stash-restore behavior
+   for any dirty working tree, and surface any stash activity in the bundle
+   report. This replaces the old advisory-only branch-staleness warning.
+3. **Create worktree + branch together** — one operation, using whichever
+   mechanism below is available, in order. For `--auto` runs, drop the
+   `.mad-skills-auto` sentinel file at the worktree root as part of this same
+   step (see Sentinel file, below). If the branch slug collides with an
+   existing branch, suffix `-2`, `-3`, … as needed and report the final name.
+4. **Materialize the spec** inside the worktree with the new frontmatter
+   fields (bundled-approval-handoff.md REQ-005): `content_hash`, `branch`, `worktree_path`. There is no
+   `pr_url` field — the PR is always resolved live from `branch` via the same
+   lookup `create-pr.sh` performs (bundled-approval-handoff.md REQ-006).
+5. **Commit** the spec as the branch's first commit.
+6. **Push** the feature branch.
+7. **Draft PR** — `bash skills/ship/scripts/create-pr.sh --draft` (idempotent;
+   reuses an existing open PR rather than erroring). **Best-effort**
+   (bundled-approval-handoff.md REQ-004):
+   on failure (missing `gh`/`az`, network, auth), report the failure with the
+   exact `create-pr.sh` retry command, then still proceed to step 8. A missing
+   PR never blocks the handoff.
+8. **Marker + stop** — write the pending-build marker, display
+   `/build {spec path}`, stop. Identical to today's handoff; no same-turn
+   auto-invoke of `/build` (bundled-approval-handoff.md CON-001).
+
+**Mechanism for step 3** — use whichever is available, in this order, exactly
+as `specs/worktree-discipline-guardrails.md` already establishes for the rest
+of mad-skills:
 
 1. **Harness native tools** — `EnterWorktree` (creates under
    `.claude/worktrees/` and explicitly switches the session's own working
@@ -36,20 +72,31 @@ rest of mad-skills:
 mad-skills does not call `git worktree add`/`remove` directly and does not
 prescribe a path convention beyond what the chosen mechanism already uses
 (CON-001). This mirrors `specs/worktree-discipline-guardrails.md` §"Out of
-scope" verbatim — this spec extends *when* worktree creation happens for
-`--auto`, not *how* worktrees are created.
+scope" verbatim — this spec amends *when* worktree creation happens, not *how*
+worktrees are created.
 
-## Why speccy, not build (REQ-003 rationale)
+**Blocking semantics (bundled-approval-handoff.md REQ-003).** Steps 1–6 are **blocking**: if any fails,
+stop the bundle, report exactly which step failed, and leave all
+already-succeeded state in place for inspection. Do **not** write the
+pending-build marker on a step-1–6 failure. Step 7 **degrades**
+(bundled-approval-handoff.md REQ-004) —
+its failure is reported with the retry command but never blocks the handoff.
+Only steps 1–6 succeeding earns the marker written in step 8.
 
-The pending-build marker `/speccy` writes today (see
-`references/superpowers-deferral.md`) is keyed by `process.cwd()`. If
-`/speccy --auto` ran on the primary checkout and `/build --auto` later
-created a separate worktree, the marker would not transfer without new
-handoff plumbing. Creating the worktree at speccy time also makes the spec
-file the literal first commit on the branch (REQ-006), and establishes a
-single "every `--auto` stage runs inside a worktree, no exceptions" rule —
-important once no human is present to remember why one stage was
-special-cased.
+## Why speccy, not build (rationale)
+
+The pending-build marker `/speccy` writes (see
+`references/superpowers-deferral.md`) is keyed by `process.cwd()`. If `/speccy`
+approved on the primary checkout and `/build` later created a separate
+worktree, the marker would not transfer without new handoff plumbing. Running
+the bundle at the approval moment keeps worktree creation on the `/speccy`
+side, makes the spec file the branch's literal first commit (bundle step 5),
+and brings push + draft PR forward so the PR exists before `/build` starts —
+closing the gap where `/build`'s own mid-build questions needed a PR that only
+`/build` would otherwise create. Bundling at approval also never creates git
+state for specs that don't survive the interview (an abandoned interview
+leaves nothing to clean up), while still guaranteeing `/build` always finds a
+worktree, because the bundle always runs before the marker.
 
 ## Persistence (REQ-004)
 
@@ -60,18 +107,18 @@ rooted at that worktree for every file-tool call (per the existing
 absolute-path rule in `skills/build/references/stage-prompts.md` and the
 advisory note in `references/superpowers-deferral.md`).
 
-Interactive (non-`--auto`) `/speccy` now creates a worktree too (REQ-001,
-above) — the old REQ-005 prohibition no longer applies. `/build` and
+Interactive (non-`--auto`) `/speccy` also creates a worktree — at the approval
+moment, via the same handoff bundle (see Creation, above) — so the old REQ-005
+prohibition no longer applies. `/build` and
 `/ship` do not need to know which mode created the worktree they're
 operating in; both simply require one to already exist (see `/build`'s
 refusal check, below).
 
-## First commit (REQ-006)
+## First commit
 
-Once `/speccy --auto`'s completeness gate passes and the spec is written
-with `autonomy_ready: true`, the spec file MUST be committed inside the
-worktree as the branch's first commit — before any implementation work
-begins. This makes the spec the self-documenting root of the PR history.
+The spec file is committed as the branch's first commit by bundle step 5 at
+the approval moment — pass or fail on the completeness gate (see Creation,
+above) — making the spec the self-documenting root of the PR history.
 
 ## `/build`'s worktree-refusal check (REQ-009)
 
@@ -93,8 +140,8 @@ proceeds; "they match" as "no worktree" and refuses.
 ## Sentinel file: `.mad-skills-auto`
 
 `/speccy --auto`'s worktree-creation step drops a sentinel file,
-`.mad-skills-auto`, at the worktree root, as part of the same first action
-that creates the worktree (before Stage 1). Its presence marks a worktree
+`.mad-skills-auto`, at the worktree root, as part of the same bundle step 3
+that creates the worktree (see Creation, above). Its presence marks a worktree
 as belonging to an autonomous `--auto` run, distinguishing it from a
 worktree created manually or by interactive mad-skills usage.
 
