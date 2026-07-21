@@ -71,12 +71,20 @@ GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
 GIT_COMMON_DIR=$(git rev-parse --git-common-dir 2>/dev/null)
 [ "$GIT_DIR" != "$GIT_COMMON_DIR" ] && WORKTREE_MODE=true
 if [ "$WORKTREE_MODE" = true ]; then
-  PRIMARY=$(git worktree list --porcelain 2>/dev/null | awk '/^worktree /{print $2; exit}')
+  PRIMARY_LINE=$(git worktree list --porcelain 2>/dev/null | grep -m1 '^worktree ')
+  PRIMARY="${PRIMARY_LINE#worktree }"
 fi
 
 HAS_CHANGES=false
-if [ -n "$(git status --porcelain 2>/dev/null | head -1)" ]; then
-  HAS_CHANGES=true
+if [ "$WORKTREE_MODE" = true ]; then
+  # Ignore our own untracked auto-worktree sentinel — it must not count as dirt.
+  if [ -n "$(git status --porcelain 2>/dev/null | grep -v '^?? \.mad-skills-auto$' | head -1)" ]; then
+    HAS_CHANGES=true
+  fi
+else
+  if [ -n "$(git status --porcelain 2>/dev/null | head -1)" ]; then
+    HAS_CHANGES=true
+  fi
 fi
 
 PRUNED=false
@@ -108,9 +116,9 @@ if [ "$WORKTREE_MODE" = true ]; then
     fi
   fi
 
-  PRIMARY_TIP=$(git -C "$PRIMARY" rev-parse --short HEAD 2>/dev/null)
+  PRIMARY_TIP=$(git -C "$PRIMARY" rev-parse --short "$DEFAULT_BRANCH" 2>/dev/null)
   if [ -n "$PRIMARY_TIP" ]; then
-    MAIN_UPDATED_TO="$PRIMARY_TIP - $(git -C "$PRIMARY" log -1 --format=%s 2>/dev/null)"
+    MAIN_UPDATED_TO="$PRIMARY_TIP - $(git -C "$PRIMARY" log -1 --format=%s "$DEFAULT_BRANCH" 2>/dev/null)"
   fi
 
   # Finished check needs a fresh gone-upstream view.
@@ -133,9 +141,17 @@ if [ "$WORKTREE_MODE" = true ]; then
       WORKTREE_REMOVED="skipped (dirty)"
       EXIT_CODE=2
     elif ! cd "$PRIMARY" 2>/dev/null; then
-      WORKTREE_REMOVED="skipped (remove failed)"
+      WORKTREE_REMOVED="skipped (primary unavailable)"
       EXIT_CODE=2
     else
+      # An untracked sentinel blocks plain (non-force) worktree removal — back
+      # it up and remove it first, restoring it if removal fails below.
+      WT_SENTINEL_BACKUP=""
+      if [ -f "$WT_PATH/.mad-skills-auto" ]; then
+        WT_SENTINEL_BACKUP=$(cat "$WT_PATH/.mad-skills-auto" 2>/dev/null)
+        rm -f "$WT_PATH/.mad-skills-auto"
+      fi
+
       if git worktree remove "$WT_PATH" 2>/dev/null; then
         WORKTREE_REMOVED="$WT_PATH"
       elif [ ! -d "$WT_PATH" ]; then
@@ -144,6 +160,7 @@ if [ "$WORKTREE_MODE" = true ]; then
       else
         WORKTREE_REMOVED="skipped (remove failed)"
         EXIT_CODE=2
+        [ -n "$WT_SENTINEL_BACKUP" ] && printf '%s\n' "$WT_SENTINEL_BACKUP" > "$WT_PATH/.mad-skills-auto"
       fi
 
       if [ "$WORKTREE_REMOVED" = "$WT_PATH" ]; then
