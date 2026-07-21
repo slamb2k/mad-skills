@@ -370,7 +370,21 @@ branch, pull the merge commit, and **clean up stale branches**:
 bash "$SKILL_ROOT/skills/sync/scripts/sync.sh" "{REMOTE}" "{DEFAULT_BRANCH}"
 ```
 
-After sync completes, verify the working tree is on the default branch:
+Parse the `SYNC_REPORT` block from the output for `worktree_mode` and
+`worktree_removed`.
+
+**Worktree mode (`worktree_mode=true`).** If `worktree_removed` is an actual
+path (not `none` or a `skipped …` reason), the session's cwd no longer
+exists — return to `primary_path` (from the same report) BEFORE any further
+git command: use the native `ExitWorktree` tool if the session entered this
+worktree via `EnterWorktree` and the tool is available, otherwise run the
+next Bash command with `cd "<primary_path>"` first. Then skip the
+verification block below entirely — sync.sh already synced main in the
+primary (`main_sync`) and, by design, never checks out the default branch in
+a worktree.
+
+**Non-worktree mode (`worktree_mode=false`).** Verify the working tree is on
+the default branch:
 
 ```bash
 CURRENT=$(git branch --show-current)

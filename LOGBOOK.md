@@ -7,8 +7,11 @@
 - [ ] Consider a dedicated debugging skill (e.g. /diagnose) mirroring /build's subagent-isolated pipeline but scoped to root-causing a reported bug rather than implementing a plan — reproduce/hypothesize/verify/fix/reverify stages, deferring to superpowers:systematic-debugging when present, same deferral pattern /build already uses for implementation — unfurl project session debugging a Flow-mode drill-through bug (2026-07-18)
 - [ ] /speccy default auto-chain to /build via /ferry unless --no-build — reverses the explicit "STOP, do NOT invoke /build yourself" instruction in current SKILL.md. Depends on the unified /build model (Spec A) existing first to define what it chains into — /speccy fully-autonomous-speccy brainstorming (2026-07-20) (2026-07-20)
 - [ ] /ship role shift once /build opens its draft PR early — /ship no longer needs to CREATE the PR (Stage 2), only finalize it (mark ready-for-review/undraft, final CI watch). Small, narrow amendment to /ship, separable from the unified-autonomous-build spec that motivates it — /speccy unified-autonomous-build brainstorming (2026-07-20) (2026-07-20)
+- [ ] Technical Spike support (tech-spike.md): spike task type, disposition workflow, findings docs — deferred from orchestrator-ready spec — manual (2026-07-21) <!-- link:spec:specs/orchestrator-ready-mad-skills.md -->
+- [ ] Build orchestrator-ready mad-skills (specs/orchestrator-ready-mad-skills.md): envelope intake, diff validator, capability manifest — build after worktree-aware /sync ships — manual (2026-07-21) <!-- link:spec:specs/orchestrator-ready-mad-skills.md -->
 
 ## Deferred fixes
+- [ ] tech-spike.md compatibility pass for real-talk v1.3: spike-first entry assumes brief-mode provisioning; needs provision_at-aware wording + version bump — manual (2026-07-21) <!-- link:spec:specs/real-talk.md -->
 
 ## Open questions
 - [ ] Redesign /ship (interactive mode) to stop at open PR by default, with trigger-based post-merge trunk-sync + branch/worktree cleanup, instead of merge-and-wait — user-stated principle during autonomous-execution-mode build, scoped out of that spec (CON-003 limits it to --auto only) — /build clarifying questions (autonomous-execution-mode) (2026-07-19)
@@ -18,6 +21,7 @@
 ## Tech debt
 
 ## Archive
+- [x] Build worktree-aware /sync (specs/worktree-aware-sync.md): checkout-failure bugfix + worktree mode + session return — queued behind orchestrator-ready build — manual (2026-07-21) <!-- link:spec:specs/worktree-aware-sync.md resolved:2026-07-21 -->
 - [x] ci-watch.sh declares all_passed while checks are in_progress or not yet registered (saw grace_period_polls=1 pass with GitGuardian in_progress and Validate & Lint unregistered after a branch update) — should treat in_progress as pending and wait for required checks to register — /ship #118 (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] merge.sh should handle mergeStateStatus=BEHIND by running gh pr update-branch and re-watching CI — the release bot moves main after every merge, so every second /ship in a session hits this and fails the first merge attempt — /ship #118 (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] skills/keel/tests/evals.json has 2 eval cases using invalid inline-flag regex syntax (?i)(...) instead of the separate flags:"i" field every other eval case in this repo uses — JS RegExp does not support (?i), so both cases (skill-ordering, azdo-awareness) error out on every eval run instead of asserting anything — /build unified-autonomous-build verify (2026-07-20) <!-- resolved:2026-07-21 -->
@@ -47,4 +51,3 @@
 - [x] rec: link resolves only skill-marker names — couple to lifecycle.evaluate for drift-based rec ids like rig-refresh — /build debrief #89 (2026-07-16) <!-- resolved:2026-07-17 -->
 - [x] task# auto-resolution is injected-only in tests — add an integration test that drives the /logbook review TaskGet path — /build debrief #89 (2026-07-16) <!-- resolved:2026-07-17 -->
 - [x] ADO release-target detection: /dock is suppressed for ADO repos because release-target regexes are GitHub-shaped — parse azure-pipelines deploy YAML so ADO repos can still be offered a release pipeline — /logbook ADO fix (2026-07-16) <!-- resolved:2026-07-17 -->
-- [x] spec: link auto-resolves immediately if the path never existed — guard on once-existed — /build debrief #89 (2026-07-16) <!-- resolved:2026-07-17 -->
