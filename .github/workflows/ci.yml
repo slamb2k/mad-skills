@@ -37,45 +37,40 @@ jobs:
     name: Run Evals
     needs: validate
     runs-on: ubuntu-latest
+    # Job-level gate: when evals are disabled the job reports "skipped" in the
+    # checks UI instead of a green pass that looks like evals ran.
+    if: vars.EVALS_ENABLED == 'true'
     steps:
-      - name: Check if evals are enabled
-        id: gate
-        run: |
-          if [ "${{ vars.EVALS_ENABLED }}" = "true" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-            echo "Evals enabled via repository variable"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "Evals disabled — set EVALS_ENABLED=true in repo variables to enable"
-          fi
-
-      - uses: actions/checkout@v4
-        if: steps.gate.outputs.enabled == 'true'
-
-      - uses: actions/setup-node@v4
-        if: steps.gate.outputs.enabled == 'true'
-        with:
-          node-version: 24
-          cache: npm
-
-      - run: npm ci
-        if: steps.gate.outputs.enabled == 'true'
-
-      - name: Run skill evals
-        if: steps.gate.outputs.enabled == 'true'
-        continue-on-error: true
+      - name: Require an API key when evals are enabled
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENROUTER_API_KEY" ]; then
-            echo "::warning::No API key configured — skipping evals"
-            exit 0
+            echo "::error::EVALS_ENABLED=true but no ANTHROPIC_API_KEY/OPENROUTER_API_KEY secret is configured"
+            exit 1
           fi
-          npm run eval -- --verbose
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run skill evals
+        # Semantic judge assertions are known-flaky; results are surfaced via
+        # the PR comment below, not used as a hard merge gate.
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: npm run eval -- --verbose
 
       - name: Upload eval results
-        if: steps.gate.outputs.enabled == 'true' && always()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: eval-results-${{ github.sha }}
@@ -83,7 +78,7 @@ jobs:
           retention-days: 30
 
       - name: Comment eval results on PR
-        if: steps.gate.outputs.enabled == 'true' && github.event_name == 'pull_request' && always()
+        if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
         with:
           script: |
@@ -130,7 +125,9 @@ jobs:
     name: Release
     needs: [validate, eval]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # !cancelled() + explicit needs checks: eval skipping (EVALS_ENABLED unset)
+    # must not silently skip the release, but a validate failure still blocks it.
+    if: ${{ !cancelled() && needs.validate.result == 'success' && needs.eval.result != 'failure' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     permissions:
       contents: write
       id-token: write

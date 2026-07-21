@@ -83,6 +83,17 @@ pending-build marker on a step-1–6 failure. Step 7 **degrades**
 its failure is reported with the retry command but never blocks the handoff.
 Only steps 1–6 succeeding earns the marker written in step 8.
 
+**The unlinked state is self-healing — no detector exists on purpose.** A
+degraded step 7 leaves the spec committed and pushed with no PR on its branch
+(the "unlinked state"). No ambient or scheduled detection is built for this:
+the failure report prints the exact `create-pr.sh` retry command, the
+pending-build marker still nudges the next session toward `/build`, and
+`/build`'s Early-draft-PR backstop runs the same idempotent `create-pr.sh
+--draft` — so the state repairs itself the moment it is acted on. The only
+case this leaves uncovered is a spec that is *abandoned* after the bundle
+(branch pushed, `/build` never run) — that is a stale-branch cleanup concern,
+not a PR-linking one.
+
 ## Why speccy, not build (rationale)
 
 The pending-build marker `/speccy` writes (see
