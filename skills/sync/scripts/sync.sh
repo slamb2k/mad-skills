@@ -73,7 +73,13 @@ fi
 git fetch "$REMOTE" 2>/dev/null
 
 if [ "$BRANCH" != "$DEFAULT_BRANCH" ]; then
-  git checkout "$DEFAULT_BRANCH" 2>/dev/null
+  if ! git checkout "$DEFAULT_BRANCH" 2>/dev/null; then
+    STATUS="failed"
+    ERRORS="Failed to checkout $DEFAULT_BRANCH"
+    EXIT_CODE=1
+    [ "$STASH_CREATED" = true ] && git stash pop 2>/dev/null
+    emit_report
+  fi
 fi
 
 if ! git pull "$REMOTE" "$DEFAULT_BRANCH" --ff-only 2>/dev/null; then
