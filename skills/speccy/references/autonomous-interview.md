@@ -6,46 +6,34 @@ first runs a deterministic Eligibility Gate; a full pass skips the interview
 entirely via Zero-Interview Inference (Stage A). On any single eligibility
 check failing, `--auto` falls back to the interactive interview wholesale —
 the only differences from plain interactive `/speccy` in that fallback path
-are worktree-first setup (REQ-003), a completeness gate (REQ-009), and a
-subagent-run spec write (REQ-033). Where this file says "as interactive
-speccy," follow SKILL.md's existing stages unchanged.
+are a completeness gate (REQ-009) and a subagent-run spec write (REQ-033).
+The post-approval handoff bundle runs identically for both modes. Where this
+file says "as interactive speccy," follow SKILL.md's existing stages
+unchanged.
 
 ---
 
-## Stage 0: Worktree (first action, before anything else)
+## Stage 0: No git state before approval (bundled-approval-handoff.md REQ-001)
 
-Worktree creation is the literal first action — it happens before anything
-else, full stop. Nothing in Stage 1 (not context gathering, not the Pre-Spec
-Location Check, not the Pre-Spec Branch Check) runs before it.
+`/speccy --auto` creates **no worktree, branch, commit, or PR** until the spec
+is approved (AC-001). The entire `--auto` flow — the Eligibility Gate,
+Zero-Interview Inference (Stage A), and the fallback interview (Stages 1–3) —
+runs in the plain invoking working directory. This supersedes the former
+"worktree first" model (`unified-autonomous-build.md` REQ-001), per
+`specs/bundled-approval-handoff.md`.
 
-Create the worktree and branch as `/speccy --auto`'s **literal first action**,
-before Stage 1 context gathering — earlier than the Pre-Spec Location Check
-and Pre-Spec Branch Check, both of which still run afterward inside the new
-worktree. Use the mechanism and sentinel-file steps defined in
-`references/autonomous-worktree-lifecycle.md` (repo root; harness
-`EnterWorktree`, or the Superpowers `using-git-worktrees` fallback) — do not
-re-describe or reinvent that mechanism here. All subsequent file-tool calls use absolute paths rooted
-at the new worktree.
-
-**This is a performed action, not a plan.** Before writing or saying anything
-else — before the invocation banner, before Stage 1 — actually call the
-worktree-creation mechanism and confirm it succeeded, e.g.:
-
-```
-$ EnterWorktree feat/{slug}          # or: git worktree add ../feat-{slug} -b feat/{slug}
-  → worktree ready at <path>, sentinel .mad-skills-auto written
-```
-
-Then continue. If asked "what was the first action," the correct answer is
-the completed result above ("created the worktree at `<path>`"), not a
-description of the mechanism.
+The **approval moment** for `--auto` is when zero-interview inference completes
+and passes its checks (Stage A), or when the fallback interview's Decision
+Summary is confirmed (Stage 3). All git state is created at that moment by the
+handoff bundle — see the **Post-approval handoff bundle** section below, which
+is where the former "worktree first" step now lives.
 
 ---
 
 ## Eligibility Gate (`--auto` only, REQ-002)
 
-Runs immediately after Stage 0's worktree creation and before any interview
-stage — only when `--auto` was passed. Interactive (non-`--auto`) `/speccy`
+Runs before any interview stage, in the plain working directory (no git state
+yet) — only when `--auto` was passed. Interactive (non-`--auto`) `/speccy`
 never runs this gate; it goes straight to SKILL.md's existing interview flow.
 
 A ticket is eligible for zero-interview inference only if **all four** of
@@ -137,7 +125,7 @@ output (REQ-032, same discipline as Stage 3). No completeness-gate
 self-review runs on this path — the small template is `autonomy_ready: true`
 by construction via the eligibility gate plus REQ-004/005's assumption-
 authorization process, not the completeness gate Stage 3 uses. Skip straight
-to Stage 4 (first commit).
+to the post-approval handoff bundle.
 
 ---
 
@@ -248,16 +236,25 @@ SPEC_REPORT:
 
 ---
 
-## Stage 4: First commit (REQ-006)
+## Post-approval handoff bundle (bundled-approval-handoff.md REQ-002)
 
 Once the subagent returns (from Stage A's zero-interview inference or the
-fallback Stage 3) and the spec exists, commit the spec file inside the
-worktree as the branch's **first commit** — pass or fail on the gate (REQ-010
-writes it either way; Stage A's spec is always `autonomy_ready: true`). Use a
-conventional-commit message, e.g.
-`docs(specs): add {slug} spec (autonomy_ready: {true|false})`. Update the
-`.mad-skills-auto` sentinel's `stage:` line to `speccy` per
-`references/autonomous-worktree-lifecycle.md` (repo root).
+fallback Stage 3) and the spec exists, the approval moment is reached. Run the
+**handoff bundle** — the canonical ordered eight-step sequence defined in
+`references/autonomous-worktree-lifecycle.md` (repo root), "Creation — the
+handoff bundle" section. That section is the single source of truth for the
+step order, blocking semantics (steps 1–6 block; step 7 degrades), the three
+new frontmatter fields (`content_hash`, `branch`, `worktree_path`), and
+branch-collision suffixing — do **not** restate the steps here.
+
+For this `--auto` path specifically:
+- The spec written by Stage A / Stage 3 is materialized inside the bundle's
+  worktree (bundle step 4) and committed as the branch's **first commit**
+  (bundle step 5) — pass or fail on the gate (REQ-010 writes it either way;
+  Stage A's spec is always `autonomy_ready: true`). Use a conventional-commit
+  message, e.g. `docs(specs): add {slug} spec (autonomy_ready: {true|false})`.
+- The `.mad-skills-auto` sentinel is dropped at bundle step 3 with its
+  `stage:` line set to `speccy`.
 
 ---
 
@@ -267,6 +264,9 @@ Report as the interactive flow does (Speccy · Report box), then add one line
 stating which path ran — zero-interview inference (Stage A) or fallback
 interview (Stage 1–3) — and the resulting `autonomy_ready` value. If
 `false`, name which gate items failed and note that `/build --auto` will
-refuse this spec (REQ-011) while interactive `/build` will not. Write the
-pending-build marker as usual. Do NOT invoke `/build` yourself — the handoff
-artifact is the committed spec.
+refuse this spec (REQ-011) while interactive `/build` will not. The
+pending-build marker's timing follows the bundle's blocking semantics (see the
+canonical bundle in `references/autonomous-worktree-lifecycle.md`): the marker
+is written only in the degraded-PR or full-success paths; a degraded PR reports
+the exact `bash skills/ship/scripts/create-pr.sh --draft` retry command. Do NOT
+invoke `/build` yourself — the handoff artifact is the committed spec.

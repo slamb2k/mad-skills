@@ -236,11 +236,14 @@ runs the standalone implementation below — see
 interaction) for the full rationale, and `references/superpowers-deferral.md`
 for how this differs from `speccy` and `ship`.
 
-**Early draft PR (REQ-014 (unified-autonomous-build.md)):** before dispatching
+**Early draft PR (REQ-014 (unified-autonomous-build.md), timing-amended by
+bundled-approval-handoff.md GUD-001):** before dispatching
 the implementation subagent(s) below, open the PR as a draft per
 `references/autonomous-pipeline.md`'s "Early draft PR" section — call
 `skills/ship/scripts/create-pr.sh --draft` directly (idempotent: reuses any
-existing open PR on the branch rather than erroring). Capture the returned
+existing open PR on the branch rather than erroring). Normally this reuses
+the draft PR the `/speccy` approval bundle already opened (`reused=true`);
+actually creating one here is the degraded backstop path. Capture the returned
 `pr_url`; every checkpoint-interview comment and evidence artifact from here
 on posts against it.
 

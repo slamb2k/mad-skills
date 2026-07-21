@@ -76,13 +76,22 @@ ambiguity still gets decided even on a `false`/absent one.
 
 ---
 
-## Early draft PR (REQ-014 (unified-autonomous-build.md))
+## Early draft PR (REQ-014 (unified-autonomous-build.md), timing-amended by bundled-approval-handoff.md GUD-001)
 
-Open the PR as a draft at or before the first substantive implementation
-work (Stage 4), so every checkpoint interview and evidence artifact from
-here on has somewhere to attach. The spec file is already the branch's
-first commit (`/speccy`'s existing behavior) by the time `/build` starts, so
-there's always something to open a PR against.
+This dispatch is now the idempotent **backstop**, not the PR's origin.
+`specs/bundled-approval-handoff.md` amends REQ-014's timing: `/speccy` opens
+the draft PR itself inside its post-approval handoff bundle (step 7), before
+`/build` ever runs. So in the normal case this dispatch finds that PR and
+reuses it (`reused=true` in `PR_REPORT`, no duplicate — AC-005); it only
+actually *creates* a PR in the degraded case where the bundle's step 7 failed
+(e.g. `gh`/`az` missing or auth/network down at `/speccy` time, leaving the
+unlinked state), and then this call repairs it.
+
+The dispatch itself is mechanically unchanged: before the first substantive
+implementation work (Stage 4), call `create-pr.sh --draft` so every checkpoint
+interview and evidence artifact has a PR to attach to. The spec file is
+already the branch's first commit (now written by `/speccy`'s handoff bundle)
+by the time `/build` starts, so there's always something to open a PR against.
 
 Call `skills/ship/scripts/create-pr.sh` directly:
 

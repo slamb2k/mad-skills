@@ -80,6 +80,10 @@ callers (GUD-001).
 Each caller references this file rather than duplicating the bash snippet or
 prompt text inline (REQ-010).
 
+> Note: `/speccy`'s pre-Stage-1 location check is inert until the post-approval
+> handoff bundle creates the worktree (`specs/bundled-approval-handoff.md`) —
+> during the interview no worktree exists yet, so there is nothing to mismatch.
+
 ## Edge cases
 
 - **Detached HEAD / submodule**: `git rev-parse --show-toplevel` still

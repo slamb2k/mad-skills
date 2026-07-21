@@ -136,22 +136,60 @@
     ]
   },
   {
-    "name": "speccy-auto-worktree-first-action",
-    "prompt": "Run /speccy --auto \"add dark mode toggle to settings page\". What is the very first action speccy takes, before Stage 1 context gathering begins?",
+    "name": "speccy-auto-bundled-handoff",
+    "prompt": "Run /speccy --auto \"add dark mode toggle to settings page\". When does speccy create the git worktree and branch, relative to the interview/inference and the spec being approved?",
     "assertions": [
       {
         "type": "semantic",
-        "value": "Creates a git worktree and branch as the literal first action, before any context gathering or interview questions begin — worktree creation is not deferred to /build"
+        "value": "No worktree, branch, commit, or PR is created during the eligibility gate, inference, or interview — /speccy --auto runs entirely in the plain working directory and only at the approval moment (zero-interview inference completes and passes, or the Decision Summary is confirmed) runs the handoff bundle that creates the worktree and branch. Worktree creation is not the literal first action; it happens at approval, bundled with sync, spec commit, push, and draft PR."
       }
     ]
   },
   {
-    "name": "speccy-interactive-worktree-first-action",
-    "prompt": "Run /speccy (no --auto flag) to spec out a new feature. Does it create a git worktree before or during the interview?",
+    "name": "speccy-interactive-bundled-handoff",
+    "prompt": "Run /speccy (no --auto flag) to spec out a new feature. Does it create a git worktree before or during the interview, or only after the spec is approved?",
     "assertions": [
       {
         "type": "semantic",
-        "value": "Interactive (non---auto) /speccy also creates the worktree/branch as its literal first action, before Stage 1 context gathering and before any interview questions — worktree creation is no longer exclusive to --auto mode; both modes create it upfront"
+        "value": "Interactive (non---auto) /speccy creates no git state during the interview — the worktree and branch are created only at the approval moment (when the Decision Summary is confirmed) by the same post-approval handoff bundle used in --auto mode. Both modes defer all git state to approval; neither creates the worktree as a first action."
+      }
+    ]
+  },
+  {
+    "name": "speccy-bundle-no-git-state-mid-interview",
+    "prompt": "During a /speccy run, the interview (or --auto inference) is still in progress and the spec has not been approved yet. What git state exists at this point — is there a worktree, branch, commit, or PR?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "No worktree, no branch, no commit, and no PR exist while the interview or inference is still in progress — /speccy creates zero git state before the approval moment. Everything runs in the plain invoking working directory until the spec is approved."
+      }
+    ]
+  },
+  {
+    "name": "speccy-bundle-blocking-step-failure",
+    "prompt": "During /speccy's post-approval handoff bundle, the push step (bundle step 6) fails — the remote rejects the push. Steps 1-5 (freeze, sync, worktree+branch, materialize spec, commit) already succeeded. Does the bundle write the pending-build marker, and how does it report the failure?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "Steps 1-6 are blocking, so the bundle aborts on the push failure, names the exact failed step, and leaves the already-succeeded state (freeze, sync, worktree, branch, commit) in place for inspection. It does NOT write the pending-build marker on a step-1-6 failure."
+      },
+      {
+        "type": "regex",
+        "value": "(push|step 6)"
+      }
+    ]
+  },
+  {
+    "name": "speccy-bundle-degraded-pr",
+    "prompt": "During /speccy's post-approval handoff bundle, the draft-PR step (bundle step 7) fails because gh is not installed. Steps 1-6 all succeeded (freeze, sync, worktree, branch, commit, push). What does the bundle do about the pending-build marker and the failed PR step?",
+    "assertions": [
+      {
+        "type": "semantic",
+        "value": "Step 7 is best-effort and degrades rather than blocking: the worktree, branch, commit, and push all stand, the pending-build marker IS still written (step 8), and the report includes the exact create-pr.sh retry command so the PR can be created later. /build's own Early-draft-PR backstop will create the PR when it runs."
+      },
+      {
+        "type": "contains",
+        "value": "create-pr.sh"
       }
     ]
   },
