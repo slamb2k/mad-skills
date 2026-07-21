@@ -1,0 +1,340 @@
+{
+  "timestamp": "2026-07-21T05:06:00.864Z",
+  "model": "claude-sonnet-4-20250514",
+  "summary": {
+    "pass": 18,
+    "fail": 0,
+    "error": 0
+  },
+  "skills": [
+    {
+      "skill": "speccy",
+      "results": [
+        {
+          "name": "speccy-invocation-banner",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 6716,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "██",
+              "pass": true,
+              "detail": "Missing \"██\""
+            },
+            {
+              "type": "regex",
+              "value": "(Tell me everything|think this through|wreck it|Interview mode|great questions|Measure twice|assumption left behind|Precision engineering)",
+              "pass": true,
+              "detail": "Matches /(Tell me everything|think this through|wreck it|Interview mode|great questions|Measure twice|assumption left behind|Precision engineering)/"
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     (no argument provided)\n│  Flags:    none\n└───────────────────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-interview-categories",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 13377,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "Architecture",
+              "pass": true,
+              "detail": "Missing \"Architecture\""
+            },
+            {
+              "type": "contains",
+              "value": "Requirements",
+              "pass": true,
+              "detail": "Missing \"Requirements\""
+            },
+            {
+              "type": "contains",
+              "value": "Security",
+              "pass": true,
+              "detail": "Missing \"Security\""
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n    ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\nBased on the interview guide, Speccy uses **8 main question categories** to conduct comprehensive specification interviews:\n\n## Question Cat",
+          "truncated": false
+        },
+        {
+          "name": "speccy-superpowers-present",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 80625,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "⚡ Superpowers detected",
+              "pass": true,
+              "detail": "Missing \"⚡ Superpowers detected\""
+            },
+            {
+              "type": "contains",
+              "value": "brainstorming",
+              "pass": true,
+              "detail": "Missing \"brainstorming\""
+            }
+          ],
+          "output_preview": "🧠 Let's think this through!\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     rate limiter\n│  Flags:    none\n└─────────────────────────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-superpowers-absent",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 15906,
+          "assertions": [
+            {
+              "type": "contains",
+              "value": "interview",
+              "pass": true,
+              "detail": "Missing \"interview\""
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n━━ Requirements Gathering Without Superpowers ━━━━━━━━━━━━━━━━━━━━━━━━━\n\nWhen Superpowers is **not installed**, Speccy runs its **standalone",
+          "truncated": false
+        },
+        {
+          "name": "speccy-location-mismatch",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 10388,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Treats the toplevel mismatch as something to warn about rather than silently continuing — it does not just proceed with Stage 1 as if nothing happened",
+              "pass": true,
+              "detail": "The output clearly describes that when a toplevel mismatch is detected, the system blocks the speccy process with an AskUserQuestion prompt and cannot proceed to Stage 1 until resolved. It explicitly states the check 'blocks' and 'prevents silent file-tool operations' rather than silently continuing."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\nWhen the Pre-Spec Location Check detects that Bash's working directory is inside a leftover worktree (different git toplevel than the sessio",
+          "truncated": false
+        },
+        {
+          "name": "speccy-eligibility-full-pass-zero-interview",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 39607,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "The ticket passes all four eligibility dimensions (scope, risk-keyword paths, architectural surface, ticket clarity), so /speccy --auto runs zero-interview inference with no interview rounds at all: a subagent generates the spec from the small-task template, populates an Autonomous Inference Assessment section stating which checks passed and why, records every substantive inferred decision as an Assumption Authorization entry, and sets autonomy_ready: true in the frontmatter",
+              "pass": true,
+              "detail": "The output demonstrates a complete zero-interview inference workflow that passes all four eligibility dimensions (scope: 1 file ≤ 3, risk-keyword paths: not on risk list, architectural surface: internal utility not public interface, ticket clarity: clear 'fix' verb with concrete location). The subagent generated a comprehensive spec with autonomy_ready: true in frontmatter, included Autonomous Inference Assessment section explaining why checks passed, recorded substantive decisions in Assumption Authorization entries, and completed the full handoff bundle with worktree/branch/PR creation."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     fix the null check in scripts/lib/eval-response.js\n│  Flags:    --auto\n└─────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-auto-fallback-completeness-gate-pass",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 27754,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Eligibility failure never blocks or errors out — /speccy --auto falls back to the same Stage 1-2 interactive interview and produces a full-template spec, not the small-task template. Because the interview satisfies every completeness-gate item (outcome, architecture/approach, non-goals, definition-of-done, roadmap, risks, and a resolution per ambiguity), the gate self-review passes and the spec is written with autonomy_ready: true in its frontmatter",
+              "pass": true,
+              "detail": "The output correctly demonstrates that when /speccy --auto fails eligibility and falls back to interactive interview, it still produces a full-template spec (not small-task template) and sets autonomy_ready: true after the completeness gate self-review passes all 7 criteria (outcome, architecture, non-goals, definition-of-done, roadmap, risks, ambiguities)."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Mode:     --auto (fallback scenario)\n│  Flags:    --auto\n└─────────────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-auto-fallback-completeness-gate-fail",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 14498,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "The spec is still written even though the fallback completeness gate did not fully pass — a failed gate never blocks spec creation — but it is marked autonomy_ready: false rather than true, so the spec remains usable by ordinary interactive /build but is rejected by an autonomy_ready precondition",
+              "pass": true,
+              "detail": "The output correctly explains that the spec is still written despite completeness gate failure, with autonomy_ready set to false, making it usable by interactive /build but rejected by autonomous preconditions. The explanation accurately describes the fallback behavior and final outcome."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n---\n\nTo answer your scenario: Yes, `/speccy --auto` **still writes the spec** even when the completeness gate fails, and `autonomy_ready` is",
+          "truncated": false
+        },
+        {
+          "name": "speccy-eligibility-scope-fail-fallback",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 19121,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "The scope dimension alone failing is enough to fail the whole eligibility gate, since all four dimensions must pass; /speccy --auto falls back to the real interactive interview rather than running zero-interview inference. This fallback is graceful, per REQ-006 — never a hard error or a rejected ticket",
+              "pass": true,
+              "detail": "The output correctly demonstrates that when the scope dimension fails (4 files > 3 limit), the system gracefully falls back to interactive interview mode rather than producing a hard error or rejecting the ticket, which aligns with REQ-006's requirement for graceful fallback."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     ticket with 4 files (scope failure)\n│  Flags:    --auto\n└────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-eligibility-risk-keyword-fail-fallback",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 16037,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "The risk-keyword-paths dimension fails because the matched file is on the risk-keyword-path list, so the eligibility gate fails overall even though the other three dimensions pass; /speccy --auto falls back to the real interactive interview instead of zero-interview inference, and this fallback is not treated as an error",
+              "pass": true,
+              "detail": "The output correctly demonstrates that dimension 2 (risk-keyword-paths) fails because the matched file is on the risk-keyword-path list, causing the eligibility gate to fail overall despite the other dimensions passing. It accurately shows the fallback to interactive interview without treating it as an error, matching the criterion exactly."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n    ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Mode:     --auto\n│  Ticket:   hypothetical scenario analysis\n│  Flags:    --auto\n└─────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-eligibility-architectural-surface-fail-fallback",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 14998,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "The architectural-surface dimension fails because the matched file is a public/exported interface (a schema/migration file or shared cross-cutting state module would fail it the same way), so the eligibility gate fails overall; /speccy --auto falls back to the real interactive interview rather than zero-interview inference, again not treated as an error or a hard block",
+              "pass": true,
+              "detail": "The output correctly explains that the architectural-surface dimension fails due to a public/exported interface match, causing the eligibility gate to fail overall. It accurately describes how --auto falls back to the interactive interview without treating this as an error or hard block, matching the criterion exactly."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     --auto for architectural surface failure\n│  Flags:    --auto\n└───────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-eligibility-ticket-clarity-fail-fallback",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 16514,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Ticket clarity fails: the text contains hedge/uncertainty language ('maybe', 'explore options for') and has no allowed action verb at or near the start, so the mechanical sub-checks (verb_present, no_hedge_language) fail. A single failing clarity sub-check is enough to fail the whole eligibility gate, so /speccy --auto falls back to the real interactive interview rather than zero-interview inference",
+              "pass": true,
+              "detail": "The output correctly identifies that the ticket contains hedge language ('maybe', 'explore options for') and lacks an allowed action verb at the start, causing the clarity check to fail. It properly concludes that this failure means the eligibility gate fails and --auto falls back to interactive interview, which matches the criterion exactly."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n    ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     maybe explore options for improving the settings page\n│  Flags:    --auto\n└──",
+          "truncated": false
+        },
+        {
+          "name": "speccy-auto-bundled-handoff",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 31577,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "No worktree, branch, commit, or PR is created during the eligibility gate, inference, or interview — /speccy --auto runs entirely in the plain working directory and only at the approval moment (zero-interview inference completes and passes, or the Decision Summary is confirmed) runs the handoff bundle that creates the worktree and branch. Worktree creation is not the literal first action; it happens at approval, bundled with sync, spec commit, push, and draft PR.",
+              "pass": true,
+              "detail": "The output clearly shows the correct timing: the entire eligibility gate and zero-interview inference run in the plain working directory with no git state created. The worktree and branch creation only happens in the 'Post-approval handoff bundle' section after the spec is approved, bundled with sync, commit, push, and draft PR creation as specified."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Goal:     add dark mode toggle to settings page\n│  Flags:    --auto\n└──────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-interactive-bundled-handoff",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 12394,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Interactive (non---auto) /speccy creates no git state during the interview — the worktree and branch are created only at the approval moment (when the Decision Summary is confirmed) by the same post-approval handoff bundle used in --auto mode. Both modes defer all git state to approval; neither creates the worktree as a first action.",
+              "pass": true,
+              "detail": "The output clearly states that interactive /speccy creates no git state during the interview and only creates the worktree after approval, specifically explaining that the worktree is created in step 3 of the post-approval handoff bundle, which matches the criterion exactly."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n    ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Goal:     new feature\n│  Flags:    none\n└──────────────────────────────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-bundle-no-git-state-mid-interview",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 10288,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "No worktree, no branch, no commit, and no PR exist while the interview or inference is still in progress — /speccy creates zero git state before the approval moment. Everything runs in the plain invoking working directory until the spec is approved.",
+              "pass": true,
+              "detail": "The output correctly states that /speccy creates no git state (no worktree, branch, commit, or PR) during the interview/inference phase, and only creates git infrastructure at the approval moment through the 8-step handoff bundle. This directly aligns with the criterion."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n---\n\nDuring a `/speccy` run while the interview or `--auto` inference is still in progress, **no git state exists at all**.\n\nAccording to `b",
+          "truncated": false
+        },
+        {
+          "name": "speccy-bundle-blocking-step-failure",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 12219,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Steps 1-6 are blocking, so the bundle aborts on the push failure, names the exact failed step, and leaves the already-succeeded state (freeze, sync, worktree, branch, commit) in place for inspection. It does NOT write the pending-build marker on a step-1-6 failure.",
+              "pass": true,
+              "detail": "The output correctly states that step 6 push failure prevents the pending-build marker from being written, explains that steps 1-6 are blocking so bundle aborts on push failure, names step 6 as the failed step, and confirms the already-succeeded state (steps 1-5) remains in place for inspection."
+            },
+            {
+              "type": "regex",
+              "value": "(push|step 6)",
+              "pass": true,
+              "detail": "Matches /(push|step 6)/"
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n┌─ Input ────────────────────────────────────────\n│  Query:    Bundle step 6 (push) failure behavior\n│  Flags:    none\n└────────────────────",
+          "truncated": false
+        },
+        {
+          "name": "speccy-bundle-degraded-pr",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 8138,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Step 7 is best-effort and degrades rather than blocking: the worktree, branch, commit, and push all stand, the pending-build marker IS still written (step 8), and the report includes the exact create-pr.sh retry command so the PR can be created later. /build's own Early-draft-PR backstop will create the PR when it runs.",
+              "pass": true,
+              "detail": "The output correctly identifies that step 7 degrades gracefully without blocking, the worktree/branch/commit/push from steps 1-6 remain intact, the pending-build marker is still written in step 8, and the exact retry command is provided. It accurately describes the non-blocking nature and final state where development can continue normally."
+            },
+            {
+              "type": "contains",
+              "value": "create-pr.sh",
+              "pass": true,
+              "detail": "Missing \"create-pr.sh\""
+            }
+          ],
+          "output_preview": "Looking at the bundled-approval-handoff contract in `references/autonomous-worktree-lifecycle.md`, here's exactly what happens when step 7 (draft PR) fails:\n\n## What the Bundle Does\n\n**Step 7 degrades gracefully** - it's marked as \"best-effort\" in the contract:\n\n1. **Reports the failure** with the exact retry command:\n   ```\n   ⚠️ Draft PR creation failed (missing gh) \n   → Retry with: bash skills/ship/scripts/create-pr.sh --draft\n   ```\n\n2. **Still proceeds to step 8** - writes the pending-buil",
+          "truncated": false
+        },
+        {
+          "name": "speccy-interactive-autonomy-ready-true",
+          "skill": "speccy",
+          "status": "pass",
+          "duration_ms": 18002,
+          "assertions": [
+            {
+              "type": "semantic",
+              "value": "Interactive /speccy applies the same completeness gate as --auto's fallback path in its own Stage 3 self-review; because every gate item is satisfied, the resulting spec's frontmatter is autonomy_ready: true even though --auto was never used — the gate is no longer --auto-exclusive",
+              "pass": true,
+              "detail": "The output correctly explains that interactive /speccy applies the same completeness gate as --auto's fallback path in Stage 3 self-review, accurately states that when all gate items are satisfied the spec gets autonomy_ready: true even without --auto being used, and properly identifies that the gate is no longer --auto-exclusive. All key aspects of the criterion are addressed with appropriate technical detail."
+            }
+          ],
+          "output_preview": "🔍 Tell me everything...\n\n⠀   ██╗███████╗██████╗ ███████╗ ██████╗ ██████╗██╗   ██╗\n   ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝╚██╗ ██╔╝\n  ██╔╝ ███████╗██████╔╝█████╗  ██║     ██║      ╚████╔╝\n ██╔╝  ╚════██║██╔═══╝ ██╔══╝  ██║     ██║       ╚██╔╝\n██╔╝   ███████║██║     ███████╗╚██████╗╚██████╗   ██║\n╚═╝    ╚══════╝╚═╝     ╚══════╝ ╚═════╝ ╚═════╝   ╚═╝\n\n```\n┌─ Input ────────────────────────────────────────\n│  Feature:  [Interactive speccy run]\n│  Flags:    none\n└─────────────────────────────",
+          "truncated": false
+        }
+      ]
+    }
+  ]
+}

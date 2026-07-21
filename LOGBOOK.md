@@ -13,7 +13,6 @@
 
 ## Open questions
 - [ ] Redesign /ship (interactive mode) to stop at open PR by default, with trigger-based post-merge trunk-sync + branch/worktree cleanup, instead of merge-and-wait — user-stated principle during autonomous-execution-mode build, scoped out of that spec (CON-003 limits it to --auto only) — /build clarifying questions (autonomous-execution-mode) (2026-07-19)
-- [ ] Unlinked-state detection/resolution for bundled approval handoff — when a spec is committed+pushed but its draft PR was never created (bundle step 7 degraded), something should later detect the missing spec-PR link (live branch lookup returns nothing) and resolve it by rerunning the idempotent create-pr.sh; candidates: session-guard ambient check or a /logbook lifecycle step — /speccy bundled-approval-handoff brainstorming (2026-07-21)
 - [ ] CI Run Evals job passes in 3s without executing evals — API-key guard silently skips, so the PR eval gate is illusory; local runs are the only real gate — /build debrief (bundled-approval-handoff) (2026-07-21)
 
 ## Risks
@@ -21,6 +20,7 @@
 ## Tech debt
 
 ## Archive
+- [x] Unlinked-state detection/resolution for bundled approval handoff — when a spec is committed+pushed but its draft PR was never created (bundle step 7 degraded), something should later detect the missing spec-PR link (live branch lookup returns nothing) and resolve it by rerunning the idempotent create-pr.sh; candidates: session-guard ambient check or a /logbook lifecycle step — /speccy bundled-approval-handoff brainstorming (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] Two keel eval cases use invalid JS regex (?i) and always error: skill-ordering, azdo-awareness — convert to flags:"i" — /build debrief (bundled-approval-handoff) (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] Zero-interview /speccy eligibility scoring (LOGBOOK item #2, original scope) — deterministic hybrid eligibility gate (scope/risk-keyword/architectural-surface/ticket-clarity checks), inference-as-judgment-within-deterministic-envelope, Autonomous Inference Assessment spec section — fully designed via brainstorming Q1-Q6 but deferred as a follow-on spec once the unified /build model (Spec A) exists to build on top of — /speccy fully-autonomous-speccy brainstorming (2026-07-20) (2026-07-20) <!-- resolved:2026-07-20 -->
 - [x] Universal worktree policy — both /speccy and /build always work in a dedicated worktree (not --auto-gated), reverses REQ-005 (interactive /speccy MUST NOT create a worktree). Needed to support /build running standalone without a prior /speccy --auto worktree — /speccy fully-autonomous-speccy brainstorming (2026-07-20) (2026-07-20) <!-- resolved:2026-07-20 -->
