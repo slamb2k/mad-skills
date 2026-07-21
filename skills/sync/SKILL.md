@@ -1,6 +1,6 @@
 ---
 name: sync
-description: Sync local repository with origin/main. Use before starting new work, after completing a PR, or when needing latest upstream changes. Safely stashes uncommitted changes, fetches and pulls origin/main, restores stash, and cleans up stale local branches (merged or with deleted remotes). Invoke when switching contexts or preparing for new feature work.
+description: Sync local repository with origin/main. Use before starting new work, after completing a PR, or when needing latest upstream changes. Safely stashes uncommitted changes, fetches and pulls origin/main, restores stash, and cleans up stale local branches (merged or with deleted remotes). Run from a linked git worktree, it syncs main in the primary checkout instead and removes the worktree once its branch is finished. Invoke when switching contexts or preparing for new feature work.
 argument-hint: --no-stash, --no-cleanup, --no-rebase (optional flags)
 allowed-tools: Bash
 ---
@@ -132,8 +132,13 @@ bash "$SKILL_ROOT/skills/sync/scripts/sync.sh" \
 
 Parse the output between `SYNC_REPORT_BEGIN` and `SYNC_REPORT_END` markers.
 Extract `key=value` pairs for the report fields: `status`, `remote`,
-`default_branch`, `main_updated_to`, `current_branch`, `stash`, `rebase`,
-`branches_cleaned`, `worktrees_skipped`, `errors`.
+`default_branch`, `main_updated_to`, `current_branch`, `worktree_mode`,
+`stash`, `rebase`, `branches_cleaned`, `worktrees_skipped`, `errors`. When
+`worktree_mode=true`, three more fields appear right after it:
+`primary_path` (the repo's main checkout), `worktree_removed` (the removed
+worktree's path, `skipped (<reason>)`, or `none`), and `main_sync`
+(`updated`, `already up to date`, or `skipped (<reason>)` — whether main was
+pulled in the primary).
 
 Branch cleanup also tears down associated worktrees: when a stale branch
 (merged or remote-gone) is checked out in a git worktree carrying a
@@ -142,6 +147,22 @@ Branch cleanup also tears down associated worktrees: when a stale branch
 before the branch is deleted. A worktree with uncommitted changes is never
 force-removed — it and its branch are left intact and reported in
 `worktrees_skipped`.
+
+**Run from a linked worktree**, the script auto-detects this (no flag
+needed) and behaves differently: it syncs main in the primary checkout
+rather than checking it out locally, then — if this worktree's branch is
+finished (merged or its upstream is gone) and the worktree is clean — removes
+the worktree and deletes the branch. A dirty finished worktree is left alone
+(`worktree_removed=skipped (dirty)`); an unfinished branch is rebased in
+place as usual. `--no-cleanup` skips the removal but still syncs main.
+
+**Session return (worktree mode).** If the report shows
+`worktree_removed=<path>` (an actual path, not `none` or a `skipped …`
+reason), the session's cwd no longer exists — the worktree was just removed.
+Before running any further git commands, return to `primary_path`: use the
+native `ExitWorktree` tool if the session entered this worktree via
+`EnterWorktree` and the tool is available; otherwise, run the next Bash
+command with `cd "<primary_path>"` first.
 
 Exit codes: 0=success, 1=fatal error, 2=partial success (conflict warnings).
 
