@@ -12,13 +12,19 @@
 
 ## Deferred fixes
 - [ ] tech-spike.md compatibility pass for real-talk v1.3: spike-first entry assumes brief-mode provisioning; needs provision_at-aware wording + version bump — manual (2026-07-21) <!-- link:spec:specs/real-talk.md -->
+- [ ] /ship Stage 1 calls sync.sh directly with no worktree-mode handling — same gap shape as the fixed Stage 5b; bites when re-running /ship on an already-merged branch from a worktree — /build debrief (worktree-aware-sync, PR #120) (2026-07-21)
 
 ## Open questions
 - [ ] Redesign /ship (interactive mode) to stop at open PR by default, with trigger-based post-merge trunk-sync + branch/worktree cleanup, instead of merge-and-wait — user-stated principle during autonomous-execution-mode build, scoped out of that spec (CON-003 limits it to --auto only) — /build clarifying questions (autonomous-execution-mode) (2026-07-19)
+- [ ] Spec validation criterion 2 (live e2e of AC-009 session return in a real /speccy worktree flow) not yet exercised — verify on first real post-ship /sync from a worktree once plugin updates past v2.0.96 — /build debrief (worktree-aware-sync, PR #120) (2026-07-21)
 
 ## Risks
+- [ ] Sanctioned -D fallback cannot distinguish squash-merged content from unpushed commits made after remote branch deletion — accepted risk (reflog-recoverable); a git cherry unpushed-check would close it — /build debrief (worktree-aware-sync, PR #120) (2026-07-21)
 
 ## Tech debt
+- [ ] sync.sh gone-upstream detection pipeline duplicated twice (worktree finished-check + step-6 sweep) — extract only if touched again — /build debrief (worktree-aware-sync, PR #120) (2026-07-21)
+- [ ] sync.sh worktree-mode sentinel restore gated on non-empty backup — zero-byte .mad-skills-auto not restored after failed removal, asymmetric with prepare_branch_for_delete — /build debrief (worktree-aware-sync, PR #120) (2026-07-21)
+- [ ] ship SKILL.md Stage 5b worktree-mode paragraph is dense — reviewer initially misparsed it as removal-conditional; consider a clarity pass — /build debrief (worktree-aware-sync, PR #120) (2026-07-21)
 
 ## Archive
 - [x] Build worktree-aware /sync (specs/worktree-aware-sync.md): checkout-failure bugfix + worktree mode + session return — queued behind orchestrator-ready build — manual (2026-07-21) <!-- link:spec:specs/worktree-aware-sync.md resolved:2026-07-21 -->
