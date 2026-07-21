@@ -170,6 +170,12 @@ bash "$SKILL_ROOT/skills/sync/scripts/sync.sh" "{REMOTE}" "{DEFAULT_BRANCH}"
 Parse SYNC_REPORT from output markers. Extract `remote` and `default_branch`.
 Abort if exit code is 1 (fatal).
 
+If `worktree_mode=true` and `worktree_removed` is an actual path (not `none`
+or a `skipped …` reason), apply the same worktree-mode session-return
+handling as Stage 5b before any further git command — this means the branch
+was already merged; report that to the user and stop rather than proceeding
+to commit on a now-gone branch.
+
 ---
 
 ## Stage 2: Commit, Push & Create PR
@@ -373,15 +379,19 @@ bash "$SKILL_ROOT/skills/sync/scripts/sync.sh" "{REMOTE}" "{DEFAULT_BRANCH}"
 Parse the `SYNC_REPORT` block from the output for `worktree_mode` and
 `worktree_removed`.
 
-**Worktree mode (`worktree_mode=true`).** If `worktree_removed` is an actual
-path (not `none` or a `skipped …` reason), the session's cwd no longer
-exists — return to `primary_path` (from the same report) BEFORE any further
-git command: use the native `ExitWorktree` tool if the session entered this
-worktree via `EnterWorktree` and the tool is available, otherwise run the
-next Bash command with `cd "<primary_path>"` first. Then skip the
-verification block below entirely — sync.sh already synced main in the
-primary (`main_sync`) and, by design, never checks out the default branch in
-a worktree.
+**Worktree mode (`worktree_mode=true`).** Skip the verification block below
+entirely in ALL worktree_mode=true cases — regardless of whether
+`worktree_removed` is an actual path, `none`, or a `skipped …` reason
+(dirty, unfinished, etc.) — sync.sh already synced main in the primary
+(`main_sync`) and, by design, never checks out the default branch in a
+worktree.
+
+Additionally, if `worktree_removed` is an actual path (not `none` or a
+`skipped …` reason), the session's cwd no longer exists — return to
+`primary_path` (from the same report) BEFORE any further git command: use
+the native `ExitWorktree` tool if the session entered this worktree via
+`EnterWorktree` and the tool is available, otherwise run the next Bash
+command with `cd "<primary_path>"` first.
 
 **Non-worktree mode (`worktree_mode=false`).** Verify the working tree is on
 the default branch:

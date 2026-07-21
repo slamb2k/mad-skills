@@ -99,6 +99,11 @@ do_rebase_and_pop() {
   fi
 }
 
+# List local branches whose upstream is gone (deleted on the remote).
+gone_branches() {
+  git branch -vv 2>/dev/null | grep ': gone]' | sed 's/^[+*]//' | awk '{print $1}'
+}
+
 # Step 1: Check state
 BRANCH=$(git branch --show-current 2>/dev/null || echo "DETACHED")
 CURRENT_BRANCH="$BRANCH"
@@ -173,7 +178,7 @@ if [ "$WORKTREE_MODE" = true ]; then
   if git branch --merged "$DEFAULT_BRANCH" --format='%(refname:short)' 2>/dev/null | grep -qxF "$BRANCH"; then
     FINISHED=true
   fi
-  if git branch -vv 2>/dev/null | grep ': gone]' | sed 's/^[+*]//' | awk '{print $1}' | grep -qxF "$BRANCH"; then
+  if gone_branches | grep -qxF "$BRANCH"; then
     FINISHED=true
     GONE=true
   fi
@@ -192,7 +197,9 @@ if [ "$WORKTREE_MODE" = true ]; then
       # An untracked sentinel blocks plain (non-force) worktree removal — back
       # it up and remove it first, restoring it if removal fails below.
       WT_SENTINEL_BACKUP=""
+      WT_SENTINEL_PRESENT=false
       if [ -f "$WT_PATH/.mad-skills-auto" ]; then
+        WT_SENTINEL_PRESENT=true
         WT_SENTINEL_BACKUP=$(cat "$WT_PATH/.mad-skills-auto" 2>/dev/null)
         rm -f "$WT_PATH/.mad-skills-auto"
       fi
@@ -205,7 +212,7 @@ if [ "$WORKTREE_MODE" = true ]; then
       else
         WORKTREE_REMOVED="skipped (remove failed)"
         EXIT_CODE=2
-        [ -n "$WT_SENTINEL_BACKUP" ] && printf '%s\n' "$WT_SENTINEL_BACKUP" > "$WT_PATH/.mad-skills-auto"
+        [ "$WT_SENTINEL_PRESENT" = true ] && printf '%s\n' "$WT_SENTINEL_BACKUP" > "$WT_PATH/.mad-skills-auto"
       fi
 
       if [ "$WORKTREE_REMOVED" = "$WT_PATH" ]; then
@@ -325,7 +332,7 @@ if [ "$NO_CLEANUP" = false ]; then
     if git branch -d "$b" 2>/dev/null; then
       CLEANED+=("$b")
     fi
-  done < <(git branch -vv 2>/dev/null | grep ': gone]' | sed 's/^[+*]//' | awk '{print $1}')
+  done < <(gone_branches)
 
   # Delete branches fully merged into default branch
   while IFS= read -r b; do
