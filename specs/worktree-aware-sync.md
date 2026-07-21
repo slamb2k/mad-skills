@@ -20,15 +20,17 @@ checkout.
 
 **Purpose:** make `/sync` correct and useful when invoked from a linked
 worktree, without changing its behavior in a normal single-checkout repo
-(beyond one bugfix), and without requiring any changes to `/ship`'s existing
-post-merge `/sync` invocation.
+(beyond one bugfix), and with only the minimal follow-on change to `/ship`'s
+existing post-merge `/sync` invocation needed to keep Stage 5b safe in
+worktree mode (report-driven session return, skip the default-branch
+checkout).
 
 **In scope:** `skills/sync/scripts/sync.sh`, `skills/sync/SKILL.md`,
-colocated tests, eval case updates.
+`skills/ship/SKILL.md` Stage 5b, colocated tests, eval case updates.
 
-**Out of scope:** `/ship` changes (none needed); multi-worktree batch
-cleanup beyond what the existing gone/merged branch cleanup already does;
-Windows-native (non-WSL) paths; changes to `/speccy`'s worktree creation.
+**Out of scope:** multi-worktree batch cleanup beyond what the existing
+gone/merged branch cleanup already does; Windows-native (non-WSL) paths;
+changes to `/speccy`'s worktree creation.
 
 # 2. Definitions
 
@@ -197,7 +199,8 @@ failure: exit `2`.
 - **INF-001**: git ≥ 2.31 (worktree list --porcelain, rev-parse
   --git-common-dir) — already assumed repo-wide.
 - **PLT-001**: bash, Node ≥ 18 (tests only).
-- No external systems; `/ship` consumes `/sync` unchanged.
+- No external systems; `/ship` consumes `/sync`'s report to drive its
+  Stage 5b session-return and checkout-skip logic (§1).
 
 # 9. Examples & Edge Cases
 
@@ -233,4 +236,5 @@ failure: exit `2`.
 - `references/autonomous-worktree-lifecycle.md` — worktree creation side
 - `specs/orchestrator-ready-mad-skills.md` — orchestrated mode never runs
   merge/cleanup (not dispatched), so this change is standalone-mode only
-- `skills/ship/SKILL.md` — invokes `/sync` post-merge, unchanged
+- `skills/ship/SKILL.md` — invokes `/sync` post-merge; Stage 5b made
+  worktree-aware by this spec (§1)
