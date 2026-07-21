@@ -97,7 +97,13 @@ Windows-native (non-WSL) paths; changes to `/speccy`'s worktree creation.
   (current behavior at `sync.sh:53-58`).
 - **CON-003** — The script never deletes the primary checkout, never
   removes a worktree it is currently `cd`'d into, and never force-deletes
-  (`git worktree remove --force` / `git branch -D`) anything.
+  (`git worktree remove --force` / `git branch -D`) anything, with one
+  sanctioned exception: the calling worktree's own branch may fall back to
+  `git branch -D` when it was finished via gone upstream (the /ship
+  squash-merge signature — its commits aren't ancestors of default, so
+  plain `-d` refuses), its worktree was clean, and `git worktree remove`
+  already succeeded. `git worktree remove --force` remains forbidden
+  unconditionally.
 - **GUD-001** — Reuse existing helpers; the diff should read as "one new
   mode branch + one bugfix", not a rewrite.
 

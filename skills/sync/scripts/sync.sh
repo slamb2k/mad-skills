@@ -126,11 +126,13 @@ if [ "$WORKTREE_MODE" = true ]; then
   PRUNED=true
 
   FINISHED=false
+  GONE=false
   if git branch --merged "$DEFAULT_BRANCH" --format='%(refname:short)' 2>/dev/null | grep -qxF "$BRANCH"; then
     FINISHED=true
   fi
   if git branch -vv 2>/dev/null | grep ': gone]' | sed 's/^[+*]//' | awk '{print $1}' | grep -qxF "$BRANCH"; then
     FINISHED=true
+    GONE=true
   fi
 
   if [ "$FINISHED" = true ]; then
@@ -165,6 +167,12 @@ if [ "$WORKTREE_MODE" = true ]; then
 
       if [ "$WORKTREE_REMOVED" = "$WT_PATH" ]; then
         if git branch -d "$BRANCH" 2>/dev/null; then
+          BRANCHES_CLEANED="$BRANCH"
+        elif [ "$GONE" = true ] && git branch -D "$BRANCH" 2>/dev/null; then
+          # AC-003 sanctioned exception: squash-merged commits aren't
+          # ancestors of default, so -d refuses; safe here because the
+          # remote already deleted this exact branch and its worktree is
+          # already gone.
           BRANCHES_CLEANED="$BRANCH"
         fi
         CURRENT_BRANCH="$DEFAULT_BRANCH"
