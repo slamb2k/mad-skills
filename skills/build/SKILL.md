@@ -249,6 +249,11 @@ general-purpose subagents in parallel** — one per group. Do NOT wait for
 `--parallel-impl` flag; parallel execution is the **default** when the
 architecture supports it. The flag is retained only as an explicit override.
 
+After each parallel group of 2+ implementers completes, run the cross-file
+consistency check in `references/autonomous-pipeline.md`'s "Parallel
+implementation — cross-file consistency check" section before dispatching
+any group that depends on it, or before Stage 5 if none remain.
+
 If the architecture has no independent groups, launch **one general-purpose
 subagent**:
 
