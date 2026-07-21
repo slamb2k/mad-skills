@@ -262,6 +262,7 @@ test("AC-006: dirty primary — main sync skipped without mutating primary, work
     const res = runSync(fx.wtPath);
     const report = parseReport(res.stdout);
 
+    assert.equal(res.status, 0, res.stderr);
     assert.equal(report.main_sync, "skipped (dirty primary)");
     assert.equal(
       fs.readFileSync(path.join(fx.primaryPath, "README.md"), "utf-8"),

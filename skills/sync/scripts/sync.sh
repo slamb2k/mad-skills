@@ -56,6 +56,49 @@ emit_report() {
   exit "$EXIT_CODE"
 }
 
+# Stash uncommitted changes (REQ-006 worktree path / Step 2 non-worktree path).
+do_stash() {
+  if [ "$HAS_CHANGES" = true ] && [ "$NO_STASH" = false ]; then
+    if git stash push -m "sync-auto-stash-$(date +%Y%m%d-%H%M%S)" 2>/dev/null; then
+      STASH_CREATED=true
+    fi
+  fi
+}
+
+# Rebase (or merge with --no-rebase) onto DEFAULT_BRANCH, then restore any
+# stash created by do_stash. Pass "false" to skip the rebase/merge step
+# (already on the default branch) while still restoring the stash.
+do_rebase_and_pop() {
+  local should_rebase="${1:-true}"
+  if [ "$should_rebase" = true ]; then
+    if [ "$NO_REBASE" = true ]; then
+      if ! git merge "$DEFAULT_BRANCH" --no-edit 2>/dev/null; then
+        REBASE_STATUS="conflict — merge aborted"
+        EXIT_CODE=2
+      else
+        REBASE_STATUS="success"
+      fi
+    else
+      if ! git rebase "$DEFAULT_BRANCH" 2>/dev/null; then
+        git rebase --abort 2>/dev/null
+        REBASE_STATUS="conflict — aborted, branch unchanged"
+        EXIT_CODE=2
+      else
+        REBASE_STATUS="success"
+      fi
+    fi
+  fi
+
+  if [ "$STASH_CREATED" = true ]; then
+    if git stash pop 2>/dev/null; then
+      STASH_STATUS="restored"
+    else
+      STASH_STATUS="conflict — run 'git stash show' to inspect"
+      EXIT_CODE=2
+    fi
+  fi
+}
+
 # Step 1: Check state
 BRANCH=$(git branch --show-current 2>/dev/null || echo "DETACHED")
 CURRENT_BRANCH="$BRANCH"
@@ -180,45 +223,12 @@ if [ "$WORKTREE_MODE" = true ]; then
     fi
   else
     # REQ-006: unfinished branch — today's behavior, scoped to the worktree.
-    if [ "$HAS_CHANGES" = true ] && [ "$NO_STASH" = false ]; then
-      if git stash push -m "sync-auto-stash-$(date +%Y%m%d-%H%M%S)" 2>/dev/null; then
-        STASH_CREATED=true
-      fi
-    fi
-
-    if [ "$NO_REBASE" = true ]; then
-      if ! git merge "$DEFAULT_BRANCH" --no-edit 2>/dev/null; then
-        REBASE_STATUS="conflict — merge aborted"
-        EXIT_CODE=2
-      else
-        REBASE_STATUS="success"
-      fi
-    else
-      if ! git rebase "$DEFAULT_BRANCH" 2>/dev/null; then
-        git rebase --abort 2>/dev/null
-        REBASE_STATUS="conflict — aborted, branch unchanged"
-        EXIT_CODE=2
-      else
-        REBASE_STATUS="success"
-      fi
-    fi
-
-    if [ "$STASH_CREATED" = true ]; then
-      if git stash pop 2>/dev/null; then
-        STASH_STATUS="restored"
-      else
-        STASH_STATUS="conflict — run 'git stash show' to inspect"
-        EXIT_CODE=2
-      fi
-    fi
+    do_stash
+    do_rebase_and_pop
   fi
 else
   # Step 2: Stash changes
-  if [ "$HAS_CHANGES" = true ] && [ "$NO_STASH" = false ]; then
-    if git stash push -m "sync-auto-stash-$(date +%Y%m%d-%H%M%S)" 2>/dev/null; then
-      STASH_CREATED=true
-    fi
-  fi
+  do_stash
 
   # Step 3: Sync default branch
   git fetch "$REMOTE" 2>/dev/null
@@ -250,39 +260,15 @@ else
   MAIN_MESSAGE=$(git log -1 --format=%s 2>/dev/null)
   MAIN_UPDATED_TO="$MAIN_COMMIT - $MAIN_MESSAGE"
 
-  # Step 4: Return to branch and update
+  # Step 4: Return to branch, rebase, and restore stash
   if [ "$BRANCH" != "$DEFAULT_BRANCH" ]; then
     git checkout "$BRANCH" 2>/dev/null
-
-    if [ "$NO_REBASE" = true ]; then
-      if ! git merge "$DEFAULT_BRANCH" --no-edit 2>/dev/null; then
-        REBASE_STATUS="conflict — merge aborted"
-        EXIT_CODE=2
-      else
-        REBASE_STATUS="success"
-      fi
-    else
-      if ! git rebase "$DEFAULT_BRANCH" 2>/dev/null; then
-        git rebase --abort 2>/dev/null
-        REBASE_STATUS="conflict — aborted, branch unchanged"
-        EXIT_CODE=2
-      else
-        REBASE_STATUS="success"
-      fi
-    fi
+    do_rebase_and_pop
+  else
+    do_rebase_and_pop false
   fi
 
   CURRENT_BRANCH=$(git branch --show-current 2>/dev/null)
-
-  # Step 5: Restore stash
-  if [ "$STASH_CREATED" = true ]; then
-    if git stash pop 2>/dev/null; then
-      STASH_STATUS="restored"
-    else
-      STASH_STATUS="conflict — run 'git stash show' to inspect"
-      EXIT_CODE=2
-    fi
-  fi
 fi
 
 # Print the worktree path a branch is checked out in, if any.
