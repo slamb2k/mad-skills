@@ -158,5 +158,13 @@
       { "type": "contains", "value": "draft" },
       { "type": "semantic", "value": "Before dispatching the first implementation subagent, /build opens the PR as a draft by calling skills/ship/scripts/create-pr.sh --draft directly, which is idempotent and reuses any existing open PR on the branch rather than erroring; every subsequent checkpoint-interview comment and evidence artifact posts against that draft PR" }
     ]
+  },
+  {
+    "name": "build-parallel-consistency-check",
+    "prompt": "ARCH_REPORT identifies a parallel_group of 3 independent implementer subagents for Stage 4. After they all complete, what happens before the next dependent group (or Stage 5) starts? Is this the same thing as Stage 5's code review?",
+    "assertions": [
+      { "type": "regex", "value": "(consisten|drift)", "flags": "i" },
+      { "type": "semantic", "value": "One lightweight subagent checks whether shared identifiers touched by the group's files — spec REQ/AC citations, renamed section headings, shared terminology — still agree with what sibling files in this or already-completed groups assume, since isolated-context parallel agents can't see each other's changes. This is explicitly not a substantive spec-compliance or code-quality review (that's still Stage 5) — it's a cheap, one-dispatch-per-group check for cross-file drift, skipped entirely when a group has only one implementer" }
+    ]
   }
 ]

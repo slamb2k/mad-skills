@@ -140,6 +140,40 @@ departs from) that roadmap — this reasoning flows into the PR's Summary.
 
 ---
 
+## Parallel implementation — cross-file consistency check
+
+Whenever Stage 4 dispatches more than one implementer subagent concurrently
+(a `parallel_group` from ARCH_REPORT), each isolated-context agent can touch
+shared identifiers — spec REQ/AC number citations, cross-file references,
+renamed section headings, shared terminology — without seeing what sibling
+agents changed. This is a distinct risk from the git-level races that
+motivate `subagent-driven-development`'s parallel-dispatch ban (Stage 4 never
+commits during implementation, see Model tiering above) — it's semantic
+drift between isolated agents, not a git conflict.
+
+**Trigger:** after each parallel group completes, before dispatching any
+group that `depends_on` it (or before proceeding to Stage 5, if none
+remain), dispatch ONE lightweight subagent to check whether shared
+identifiers introduced or touched by this group's files still agree with
+what sibling files — in this group or already-completed groups — assume.
+Concretely: REQ/AC citations, renamed section headings still referenced
+elsewhere, terminology introduced in one file used inconsistently in
+another.
+
+**On drift found:** report it immediately and dispatch a targeted fix before
+continuing — do not wait for Stage 5. This is deliberately NOT a full review
+(no spec-compliance or code-quality judgment, just cross-file agreement) —
+Stage 5 still does the substantive review; this check only closes the gap
+isolated-context parallel dispatch is actually prone to.
+
+**On no drift:** proceed silently. This adds one subagent dispatch per
+parallel group, not per task, keeping cost far below a per-task review loop.
+
+**Skip when:** the group has only one implementer — no isolation gap to
+check.
+
+---
+
 ## Review-depth dispatch (REQ-015, GUD-002)
 
 After implementation, before dispatching review, select depth using the
