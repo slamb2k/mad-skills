@@ -46,6 +46,7 @@ if [ "$PLATFORM" = "github" ]; then
   GH_BRANCH_FLAG=$( [ "$DELETE_BRANCH" = true ] && echo "--delete-branch" || echo "" )
 
   GH_MERGE_ERR=$(mktemp)
+  RETRY_FAILED=false
   if gh pr merge "$PR_NUMBER" $GH_MERGE_FLAG $GH_BRANCH_FLAG 2>"$GH_MERGE_ERR"; then
     STATUS="success"
     MERGE_COMMIT=$(gh pr view "$PR_NUMBER" --json mergeCommit -q '.mergeCommit.oid' 2>/dev/null | head -c 7)
@@ -54,10 +55,41 @@ if [ "$PLATFORM" = "github" ]; then
     STATUS="failed"
     ERRORS="gh pr merge failed: $(tr '\n' ' ' <"$GH_MERGE_ERR" | cut -c1-200)"
     BRANCH_DELETED=false
+
+    # The release workflow pushes a version bump to main after every merge, so
+    # a PR shipped later in the same session is often BEHIND when the repo
+    # requires up-to-date branches. Update the branch, wait for the
+    # re-triggered checks to finish, and retry the merge once.
+    MERGE_STATE=$(gh pr view "$PR_NUMBER" --json mergeStateStatus -q '.mergeStateStatus' 2>/dev/null)
+    if [ "$MERGE_STATE" = "BEHIND" ] && gh pr update-branch "$PR_NUMBER" >/dev/null 2>&1; then
+      sleep 20   # let the re-triggered checks register before polling
+      DEADLINE=$(( $(date +%s) + 600 ))
+      while [ "$(date +%s)" -lt "$DEADLINE" ]; do
+        PENDING=$(gh pr checks "$PR_NUMBER" --json state \
+          -q '[.[] | select(.state=="PENDING" or .state=="QUEUED" or .state=="IN_PROGRESS" or .state=="EXPECTED" or .state=="REQUESTED" or .state=="WAITING")] | length' 2>/dev/null)
+        [ "${PENDING:-1}" = "0" ] && break
+        sleep 15
+      done
+      if gh pr merge "$PR_NUMBER" $GH_MERGE_FLAG $GH_BRANCH_FLAG 2>"$GH_MERGE_ERR"; then
+        STATUS="success"
+        MERGE_COMMIT=$(gh pr view "$PR_NUMBER" --json mergeCommit -q '.mergeCommit.oid' 2>/dev/null | head -c 7)
+        BRANCH_DELETED=$DELETE_BRANCH
+        ERRORS="none (merged after update-branch retry)"
+      else
+        RETRY_FAILED=true
+        ERRORS="gh pr merge failed after update-branch retry: $(tr '\n' ' ' <"$GH_MERGE_ERR" | cut -c1-200)"
+      fi
+    fi
   fi
   rm -f "$GH_MERGE_ERR"
   emit_report
-  [ "$STATUS" = "success" ] && exit 0 || exit 1
+  if [ "$STATUS" = "success" ]; then
+    exit 0
+  elif [ "$RETRY_FAILED" = true ]; then
+    exit 2
+  else
+    exit 1
+  fi
 fi
 
 # ── Azure DevOps ────────────────────────────────────────
