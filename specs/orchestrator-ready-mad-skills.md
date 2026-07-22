@@ -514,8 +514,8 @@ Deleting the file restores standalone mode.
 
 ## 12. Related Specifications / Further Reading
 
-- `specs/real-talk.md` — AI Developer Orchestrator core specification (v1.2 draft)
-- `specs/tech-spike.md` — Technical Spike Extension (deferred here)
+- `real-talk` repo, `specs/real-talk.md` — AI Developer Orchestrator core specification (v1.3)
+- `real-talk` repo, `specs/tech-spike.md` — Technical Spike Extension (deferred here)
 - `specs/bundled-approval-handoff.md` — provisioning bundle this contract builds on
 - `specs/autonomous-execution-mode.md` — `--auto` foundations for non-interactive runs
 - `specs/superpowers-complementary-layer.md` + `references/superpowers-deferral.md`
