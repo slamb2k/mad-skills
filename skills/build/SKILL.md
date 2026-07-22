@@ -395,13 +395,15 @@ Invoke the `/ship` skill:
    If `would_relocate` lists one or more candidates AND this is a live
    interactive session (the same condition that gates step 6's AskUserQuestion
    below, not a headless/`--auto` run), present each candidate to the user via
-   `AskUserQuestion` before running the real capture. Options per candidate:
-   - **"Resolve now"** → `node "$_R/hooks/session-guard.cjs" logbook-resolve <n>`
-     (run `logbook-list` first if you haven't already, and match the
-     candidate's title to its current selector `<n>` there — the preview's own
-     numbering is relocation order, not the ledger selector).
-   - **"Dismiss"** → `node "$_R/hooks/session-guard.cjs" logbook-dismiss <n>`,
-     same selector lookup.
+   `AskUserQuestion`. Address each candidate by its title text, not the
+   preview list's ordinal — the preview numbers candidates in victim-selection
+   order (lowest priority, then oldest date), which does not match
+   `logbook-resolve`/`logbook-dismiss`'s plain-number selector (hot-file
+   display order); the title is matched by substring regardless of ordering,
+   so it's the only selector guaranteed to hit the right item. Options per
+   candidate:
+   - **"Resolve now"** → `node "$_R/hooks/session-guard.cjs" logbook-resolve "<title>"`
+   - **"Dismiss"** → `node "$_R/hooks/session-guard.cjs" logbook-dismiss "<title>"`
    - **"Leave it"** → no action; it relocates when the real capture runs below.
 
    On a headless/non-interactive run, skip this prompt entirely and go

@@ -225,10 +225,16 @@ just like an auto-capture:
 node "$_R/hooks/session-guard.cjs" logbook-capture-preview '[{"title":"<text>","category":"<category>","source":"manual","date":"<today>"}]'
 ```
 If `would_relocate` is non-empty, present the candidate(s) via
-`AskUserQuestion` — same per-item choice pattern as `review`: resolve now /
-dismiss / leave it. For each confirmed choice, run `logbook-resolve <n>` /
-`logbook-dismiss <n>` first. Anything left un-acted-on relocates when the real
-add runs next.
+`AskUserQuestion` — same per-item choice pattern as `review`. Address each
+candidate by its title text, not the preview list's ordinal — the preview
+numbers candidates in victim-selection order (lowest priority, then oldest
+date), which does not match `logbook-resolve`/`logbook-dismiss`'s plain-number
+selector (hot-file display order); the title is matched by substring
+regardless of ordering, so it's the only selector guaranteed to hit the right
+item. Options per candidate:
+- **"Resolve now"** → `node "$_R/hooks/session-guard.cjs" logbook-resolve "<title>"`
+- **"Dismiss"** → `node "$_R/hooks/session-guard.cjs" logbook-dismiss "<title>"`
+- **"Leave it"** → no action; it relocates when the real add runs next.
 
 ```bash
 node "$_R/hooks/session-guard.cjs" logbook-add "<text>" --category <ideas|fixes|questions|risks|debt> --link <link>

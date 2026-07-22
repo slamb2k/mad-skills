@@ -508,6 +508,30 @@ test('archive-triage AC-008 restore moves an archive item back to hot, and immed
   } finally { rm(dir); }
 });
 
+test('archive-triage: resolve/dismiss via an a-prefixed selector settle the item in place, without restoring it to hot', () => {
+  const dir = mkRepo();
+  try {
+    fl.write(dir, [
+      item({ title: 'Xarchresolve', category: 'ideas', date: '2026-01-01', location: 'archive', relocatedDate: '2026-06-02' }),
+      item({ title: 'Xarchdismiss', category: 'ideas', date: '2026-01-02', location: 'archive', relocatedDate: '2026-06-01' }),
+    ]);
+
+    const resolved = fl.resolve(dir, 'a1', { today: '2026-07-16' });
+    assert.equal(resolved.title, 'Xarchresolve');
+    assert.equal(resolved.status, 'resolved');
+    assert.equal(resolved.location, 'archive'); // stays put — not restored to hot
+    assert.equal(resolved.resolvedDate, '2026-07-16');
+    assert.equal(resolved.relocatedDate, null);
+
+    const dismissed = fl.dismiss(dir, 'a1', { today: '2026-07-17' }); // Xarchresolve no longer open → now the a1
+    assert.equal(dismissed.title, 'Xarchdismiss');
+    assert.equal(dismissed.status, 'dismissed');
+    assert.equal(dismissed.location, 'archive');
+    assert.equal(dismissed.dismissedDate, '2026-07-17');
+    assert.equal(dismissed.relocatedDate, null);
+  } finally { rm(dir); }
+});
+
 test('restore no-ops safely on a bad/non-archive/non-open selector', () => {
   const dir = mkRepo();
   try {
