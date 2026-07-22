@@ -1,7 +1,7 @@
 ---
 name: logbook
 description: The project's single "what's on deck" surface — one command, two sections. Shows the best-practice lifecycle stages this project should adopt next (computed from repo state, via the recommendation engine) AND the durable backlog of follow-ups (ideas, deferred fixes, open questions, risks, tech debt) captured at /build and /ship so they survive /clear. Lists both, and resolves, dismisses, adds, or reviews follow-ups. Use when you want to see or act on everything outstanding. Triggers: "what's next", "next steps", "/logbook", "what's on deck", "follow-ups", "the backlog", "what did we defer", "lifecycle steps", "what should I do next".
-argument-hint: [review | resolve <n> | dismiss <n> | add <text>]
+argument-hint: "[review | resolve <n> | dismiss <n> | add <text>]"
 allowed-tools: Bash, AskUserQuestion
 ---
 
