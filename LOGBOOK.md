@@ -12,6 +12,8 @@
 
 ## Deferred fixes
 - [ ] tech-spike.md compatibility pass for real-talk v1.3: spike-first entry assumes brief-mode provisioning; needs provision_at-aware wording + version bump — manual (2026-07-21) <!-- link:spec:specs/real-talk.md -->
+- [ ] logbook-capture evicts over-cap entries into Archive and marks them `- [x] ... <!-- resolved:<date> -->` even though nothing was completed — the backlog then silently claims finished work, and `logbook-list` stops surfacing them. Capturing 11 items on one /build debrief aged out 9 real entries this way. Evicted items should keep `- [ ]` and be annotated as aged-out (or not archived at all) so they can be recovered — reported from unfurl (2026-07-22)
+- [ ] ship: azdo REST-mode scripts unusable — `ci-watch.sh` fails with `jq: Cannot iterate over null` and reported `all_passed` while the build was still `inProgress`; `merge.sh` likewise. Also in AzDO CLI mode: `az repos pr update` rejects `--project` (works with `--org` alone), and AzDO caps PR descriptions at 4000 chars so a long body 400s. Both /ship runs on unfurl PRs #155/#156 had to be driven by hand via `az repos pr` calls — reported from unfurl, corroborating #144 (2026-07-22)
 
 ## Open questions
 - [ ] Redesign /ship (interactive mode) to stop at open PR by default, with trigger-based post-merge trunk-sync + branch/worktree cleanup, instead of merge-and-wait — user-stated principle during autonomous-execution-mode build, scoped out of that spec (CON-003 limits it to --auto only) — /build clarifying questions (autonomous-execution-mode) (2026-07-19)
