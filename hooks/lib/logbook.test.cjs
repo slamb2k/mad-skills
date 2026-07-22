@@ -38,7 +38,12 @@ function hash(s) {
 function item(over = {}) {
   return {
     title: 'x', category: 'ideas', source: 'test', date: '2026-01-01',
-    status: 'open', link: null, priority: 'normal', resolvedDate: null, ...over,
+    status: 'open', link: null, priority: 'normal', resolvedDate: null,
+    dismissedDate: null, relocatedDate: null,
+    // location defaults to 'hot': write() treats anything !== 'archive' as
+    // hot (see write()'s `items.filter((it) => it.location !== 'archive')`),
+    // so omitting it here would be safe too — set explicitly for clarity.
+    location: 'hot', ...over,
   };
 }
 
@@ -99,7 +104,7 @@ test('AC-002 dedupe refreshes existing item instead of duplicating', () => {
 
 // ─── AC-003: cap + eviction (priority beats age) ────────────────────────
 
-test('AC-003 21st capture evicts oldest lowest-priority open item', () => {
+test('21st capture relocates oldest lowest-priority open item to the archive file', () => {
   const dir = mkRepo();
   try {
     const seed = [];
@@ -113,10 +118,86 @@ test('AC-003 21st capture evicts oldest lowest-priority open item', () => {
 
     const res = fl.capture(dir, [{ title: 'Xbrandnewitem', category: 'ideas', source: 'new' }], { today: '2026-03-01' });
 
-    assert.deepEqual(res.evicted, ['Xlowpriorityvictim']);
-    assert.equal(fl.count(dir), 20);
-    const archived = fl.read(dir).items.find((i) => i.title === 'Xlowpriorityvictim');
-    assert.notEqual(archived.status, 'open'); // evicted → archived (dismissed/resolved both render `- [x]`)
+    assert.deepEqual(res.relocationCandidates.map((c) => c.title), ['Xlowpriorityvictim']);
+    assert.equal(fl.count(dir), 20); // hot-only count unchanged — relocation, not truncation
+
+    const victim = fl.read(dir).items.find((i) => i.title === 'Xlowpriorityvictim');
+    assert.equal(victim.status, 'open'); // UNCHANGED — the core fix this spec makes
+    assert.equal(victim.location, 'archive');
+    assert.equal(victim.relocatedDate, '2026-03-01');
+
+    const archiveText = fs.readFileSync(path.join(dir, 'LOGBOOK-ARCHIVE.md'), 'utf-8');
+    assert.match(archiveText, /Xlowpriorityvictim.*relocated:2026-03-01/);
+  } finally { rm(dir); }
+});
+
+test('archive-triage AC-001 capture breach relocates candidates without ever setting dismissed or resolved status', () => {
+  const dir = mkRepo();
+  try {
+    const seed = [];
+    for (let i = 0; i < 20; i++) {
+      seed.push(item({ title: `Xac1item${i}`, date: `2026-02-${String(i + 1).padStart(2, '0')}` }));
+    }
+    fl.write(dir, seed);
+
+    const res = fl.capture(dir, [
+      { title: 'Xac1new1', category: 'ideas', source: 'new' },
+      { title: 'Xac1new2', category: 'ideas', source: 'new' },
+    ], { today: '2026-03-01' });
+
+    assert.equal(res.relocationCandidates.length, 2);
+    const items = fl.read(dir).items;
+    for (const cand of res.relocationCandidates) {
+      const it = items.find((i) => i.title === cand.title);
+      assert.equal(it.status, 'open'); // never dismissed or resolved
+      assert.equal(it.location, 'archive');
+      assert.equal(it.relocatedDate, '2026-03-01');
+    }
+  } finally { rm(dir); }
+});
+
+test('archive-triage AC-002 hot-file resolved/dismissed history exceeding ARCHIVE_MAX relocates the oldest excess with status intact', () => {
+  const dir = mkRepo();
+  try {
+    const seed = [];
+    for (let i = 0; i < 30; i++) {
+      const d = `2026-01-${String(i + 1).padStart(2, '0')}`;
+      seed.push(item({ title: `Xhist${i}`, status: 'resolved', resolvedDate: d, date: d }));
+    }
+    // the oldest of all — a dismissed item, so it's the one expected to relocate
+    seed.push(item({ title: 'Xoldestdismissed', status: 'dismissed', dismissedDate: '2025-12-01', date: '2025-12-01' }));
+    fl.write(dir, seed);
+
+    const relocated = fl.read(dir).items.find((i) => i.title === 'Xoldestdismissed');
+    assert.equal(relocated.location, 'archive');
+    assert.equal(relocated.status, 'dismissed'); // original status intact
+    assert.equal(relocated.dismissedDate, '2025-12-01'); // original date intact
+    assert.equal(relocated.resolvedDate, null);
+
+    const archiveText = fs.readFileSync(path.join(dir, 'LOGBOOK-ARCHIVE.md'), 'utf-8');
+    assert.match(archiveText, /Xoldestdismissed.*dismissed:2025-12-01/);
+  } finally { rm(dir); }
+});
+
+test('archive-triage AC-003 legacy bare-marker item (checked, no resolved/dismissed marker) parses as resolved without throwing', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), [
+      '# Follow-ups', '',
+      '## Ideas', '',
+      '## Deferred fixes', '',
+      '## Open questions', '',
+      '## Risks', '',
+      '## Tech debt', '',
+      '## Archive',
+      '- [x] Old evicted item — test (2026-01-01)',
+      '',
+    ].join('\n'));
+
+    assert.doesNotThrow(() => fl.read(dir));
+    const it = fl.read(dir).items.find((i) => i.title === 'Old evicted item');
+    assert.equal(it.status, 'resolved');
+    assert.equal(it.resolvedDate, null); // no explicit marker — fallback only, not a real date
   } finally { rm(dir); }
 });
 
@@ -132,6 +213,22 @@ test('AC-004 linked task# auto-resolves silently to archive', () => {
     assert.equal(fl.count(dir), 0);
     const text = fs.readFileSync(path.join(dir, 'LOGBOOK.md'), 'utf-8');
     assert.match(text, /- \[x\] rig-refresh predicate is shallow.*resolved:2026-07-16/);
+  } finally { rm(dir); }
+});
+
+test('archive-triage AC-006 autoResolveLinked resolves an archive-location item when its link is satisfied', () => {
+  const dir = mkRepo();
+  try {
+    fl.write(dir, [
+      item({ title: 'archived linked item', category: 'fixes', link: 'task#7', location: 'archive', relocatedDate: '2026-07-01' }),
+    ]);
+    const resolved = fl.autoResolveLinked(dir, { taskDone: (id) => id === '7', today: '2026-07-16' });
+
+    assert.equal(resolved.length, 1);
+    assert.equal(resolved[0].location, 'archive'); // stays put — only status changes
+    assert.equal(resolved[0].status, 'resolved');
+    assert.equal(resolved[0].resolvedDate, '2026-07-16');
+    assert.equal(resolved[0].relocatedDate, null); // no longer "open-but-relocated"
   } finally { rm(dir); }
 });
 
@@ -180,8 +277,23 @@ test('reviewCandidates numbers by open-list position (matches resolve <n>)', () 
     ]);
     const cands = fl.reviewCandidates(dir, { today: '2026-07-16' });
     assert.equal(cands.length, 1);
-    assert.equal(cands[0].n, 2); // resolving via `resolve 2` hits this exact item
-    assert.equal(fl.openItems(dir)[cands[0].n - 1].title, cands[0].item.title);
+    assert.equal(cands[0].selector, '2'); // resolving via `resolve 2` hits this exact item
+    assert.equal(fl.openItems(dir)[Number(cands[0].selector) - 1].title, cands[0].item.title);
+  } finally { rm(dir); }
+});
+
+test('archive-triage AC-007 reviewCandidates surfaces a stale relocated item with an a-prefixed selector', () => {
+  const dir = mkRepo();
+  try {
+    fl.write(dir, [
+      item({ title: 'Xstalerelocated', category: 'ideas', date: '2026-01-01', location: 'archive', relocatedDate: '2026-01-01' }),
+    ]);
+    const cands = fl.reviewCandidates(dir, { today: '2026-07-16' }); // well past STALE_DAYS=60
+    assert.equal(cands.length, 1);
+    assert.equal(cands[0].selector, 'a1');
+    assert.match(cands[0].reason, /\(relocated\)/);
+    // consent: reviewCandidates never mutates
+    assert.equal(fl.read(dir).items.find((i) => i.title === 'Xstalerelocated').status, 'open');
   } finally { rm(dir); }
 });
 
@@ -362,6 +474,99 @@ test('rec: link stays open while the rec is still applicable, and for unknown re
   } finally { rm(dir); }
 });
 
+// ─── archive-triage: relocation, restore, previewCapture, archive merge ─
+
+test('archive-triage AC-008 restore moves an archive item back to hot, and immediately relocates overflow if it breaches cap', () => {
+  const dir = mkRepo();
+  try {
+    const seed = [];
+    for (let i = 0; i < 19; i++) {
+      seed.push(item({ title: `Xhot${i}`, date: `2026-02-${String(i + 1).padStart(2, '0')}` }));
+    }
+    seed.push(item({ title: 'Xhotvictim', priority: 'low', date: '2026-01-01' })); // 20th hot item — becomes new victim
+    seed.push(item({
+      title: 'Xarchived', category: 'ideas', date: '2026-01-15',
+      location: 'archive', relocatedDate: '2026-06-01',
+    }));
+    fl.write(dir, seed);
+    assert.equal(fl.count(dir), 20);
+
+    const res = fl.restore(dir, 'a1');
+
+    assert.equal(res.restored.title, 'Xarchived');
+    assert.equal(res.restored.location, 'hot');
+    assert.equal(res.restored.relocatedDate, null);
+    assert.deepEqual(res.relocationCandidates.map((c) => c.title), ['Xhotvictim']); // a DIFFERENT item
+
+    assert.equal(fl.count(dir), 20); // self-balanced back to cap
+
+    const after = fl.read(dir).items;
+    assert.equal(after.find((i) => i.title === 'Xarchived').location, 'hot');
+    const victim = after.find((i) => i.title === 'Xhotvictim');
+    assert.equal(victim.location, 'archive');
+    assert.equal(victim.status, 'open'); // relocation, not eviction
+  } finally { rm(dir); }
+});
+
+test('restore no-ops safely on a bad/non-archive/non-open selector', () => {
+  const dir = mkRepo();
+  try {
+    fl.write(dir, [item({ title: 'hot item' })]);
+    const badSelector = fl.restore(dir, 'a1'); // no archive items at all
+    assert.equal(badSelector.restored, null);
+    assert.deepEqual(badSelector.relocationCandidates, []);
+
+    const hotSelector = fl.restore(dir, '1'); // targets a hot, not archive, item
+    assert.equal(hotSelector.restored, null);
+  } finally { rm(dir); }
+});
+
+test('previewCapture never writes to disk while still reporting relocation candidates', () => {
+  const dir = mkRepo();
+  try {
+    const seed = [];
+    for (let i = 0; i < 20; i++) {
+      seed.push(item({ title: `Xseed${i}`, date: `2026-02-${String(i + 1).padStart(2, '0')}` }));
+    }
+    fl.write(dir, seed);
+    const before = fs.readFileSync(path.join(dir, 'LOGBOOK.md'), 'utf-8');
+    const archivePath = path.join(dir, 'LOGBOOK-ARCHIVE.md');
+    const archiveExistedBefore = fs.existsSync(archivePath);
+
+    const res = fl.previewCapture(dir, [{ title: 'Xnewcandidate', category: 'ideas', source: 'preview' }], { today: '2026-03-01' });
+
+    assert.equal(res.added, 1);
+    assert.equal(res.relocationCandidates.length, 1);
+    assert.equal(fs.readFileSync(path.join(dir, 'LOGBOOK.md'), 'utf-8'), before); // byte-identical — no write occurred
+    assert.equal(fs.existsSync(archivePath), archiveExistedBefore); // still absent
+    assert.equal(fl.count(dir), 20); // a fresh read confirms nothing was persisted
+  } finally { rm(dir); }
+});
+
+test('read merges LOGBOOK-ARCHIVE.md items, tagged location: archive', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), fl.serialize([item({ title: 'hot item' })]));
+    fs.writeFileSync(path.join(dir, 'LOGBOOK-ARCHIVE.md'), fl.serialize([item({ title: 'archived open item' })]));
+
+    const { items } = fl.read(dir);
+    assert.equal(items.length, 2);
+    assert.equal(items.find((i) => i.title === 'archived open item').location, 'archive');
+    assert.equal(items.find((i) => i.title === 'hot item').location, 'hot');
+  } finally { rm(dir); }
+});
+
+test('openItems and count never include archive-location items, even when LOGBOOK-ARCHIVE.md has open relocated items', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), fl.serialize([item({ title: 'hot item' })]));
+    fs.writeFileSync(path.join(dir, 'LOGBOOK-ARCHIVE.md'), fl.serialize([item({ title: 'archived open item' })]));
+
+    assert.equal(fl.count(dir), 1);
+    assert.deepEqual(fl.openItems(dir).map((i) => i.title), ['hot item']);
+  } finally { rm(dir); }
+});
+
 // ─── legacy migration: a rename must never orphan committed items ───────
 
 test('read merges legacy FOLLOWUPS.md and LOG.md so nothing is orphaned', () => {
@@ -404,11 +609,27 @@ test('parse/serialize round-trips items, links, archive, empty categories', () =
     item({ title: 'Add retry', category: 'ideas', source: '/ship #87', date: '2026-07-16' }),
     item({ title: 'shallow predicate', category: 'fixes', link: 'task#15', date: '2026-07-14' }),
     item({ title: 'done thing', category: 'ideas', status: 'resolved', link: 'task#16', date: '2026-07-14', resolvedDate: '2026-07-16' }),
+    item({ title: 'nope not doing it', category: 'ideas', status: 'dismissed', date: '2026-07-10', dismissedDate: '2026-07-15' }),
+    item({ title: 'relocated but still open', category: 'risks', status: 'open', date: '2026-07-01', location: 'archive', relocatedDate: '2026-07-12' }),
   ];
   const reparsed = fl.parse(fl.serialize(items));
-  assert.equal(reparsed.filter((i) => i.status === 'open').length, 2);
+  assert.equal(reparsed.filter((i) => i.status === 'open').length, 3);
   const linked = reparsed.find((i) => i.link === 'task#15');
   assert.equal(linked.category, 'fixes');
-  const archived = reparsed.find((i) => i.status !== 'open');
-  assert.equal(archived.resolvedDate, '2026-07-16');
+
+  const resolved = reparsed.find((i) => i.title === 'done thing');
+  assert.equal(resolved.status, 'resolved');
+  assert.equal(resolved.resolvedDate, '2026-07-16');
+  assert.equal(resolved.dismissedDate, null);
+
+  const dismissed = reparsed.find((i) => i.title === 'nope not doing it');
+  assert.equal(dismissed.status, 'dismissed');
+  assert.equal(dismissed.dismissedDate, '2026-07-15');
+  assert.equal(dismissed.resolvedDate, null);
+
+  const relocated = reparsed.find((i) => i.title === 'relocated but still open');
+  assert.equal(relocated.status, 'open'); // still unchecked — relocation never flips status
+  assert.equal(relocated.relocatedDate, '2026-07-12');
+  assert.equal(relocated.resolvedDate, null);
+  assert.equal(relocated.dismissedDate, null);
 });

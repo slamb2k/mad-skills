@@ -482,15 +482,50 @@ being acted on now) into the committed ledger so they survive `/clear`. Capture
 is automatic and deduped — don't ask permission to capture, only decide what to
 *do* with the items.
 
+This section only ever runs after a successful merge on the primary interactive
+thread — `--auto` mode already stopped at Stage 5 and never reaches here, so
+REQ-007's "skip the breach-time prompt in `--auto` mode" is already satisfied
+structurally; no additional flag check is needed below.
+
+**Preview before capturing (REQ-006/008).** Call the non-mutating preview with
+the same items about to be captured, so a would-be cap breach surfaces before
+anything relocates:
+
 ```bash
 _R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
+node "$_R/hooks/session-guard.cjs" logbook-capture-preview \
+  '[{"title":"…","category":"ideas","source":"/ship #<pr>"}, …]'
+```
+
+Parse `would_relocate` from the `LOGBOOK_CAPTURE_PREVIEW_BEGIN…END` block.
+
+- **If `would_relocate: none`** → skip straight to the real capture below.
+- **If `would_relocate` lists candidates** → present each one individually via
+  AskUserQuestion (mirroring Stage 10's "Let me choose per item" pattern) before
+  the real capture runs. Address each candidate by its title text, not the
+  preview list's ordinal — the preview numbers candidates in victim-selection
+  order (lowest priority, then oldest date), which does not match
+  `logbook-resolve`/`logbook-dismiss`'s plain-number selector (hot-file display
+  order); the title is matched by substring regardless of ordering, so it's the
+  only selector guaranteed to hit the right item. Options per candidate:
+  - **"Resolve now"** → `node "$_R/hooks/session-guard.cjs" logbook-resolve "<title>"`
+  - **"Dismiss"** → `node "$_R/hooks/session-guard.cjs" logbook-dismiss "<title>"`
+  - **"Leave it"** → no action; it relocates to `LOGBOOK-ARCHIVE.md` when the
+    real capture runs
+
+Then run the real capture:
+
+```bash
 node "$_R/hooks/session-guard.cjs" logbook-capture \
   '[{"title":"…","category":"ideas","source":"/ship #<pr>"}, …]'
 ```
 
 If a captured item is also turned into a `TaskCreate` task, re-capture it with a
 `"link":"task#<id>"` so it auto-resolves when the task completes (REQ-012). Then
-show the current open ledger and mention any evictions:
+show the current open ledger and mention any relocations. `logbook-capture`'s
+output reports `relocated:[…]` titles — those items moved to the archive file
+(`LOGBOOK-ARCHIVE.md`), never dismissed or resolved; they're still open and
+still addressable via `/logbook archive` (never silent, GUD-002):
 
 ```bash
 node "$_R/hooks/session-guard.cjs" logbook-list
