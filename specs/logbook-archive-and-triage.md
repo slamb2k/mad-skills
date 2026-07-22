@@ -6,8 +6,6 @@ last_updated: 2026-07-22
 tags: [tool, process, data]
 autonomy_ready: true
 content_hash: sha256:0fe199383d88c9f9b13264d5a03c83a900eccc3fea5bbc46665c7102f037b765
-branch: docs/logbook-archive-and-triage
-worktree_path: /home/slamb2k/work/mad-skills/.claude/worktrees/logbook-archive-triage
 ---
 
 # Introduction
