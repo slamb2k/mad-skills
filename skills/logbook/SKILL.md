@@ -1,7 +1,7 @@
 ---
 name: logbook
 description: The project's single "what's on deck" surface — one command, two sections. Shows the best-practice lifecycle stages this project should adopt next (computed from repo state, via the recommendation engine) AND the durable backlog of follow-ups (ideas, deferred fixes, open questions, risks, tech debt) captured at /build and /ship so they survive /clear. Lists both, and resolves, dismisses, adds, or reviews follow-ups. Use when you want to see or act on everything outstanding. Triggers: "what's next", "next steps", "/logbook", "what's on deck", "follow-ups", "the backlog", "what did we defer", "lifecycle steps", "what should I do next".
-argument-hint: "[review | resolve <n> | dismiss <n> | add <text>]"
+argument-hint: "[review | archive | resolve <n|a<n>> | dismiss <n|a<n>> | restore a<n> | add <text>]"
 allowed-tools: Bash, AskUserQuestion
 ---
 
@@ -59,9 +59,10 @@ clearly separated because they're genuinely different:
   explicitly asking, this **bypasses the ambient anti-nag suppression**
   (active-cycle, cooldown, dismissal watermarks) — you see the full picture.
 - **📌 Follow-ups** — what *you* said you'd come back to (ideas, deferred fixes,
-  open questions, risks, tech debt), **committed** to `LOGBOOK.md` at the repo root
-  and auto-captured at `/build` and `/ship` debrief so they survive `/clear`.
-  Personal and durable.
+  open questions, risks, tech debt), **committed** to `LOGBOOK.md` (plus a
+  sibling `LOGBOOK-ARCHIVE.md` for anything that outgrows it — see Notes) at
+  the repo root and auto-captured at `/build` and `/ship` debrief so they
+  survive `/clear`. Personal and durable.
 
 It is **read-only by default** — it never runs a skill or resolves an item
 unless you choose to. All operations go through `session-guard.cjs` subcommands
@@ -80,8 +81,11 @@ The argument selects the action (default is **show** when empty):
 
 - *(empty)* → **show** both sections
 - `review` → **review** follow-ups (assisted cleanup)
-- `resolve <n>` → **resolve** follow-up n
-- `dismiss <n>` → **dismiss** follow-up n
+- `archive` → **archive** view (lists relocated-open items with `a`-prefixed
+  selectors, plus historical archive entries for context)
+- `resolve <n|a<n>>` → **resolve** follow-up n (hot file) or archive item an
+- `dismiss <n|a<n>>` → **dismiss** follow-up n (hot file) or archive item an
+- `restore a<n>` → **restore** a relocated archive item back into the hot file
 - `add <text>` → **add** a manual follow-up
 
 Set `_R` once for every command below:
@@ -154,6 +158,13 @@ Two tracks:
    `LOGBOOK_REVIEW_BEGIN` … `LOGBOOK_REVIEW_END` block as `N. {title} — {reason}`
    (`LOGBOOK_REVIEW_EMPTY` = nothing to review).
 
+Assisted candidates may mix plain hot-file items (`N`) with archive-resident
+relocated items (`aN`) in the same block — distinguishable by a `(relocated)`
+suffix on the reason string. Resolving an `aN` candidate
+(`logbook-resolve aN`) follows the same user-confirmation discipline as any
+hot-file candidate; it becomes ordinary archive history, it does not restore
+the item to the hot file (see `### restore` for that).
+
 For the assisted candidates you **MUST get user confirmation before resolving
 anything** (never silently drop a free-text idea). Present them via
 `AskUserQuestion` (multi-select + a "keep all" escape); for each confirmed item
@@ -165,22 +176,73 @@ it, scan the `logbook-list` output for items annotated `[task#<id>]`; for each, 
 `TaskGet <id>` — if the task is `completed`, resolve it silently:
 `node "$_R/hooks/session-guard.cjs" logbook-resolve <n>`.
 
+### archive
+
+```bash
+node "$_R/hooks/session-guard.cjs" logbook-archive
+```
+Prints a `LOGBOOK_ARCHIVE_BEGIN` … `LOGBOOK_ARCHIVE_END` block: a numbered
+`a1, a2, …` list of still-open items that relocated off the hot file when it
+hit cap — actionable via `resolve a<n>` · `dismiss a<n>` · `restore a<n>` —
+followed by a `-- history (not actionable) --` block of resolved/dismissed
+archive entries shown for context only, with no action affordance beyond
+display. `LOGBOOK_ARCHIVE_EMPTY` when nothing has ever relocated.
+
+This is read only on demand — never on the hot path `/logbook`'s default
+`show` output touches (see Notes).
+
 ### resolve / dismiss
 
 ```bash
-node "$_R/hooks/session-guard.cjs" logbook-resolve <n>   # done
-node "$_R/hooks/session-guard.cjs" logbook-dismiss <n>   # not done, not wanted
+node "$_R/hooks/session-guard.cjs" logbook-resolve <n|a<n>>   # done
+node "$_R/hooks/session-guard.cjs" logbook-dismiss <n|a<n>>   # not done, not wanted
 ```
-Both move the follow-up to the Archive section and drop it from the open
-list/counts. Confirm the archived title.
+For a plain `<n>`, both move the follow-up to the Archive section and drop it
+from the open list/counts. An `a`-prefixed selector (e.g. `a3`) targets
+`LOGBOOK-ARCHIVE.md`'s still-open (relocated) items instead of the hot file;
+resolving/dismissing one does **not** move it back to `LOGBOOK.md` — it
+becomes ordinary resolved/dismissed history within the archive file itself.
+Confirm the archived title either way.
+
+### restore
+
+```bash
+node "$_R/hooks/session-guard.cjs" logbook-restore a<n>
+```
+Moves a still-open archive item back into `LOGBOOK.md`, clearing its
+`relocated:` marker — it's an ordinary open hot-file item again. If this
+pushes the hot file back over cap (20 open items), the system immediately
+relocates whatever is now lowest-priority/oldest in the hot file, the same
+victim-selection rule as capture-time relocation. Report both the restore and
+any resulting relocation to the user — never silent.
 
 ### add
+
+Preview first — a manual add is itself always interactive and can breach cap
+just like an auto-capture:
+
+```bash
+node "$_R/hooks/session-guard.cjs" logbook-capture-preview '[{"title":"<text>","category":"<category>","source":"manual","date":"<today>"}]'
+```
+If `would_relocate` is non-empty, present the candidate(s) via
+`AskUserQuestion` — same per-item choice pattern as `review`. Address each
+candidate by its title text, not the preview list's ordinal — the preview
+numbers candidates in victim-selection order (lowest priority, then oldest
+date), which does not match `logbook-resolve`/`logbook-dismiss`'s plain-number
+selector (hot-file display order); the title is matched by substring
+regardless of ordering, so it's the only selector guaranteed to hit the right
+item. Options per candidate:
+- **"Resolve now"** → `node "$_R/hooks/session-guard.cjs" logbook-resolve "<title>"`
+- **"Dismiss"** → `node "$_R/hooks/session-guard.cjs" logbook-dismiss "<title>"`
+- **"Leave it"** → no action; it relocates when the real add runs next.
 
 ```bash
 node "$_R/hooks/session-guard.cjs" logbook-add "<text>" --category <ideas|fixes|questions|risks|debt> --link <link>
 ```
 `--category` (default `ideas`) and `--link` are optional. Source is `manual`,
-date is today. Confirm the added item.
+date is today. Confirm the added item — and if the add itself relocated
+another item to make room (the `Relocated to archive (cap reached): [...]`
+line), mention that relocation to the user too. Never silent.
 
 ## Notes
 
@@ -203,3 +265,9 @@ date is today. Confirm the added item.
   never orphans a backlog. The first write in a project (a capture, `resolve`, or
   `add`) consolidates everything into `LOGBOOK.md` and removes the legacy files —
   a visible git change. Nothing is lost across the rename.
+- **LOGBOOK-ARCHIVE.md** is a second, uncapped, git-tracked sibling file that
+  overflow relocates to — never deletes or truncates — once the hot file's
+  open-item cap or its own resolved/dismissed history window fills up. It's
+  read only on demand (`/logbook archive`, `/logbook review`), never on the
+  hot path; `/logbook`'s default (no-argument) output stays byte-for-byte the
+  same as before this file existed.

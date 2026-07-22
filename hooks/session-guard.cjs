@@ -517,7 +517,8 @@ switch (command) {
     try {
       const items = JSON.parse(process.argv[3] || '[]');
       const r = ledger.capture(PROJECT_DIR, items);
-      console.log(`LOGBOOK_CAPTURED added:${r.added} deduped:${r.deduped.length} evicted:${JSON.stringify(r.evicted)}`);
+      const relocated = r.relocationCandidates.map((c) => c.title);
+      console.log(`LOGBOOK_CAPTURED added:${r.added} deduped:${r.deduped.length} relocated:${JSON.stringify(relocated)}`);
     } catch (e) { console.error(`logbook-capture failed: ${e.message}`); }
     break;
   }
@@ -540,9 +541,9 @@ switch (command) {
       const argv = process.argv.slice(3);
       const flag = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
       const title = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && argv[i - 1].startsWith('--'))).join(' ');
-      const { item, evicted } = ledger.add(PROJECT_DIR, { title, category: flag('--category') || 'ideas', link: flag('--link') || null });
+      const { item, relocationCandidates } = ledger.add(PROJECT_DIR, { title, category: flag('--category') || 'ideas', link: flag('--link') || null });
       console.log(item ? `Added: ${item.title} (${item.category})` : 'Nothing added');
-      if (evicted.length) console.log(`Evicted (cap reached): ${JSON.stringify(evicted)}`);
+      if (relocationCandidates.length) console.log(`Relocated to archive (cap reached): ${JSON.stringify(relocationCandidates.map((c) => c.title))}`);
     } catch (e) { console.error(`logbook-add failed: ${e.message}`); }
     break;
   }
@@ -556,13 +557,62 @@ switch (command) {
       const cands = ledger.reviewCandidates(PROJECT_DIR);
       if (!cands.length) { console.log('LOGBOOK_REVIEW_EMPTY'); break; }
       console.log('LOGBOOK_REVIEW_BEGIN');
-      for (const c of cands) console.log(`${c.n}. ${c.item.title} — ${c.reason}`);
+      for (const c of cands) console.log(`${c.selector}. ${c.item.title} — ${c.reason}`);
       console.log('LOGBOOK_REVIEW_END');
     } catch (e) { console.error(`logbook-review failed: ${e.message}`); }
     break;
   }
+  case 'logbook-capture-preview': {
+    // Non-mutating dry-run of logbook-capture — the breach-time triage prompt
+    // shows this before the real capture writes anything (REQ-006/008).
+    try {
+      const items = JSON.parse(process.argv[3] || '[]');
+      const r = ledger.previewCapture(PROJECT_DIR, items);
+      console.log('LOGBOOK_CAPTURE_PREVIEW_BEGIN');
+      console.log(`would_add:${r.added} would_dedupe:${r.deduped.length}`);
+      if (!r.relocationCandidates.length) {
+        console.log('would_relocate: none');
+      } else {
+        r.relocationCandidates.forEach((c, i) => {
+          console.log(`${i + 1}. ${c.title} — ${c.category} · ${c.source} (${c.date})`);
+        });
+      }
+      console.log('LOGBOOK_CAPTURE_PREVIEW_END');
+    } catch (e) { console.error(`logbook-capture-preview failed: ${e.message}`); }
+    break;
+  }
+  case 'logbook-restore': {
+    try {
+      const r = ledger.restore(PROJECT_DIR, process.argv[3]);
+      if (!r.restored) { console.log(`No relocatable item at ${process.argv[3]}`); break; }
+      console.log(`Restored: ${r.restored.title}`);
+      if (r.relocationCandidates.length) {
+        console.log(`Relocated (cap reached): ${JSON.stringify(r.relocationCandidates.map((c) => c.title))}`);
+      }
+    } catch (e) { console.error(`logbook-restore failed: ${e.message}`); }
+    break;
+  }
+  case 'logbook-archive': {
+    try {
+      const { relocated, history } = ledger.archiveView(PROJECT_DIR);
+      if (!relocated.length && !history.length) { console.log('LOGBOOK_ARCHIVE_EMPTY'); break; }
+      console.log('LOGBOOK_ARCHIVE_BEGIN');
+      relocated.forEach((it, i) => {
+        console.log(`a${i + 1}. ${it.title} — ${it.source} (${it.date}) [relocated:${it.relocatedDate}]`);
+      });
+      if (history.length) {
+        console.log('-- history (not actionable) --');
+        for (const it of history) {
+          const marker = it.status === 'resolved' ? `resolved:${it.resolvedDate}` : `dismissed:${it.dismissedDate}`;
+          console.log(`- ${it.title} — ${it.source} (${it.date}) [${marker}]`);
+        }
+      }
+      console.log('LOGBOOK_ARCHIVE_END');
+    } catch (e) { console.error(`logbook-archive failed: ${e.message}`); }
+    break;
+  }
   default:
     console.error(`Session Guard v${config.version}`);
-    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint|lifecycle-next|logbook-hint|logbook-list|logbook-capture|logbook-resolve|logbook-dismiss|logbook-add|logbook-review>');
+    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint|lifecycle-next|logbook-hint|logbook-list|logbook-capture|logbook-capture-preview|logbook-resolve|logbook-dismiss|logbook-add|logbook-review|logbook-archive|logbook-restore>');
     process.exit(1);
 }

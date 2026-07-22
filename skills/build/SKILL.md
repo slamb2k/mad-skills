@@ -379,14 +379,46 @@ Invoke the `/ship` skill:
 
    Build a JSON array (map each item's category to a ledger category —
    `unresolved_risk`/`deferred_fix`/`open_question`/`assumption`/`tech_debt` are
-   accepted verbatim) and capture it:
+   accepted verbatim).
+
+   **Breach-time triage first (REQ-006/008).** Before the real capture, preview
+   what it would do, against the same items array:
    ```bash
    _R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
+   node "$_R/hooks/session-guard.cjs" logbook-capture-preview \
+     '[{"title":"…","category":"deferred_fix","source":"/build debrief"}, …]'
+   ```
+   Parse the `would_relocate` list between `LOGBOOK_CAPTURE_PREVIEW_BEGIN`/`END`.
+   If it reads `would_relocate: none`, skip straight to the real capture below —
+   no prompt needed.
+
+   If `would_relocate` lists one or more candidates AND this is a live
+   interactive session (the same condition that gates step 6's AskUserQuestion
+   below, not a headless/`--auto` run), present each candidate to the user via
+   `AskUserQuestion`. Address each candidate by its title text, not the
+   preview list's ordinal — the preview numbers candidates in victim-selection
+   order (lowest priority, then oldest date), which does not match
+   `logbook-resolve`/`logbook-dismiss`'s plain-number selector (hot-file
+   display order); the title is matched by substring regardless of ordering,
+   so it's the only selector guaranteed to hit the right item. Options per
+   candidate:
+   - **"Resolve now"** → `node "$_R/hooks/session-guard.cjs" logbook-resolve "<title>"`
+   - **"Dismiss"** → `node "$_R/hooks/session-guard.cjs" logbook-dismiss "<title>"`
+   - **"Leave it"** → no action; it relocates when the real capture runs below.
+
+   On a headless/non-interactive run, skip this prompt entirely and go
+   straight to the real capture (REQ-007) — same silent-safety-net behavior as
+   today.
+
+   Then run the real capture:
+   ```bash
    node "$_R/hooks/session-guard.cjs" logbook-capture \
      '[{"title":"…","category":"deferred_fix","source":"/build debrief"}, …]'
    ```
-   Note any `evicted:[…]` in the output — mention evictions to the user (never
-   silent, GUD-002).
+   Note any `relocated:[…]` in the output — mention relocations to the user
+   (never silent, GUD-002): those items moved to the archive file
+   (`LOGBOOK-ARCHIVE.md`), never dismissed or resolved — still open, still
+   addressable via `/logbook archive`.
 
 5. **Display the existing open ledger (REQ-044)** alongside the new items, so the
    user reviews the whole backlog at the checkpoint where they're most likely to
