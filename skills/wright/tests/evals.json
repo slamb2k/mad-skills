@@ -1,0 +1,46 @@
+[
+  {
+    "name": "banner-and-tagline",
+    "prompt": "Update my Claude Code plugins",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(Tightening every bolt|wright is in|Refitting the fleet|maintenance never hurt|Checking the workshop|Bringing everything up to spec|Overhaul in progress|Measure twice)" },
+      { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
+    ]
+  },
+  {
+    "name": "update-all-default",
+    "prompt": "/wright",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "semantic", "value": "Explains that with no argument, every installed plugin is targeted for update, not just one" }
+    ]
+  },
+  {
+    "name": "fuzzy-name-targeting",
+    "prompt": "Update the superpowers plugin without the interactive picker",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(fuzzy|superpowers)", "flags": "i" },
+      { "type": "semantic", "value": "Describes targeting a single plugin by fuzzy name match rather than requiring the exact plugin@marketplace id" }
+    ]
+  },
+  {
+    "name": "dry-run-preview",
+    "prompt": "Show me what /wright --dry-run would do before actually updating anything" ,
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "(dry-run|preview)", "flags": "i" },
+      { "type": "semantic", "value": "Explains that --dry-run resolves and lists the update targets without executing anything, and that it can only show current versions since the underlying CLI has no way to preview what the latest version actually is" }
+    ]
+  },
+  {
+    "name": "restart-reminder",
+    "prompt": "/wright mad-skills",
+    "assertions": [
+      { "type": "contains", "value": "██" },
+      { "type": "regex", "value": "restart", "flags": "i" },
+      { "type": "semantic", "value": "Mentions that the running session keeps the old plugin code until it is restarted, so a restart is needed to apply the update" }
+    ]
+  }
+]
