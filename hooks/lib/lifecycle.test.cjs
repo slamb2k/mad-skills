@@ -422,3 +422,87 @@ test('computeSignature: python flask app detected as server', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// ── REQ-016: stale-build-pr recommendations (pure staleBuildRecs) ──────────
+
+const { STALE_BUILD_PR_DAYS, staleBuildRecs } = lifecycle;
+
+const NOW = 1_700_000_000; // fixed epoch so daysInactive is deterministic
+const DAY = 86400;
+
+// A /build spec resolved to its last-commit age + PR info, as gatherStaleBuilds
+// would produce it. daysInactive defaults past the threshold; url is always set
+// (the first guard drops any pr lacking a url).
+function build(overrides = {}) {
+  const daysInactive = overrides.daysInactive ?? STALE_BUILD_PR_DAYS + 1;
+  const branch = overrides.branch || 'build/feature-x';
+  return {
+    spec: overrides.spec || 'specs/feature-x.md',
+    branch,
+    completionMode: overrides.completionMode ?? null,
+    lastCommitEpoch: NOW - daysInactive * DAY,
+    pr: 'pr' in overrides
+      ? overrides.pr
+      : { state: overrides.state || 'OPEN', url: overrides.url || `https://example/pr/${branch}` },
+  };
+}
+
+function recsFor(builds, extra = {}) {
+  return staleBuildRecs({ builds, prefs: {}, session: 1, now: NOW, pull: false, ...extra });
+}
+
+test('stale-build-pr: open PR past threshold, no completion mode -> resume', () => {
+  const recs = recsFor([build({ state: 'OPEN' })]);
+  assert.equal(recs.length, 1);
+  assert.equal(recs[0].id, 'stale-build-pr:build/feature-x');
+  assert.equal(recs[0].recommendation, 'resume');
+  assert.equal(recs[0].offers, '/build specs/feature-x.md');
+});
+
+test('stale-build-pr: open PR with auto-ship completion mode -> ship', () => {
+  const recs = recsFor([build({ state: 'OPEN', completionMode: 'auto-ship' })]);
+  assert.equal(recs.length, 1);
+  assert.equal(recs[0].recommendation, 'ship');
+  assert.equal(recs[0].offers, '/ship --auto');
+});
+
+test('stale-build-pr: closed-not-merged PR -> close', () => {
+  const recs = recsFor([build({ state: 'CLOSED' })]);
+  assert.equal(recs.length, 1);
+  assert.equal(recs[0].recommendation, 'close');
+});
+
+test('stale-build-pr: merged PR emits no rec', () => {
+  const recs = recsFor([build({ state: 'MERGED' })]);
+  assert.deepEqual(recs, []);
+});
+
+test('stale-build-pr: a build inactive < threshold emits no rec', () => {
+  const recs = recsFor([build({ daysInactive: STALE_BUILD_PR_DAYS - 1 })]);
+  assert.deepEqual(recs, []);
+});
+
+test('stale-build-pr: muted status suppresses the rec', () => {
+  const prefs = { recs: { 'stale-build-pr:build/feature-x': { status: 'muted' } } };
+  const recs = staleBuildRecs({ builds: [build()], prefs, session: 5, now: NOW, pull: false });
+  assert.deepEqual(recs, []);
+});
+
+test('stale-build-pr: dismissed within cooldown suppresses; pull bypasses it', () => {
+  const prefs = { recs: { 'stale-build-pr:build/feature-x': { status: 'dismissed', lastOfferedSession: 4 } } };
+  // session 5, lastOffered 4 -> gap 1 < COOLDOWN (3) -> suppressed in ambient
+  const ambient = staleBuildRecs({ builds: [build()], prefs, session: 5, now: NOW, pull: false });
+  assert.deepEqual(ambient, []);
+  // /logbook pull lists it anyway
+  const pulled = staleBuildRecs({ builds: [build()], prefs, session: 5, now: NOW, pull: true });
+  assert.equal(pulled.length, 1);
+});
+
+test('stale-build-pr: per-branch keying — dismissing one build does not mute another', () => {
+  const a = build({ branch: 'build/a', spec: 'specs/a.md' });
+  const b = build({ branch: 'build/b', spec: 'specs/b.md' });
+  const prefs = { recs: { 'stale-build-pr:build/a': { status: 'dismissed', lastOfferedSession: 5 } } };
+  const recs = staleBuildRecs({ builds: [a, b], prefs, session: 5, now: NOW, pull: false });
+  assert.equal(recs.length, 1, 'only the un-dismissed build surfaces');
+  assert.equal(recs[0].branch, 'build/b');
+});
