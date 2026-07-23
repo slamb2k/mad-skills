@@ -5,7 +5,7 @@ date_created: 2026-07-23
 last_updated: 2026-07-23
 tags: [process, tool, architecture]
 autonomy_ready: true
-content_hash: sha256:e6bc4c3fef893f2caff3e7d10d464a92b1a8683d06c36f3a7a155f4e1d92d6f9
+content_hash: sha256:c52e8f8707df65251797331055dbe548f11e333c8d75686171de004b99490367
 branch: docs/pr-first-autonomous-build
 worktree_path: /home/slamb2k/work/mad-skills/.claude/worktrees/pr-first-autonomous-build
 ---
@@ -85,6 +85,17 @@ a `/build` run rather than a guardrail buried in a reference document.
 - A dedicated `/build --abandon` command — abandonment is expressed by
   closing the PR on GitHub/AzDO; `sync.sh` is taught to recognize that
   state (§3, REQ-014), not to originate it.
+- **Any merge-time trigger for generating downstream assets** (installers,
+  migration scripts, images) or for regenerating documentation beyond
+  `/build`'s existing Stage 8. This spec's teardown (REQ-014/015) only
+  ever removes things (a worktree, a branch) — it deliberately does not
+  grow into a push-on-merge pipeline for producing new artifacts. If that
+  capability is built, it should default to a lazy/pull-on-demand shape
+  (an asset is materialized when something actually asks for it, not
+  synchronously at merge time) rather than reusing this spec's
+  reconciliation sweep, since asset/doc generation is not naturally
+  idempotent the way removing an already-gone worktree or branch is — see
+  the follow-up logged in `LOGBOOK.md` for the separate spec this implies.
 
 # 2. Definitions
 
@@ -449,6 +460,20 @@ spec has valid branch+worktree_path AND worktree exists?
   exposes is the closed-not-merged case, which didn't matter as much when
   bundled-approval-handoff's design assumed most PRs would either merge or
   simply never open (interview abandoned before the bundle ran).
+- **Why REQ-014/015's teardown is "opportunistic reconciliation," named
+  deliberately, not an implementation accident.** No trigger fires teardown
+  the moment a PR is merged or closed — it happens whenever *any* future
+  `/sync` call, run for whatever unrelated reason, next walks the branch
+  graph it already has to walk. This was cross-checked against a divergent
+  design pass (five independent reasoning frames — logistics, on-call
+  reliability, distributed-systems, audit/compliance, and a first-principles
+  frame — explored the general problem of triggering finishing work with no
+  live watcher) and all five independently converged on this same shape:
+  don't invent a watcher, make cleanup a free side effect of work that was
+  going to happen anyway. That convergence is why REQ-014's fix stays a
+  small addition to the existing sweep rather than new trigger
+  infrastructure — the pattern was already right, it just wasn't named as a
+  deliberate principle before.
 
 # 8. Dependencies & External Integrations
 
