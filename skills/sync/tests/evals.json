@@ -32,7 +32,7 @@
     "assertions": [
       { "type": "contains", "value": "██" },
       { "type": "regex", "value": "(worktree)", "flags": "i" },
-      { "type": "semantic", "value": "Explains that when a merged or gone branch's worktree carries a .mad-skills-auto sentinel, sync removes the worktree before deleting the branch, but if that worktree has uncommitted changes, removal is skipped and reported as a reason rather than deleting or silently dropping the branch" }
+      { "type": "semantic", "value": "Explains that when a branch is finished — merged, gone-upstream, or its PR closed without merging — sync removes its worktree before deleting the branch, whether or not that worktree carries a .mad-skills-auto sentinel (most /build-created worktrees no longer carry one at all). If that worktree has uncommitted changes, removal is skipped and reported as a reason rather than deleting or silently dropping the branch" }
     ]
   },
   {

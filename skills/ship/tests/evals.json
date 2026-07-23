@@ -52,11 +52,11 @@
     ]
   },
   {
-    "name": "ship-auto-always-stops-at-open-pr",
+    "name": "ship-auto-merges-on-green-ci",
     "prompt": "Run /ship --auto. CI passes cleanly and /code-review found no issues. Does /ship --auto merge the PR?",
     "assertions": [
-      { "type": "regex", "value": "(does not merge|not merge|never merge|remains open)", "flags": "i" },
-      { "type": "semantic", "value": "--auto always stops at an open PR and never merges, regardless of CI or review outcome — merging remains a human action even when everything passed cleanly" }
+      { "type": "regex", "value": "(merge|squash)", "flags": "i" },
+      { "type": "semantic", "value": "--auto now runs full autopilot: on green CI it proceeds to merge (Stage 5) and post-merge sync/teardown (Stage 5b) exactly like interactive /ship, rather than stopping at the open PR. The completion_mode: auto-ship opt-in that authorizes the unattended merge is set earlier on the spec, not by the flag" }
     ]
   },
   {

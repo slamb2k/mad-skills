@@ -57,11 +57,11 @@
     ]
   },
   {
-    "name": "build-worktree-refusal-no-worktree",
-    "prompt": "Run /build specs/rate-limiter.md. Pre-flight's worktree check compares git rev-parse --git-common-dir against git rev-parse --git-dir and finds they MATCH — this is a plain main working copy, not a linked worktree, because no prior /speccy run created one. What does /build do?",
+    "name": "build-refusal-no-spec-file",
+    "prompt": "Run /build with no spec file argument (or with a path that does not resolve to an existing specs/*.md file). There is no worktree either. What does /build do?",
     "assertions": [
       { "type": "regex", "value": "refus", "flags": "i" },
-      { "type": "semantic", "value": "Refuses immediately, before any stage runs, with a message directing the user to run /speccy first — it does not attempt to bootstrap or create a worktree of its own, and does not perform any partial implementation work" }
+      { "type": "semantic", "value": "Refuses immediately, before any stage runs, because the missing precondition is a resolvable spec FILE argument (REQ-001/AC-011), not a worktree — it directs the user to run /speccy first. A missing worktree is NOT a refusal condition anymore: given a real spec file, /build's find-or-create pre-flight creates the worktree/branch/draft-PR itself rather than refusing" }
     ]
   },
   {
@@ -89,10 +89,11 @@
     ]
   },
   {
-    "name": "build-fix-loop-stuck-escalation",
+    "name": "build-fix-loop-stuck-decide-and-record",
     "prompt": "Run /build. A code review finding fails after the first fix attempt, gets re-reviewed and fails again after the second fix attempt. What does /build do — does it try a third fix, and if not, what happens instead?",
     "assertions": [
-      { "type": "semantic", "value": "Does not attempt a third fix; two consecutive failed fix-then-re-review attempts on the same finding is treated as stuck, and the run escalates via the mid-build question mechanism instead of retrying again" }
+      { "type": "contains", "value": "Assumption Authorization" },
+      { "type": "semantic", "value": "Does not attempt a third fix; two consecutive failed fix-then-re-review attempts on the same finding is treated as stuck. Instead of escalating to any mid-build interview (that mechanism is removed, REQ-008), /build decides-and-records: it writes the stuck finding-set as a new Assumption Authorization entry in the spec (what was attempted, why it is being left) and continues, leaving it visible for normal PR review. No question is asked and no PR comment is posted" }
     ]
   },
   {
@@ -104,60 +105,60 @@
     ]
   },
   {
-    "name": "build-self-eval-risky-triggers-interview",
-    "prompt": "During Stage 4, /build hits an ambiguity that is NOT covered by the spec's Assumption Authorization list, and the affected file is a public exported interface (an architectural-surface marker). Per the three-step self-evaluation, what does /build do, and when does the question actually get surfaced to the user?",
+    "name": "build-self-eval-risky-decides-and-records",
+    "prompt": "During Stage 4, /build hits an ambiguity that is NOT covered by the spec's Assumption Authorization list, and the affected file is a public exported interface (an architectural-surface marker). Per the per-decision self-evaluation, what does /build do — does touching an architectural-surface marker send it to an interview?",
     "assertions": [
-      { "type": "regex", "value": "checkpoint", "flags": "i" },
-      { "type": "semantic", "value": "Because the ambiguity is uncovered by the assumption list and touches an architectural-surface marker, /build defers to an interview rather than deciding alone, and the question is only surfaced at the next checkpoint (e.g. before code review) rather than immediately when it was detected" }
+      { "type": "contains", "value": "Assumption Authorization" },
+      { "type": "semantic", "value": "The former middle step — 'touches a risk-keyword/architectural-surface marker → interview at the next checkpoint' — is removed (REQ-008). Because the ambiguity is uncovered by the assumption list, /build decides it, records a new Assumption Authorization entry in the spec, and keeps going — it does NOT defer to an interview. Risk-keyword and architectural-surface markers still drive review-depth dispatch at Stage 5, but they no longer trigger any mid-build interview" }
     ]
   },
   {
     "name": "build-self-eval-decide-and-record",
-    "prompt": "During Stage 4, /build hits an ambiguity that is NOT covered by the spec's Assumption Authorization list, and it does not touch any risk-keyword path or architectural-surface marker. Per the three-step self-evaluation's third step, what does /build do?",
+    "prompt": "During Stage 4, /build hits an ambiguity that is NOT covered by the spec's Assumption Authorization list. Per the per-decision self-evaluation's second step, what does /build do?",
     "assertions": [
       { "type": "contains", "value": "Assumption Authorization" },
-      { "type": "semantic", "value": "Decides the ambiguity itself, records a brand-new Assumption Authorization entry in the spec, and keeps working — it does not stop to interview the user" }
+      { "type": "semantic", "value": "The self-evaluation is now two steps (step 1: covered by the Assumption Authorization list → resolve silently; step 2: not covered → decide and record). Any ambiguity not covered by the list is decided by /build, recorded as a brand-new Assumption Authorization entry in the spec, and it keeps working — it does not stop to interview the user, regardless of whether a risk-keyword path or architectural-surface marker is touched" }
     ]
   },
   {
-    "name": "build-checkpoint-only-timing",
-    "prompt": "/build is mid-implementation (Stage 4) and detects a genuine ambiguity that needs an interview. Is the question surfaced to the user the moment it's detected, or later? Explain the timing and what /build does in the meantime.",
+    "name": "build-single-front-load-checkpoint",
+    "prompt": "/build is mid-implementation (Stage 4) and detects a genuine ambiguity. Does it surface an interview question to the user at some later checkpoint, or handle it another way? Explain the interaction model.",
     "assertions": [
-      { "type": "regex", "value": "checkpoint", "flags": "i" },
-      { "type": "semantic", "value": "The ambiguity may be detected at any point during implementation, but the interview question itself is only ever surfaced at a defined checkpoint (immediately after handoff, at code-review, or at verify) — never mid-implementation. /build continues any other independent work that doesn't depend on the answer rather than blocking the whole run on one open question" }
+      { "type": "regex", "value": "front-load", "flags": "i" },
+      { "type": "semantic", "value": "There is exactly ONE interview checkpoint — the single front-load checkpoint at Stage 2, before implementation begins (REQ-007). No second, mid-build interview checkpoint exists anymore. An ambiguity detected during Stage 4 is not deferred to a later checkpoint; it is decided-and-recorded as a new Assumption Authorization entry and the run continues unattended (REQ-008)" }
     ]
   },
   {
-    "name": "build-channel-live-session",
-    "prompt": "/build reaches a checkpoint with a deferred interview question, and this is a live interactive session that's currently watching. Which delivery channel does it use to ask the question?",
+    "name": "build-no-interview-live-session",
+    "prompt": "After the front-load checkpoint, /build hits an ambiguity during the autonomous loop, and this is a live interactive session that's currently watching. Does it ask the user via AskUserQuestion?",
     "assertions": [
-      { "type": "contains", "value": "AskUserQuestion" },
-      { "type": "semantic", "value": "Uses AskUserQuestion directly, with an explicit recommendation, because a live watched session can answer synchronously and no PR round-trip is needed" }
+      { "type": "contains", "value": "Assumption Authorization" },
+      { "type": "semantic", "value": "No — the channel-adaptive mid-build question mechanism is removed entirely (REQ-008). Execution is uniform regardless of whether a live session is watching: the ambiguity is decided-and-recorded as a new Assumption Authorization entry and the run continues. AskUserQuestion is used only at the single front-load checkpoint (and the final ship-readiness decision), not for mid-build ambiguities" }
     ]
   },
   {
-    "name": "build-channel-headless",
-    "prompt": "/build reaches a checkpoint with a deferred interview question, but this is a headless/unattended run with no live session watching. Which delivery channel does it use to ask the question?",
+    "name": "build-no-pr-comment-headless",
+    "prompt": "After the front-load checkpoint, /build hits an ambiguity during the autonomous loop on a headless/unattended run with no live session watching. Does it post a question as a comment on the draft PR?",
     "assertions": [
-      { "type": "regex", "value": "(PR|pull request).*comment", "flags": "is" },
-      { "type": "semantic", "value": "Composes a rich artifact with multiple options, pros/cons, and an explicit recommendation, posts it as a comment on the draft PR already open for the work, and sends a notification — it does not use AskUserQuestion since no live session is watching" }
+      { "type": "contains", "value": "Assumption Authorization" },
+      { "type": "semantic", "value": "No — the PR-comment / channel-adaptive delivery mechanism is removed (REQ-008); no question is posted to the PR. The ambiguity is decided-and-recorded as a new Assumption Authorization entry in the spec and the run continues unattended to completion, leaving the decision visible for normal PR review rather than pausing for a reply" }
     ]
   },
   {
-    "name": "build-autonomy-ready-weighting",
-    "prompt": "Compare two otherwise-identical /build runs hitting the same borderline ambiguity — one against a spec with autonomy_ready: true, the other against a spec with autonomy_ready: false (or the field absent entirely). How does autonomy_ready change the outcome, and does it ever override a clear-cut case?",
+    "name": "build-autonomy-ready-not-a-weighting-signal",
+    "prompt": "Compare two otherwise-identical /build runs hitting the same ambiguity during the autonomous loop — one against a spec with autonomy_ready: true, the other against a spec with autonomy_ready: false (or the field absent entirely). Does autonomy_ready change how the ambiguity is handled?",
     "assertions": [
       { "type": "contains", "value": "autonomy_ready" },
-      { "type": "semantic", "value": "autonomy_ready: true nudges the borderline ambiguity toward deciding and recording a new Assumption Authorization entry, while false or absent nudges the same borderline case toward interviewing at the next checkpoint instead; it is only a weighting signal, not a hard gate — a clear-cut ambiguity that plainly touches a risk-keyword path or architectural-surface marker still gets interviewed even when autonomy_ready is true, and a plainly low-risk ambiguity still gets decided even when it's false or absent" }
+      { "type": "semantic", "value": "It makes no difference to the per-decision handling: autonomy_ready is no longer a precondition or a weighting signal on this decision (REQ-008). Every post-front-load-checkpoint ambiguity not covered by the Assumption Authorization list is decided-and-recorded the same way regardless of autonomy_ready's value — there is no interview-vs-decide branch left for it to tip, because the mid-build interview path is removed entirely" }
     ]
   },
   {
-    "name": "build-early-draft-pr",
-    "prompt": "Run /build specs/rate-limiter.md. Stage 4 is about to dispatch its first implementation subagent. /speccy's post-approval handoff bundle already opened a draft PR for this branch. Does /build still call create-pr.sh --draft here, and does it create a second PR?",
+    "name": "build-find-or-create-opens-draft-pr",
+    "prompt": "Run /build specs/rate-limiter.md against a spec that has no branch/worktree_path frontmatter yet. Who opens the draft PR for this branch — /speccy or /build — and at what point?",
     "assertions": [
       { "type": "contains", "value": "draft" },
-      { "type": "regex", "value": "reus", "flags": "i" },
-      { "type": "semantic", "value": "Before dispatching the first implementation subagent, /build still calls skills/ship/scripts/create-pr.sh --draft directly, but this is now an idempotent backstop rather than the PR's origin: since /speccy's handoff bundle already opened the draft PR, create-pr.sh finds and reuses it (reused=true, no duplicate PR — AC-005). /build only actually creates a PR in the degraded case where the bundle's PR step failed. Either way every subsequent checkpoint-interview comment and evidence artifact posts against that draft PR" }
+      { "type": "regex", "value": "find-or-create", "flags": "i" },
+      { "type": "semantic", "value": "/build opens the draft PR itself, as part of its find-or-create pre-flight (REQ-004/REQ-005), not /speccy — /speccy now creates no git state at all. Find-or-create's creation order is: sync, create the branch, commit the frontmatter-updated spec, create the worktree, push, then open the draft PR via skills/ship/scripts/create-pr.sh --draft. This is the only PR-creation path (idempotent — it reuses an already-open PR on the branch), not a backstop for a /speccy bundle. Every subsequent evidence artifact posts against that draft PR" }
     ]
   },
   {
