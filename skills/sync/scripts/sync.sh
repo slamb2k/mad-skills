@@ -18,6 +18,12 @@ for arg in "$@"; do
   esac
 done
 
+# Hosting platform — drives the closed-PR finished check (REQ-014).
+case "$(git remote get-url "$REMOTE" 2>/dev/null)" in
+  *dev.azure.com*|*visualstudio.com*) PLATFORM=azdo ;;
+  *)                                  PLATFORM=github ;;
+esac
+
 # Report fields
 STATUS="success"
 MAIN_UPDATED_TO=""
@@ -104,6 +110,24 @@ gone_branches() {
   git branch -vv 2>/dev/null | grep ': gone]' | sed 's/^[+*]//' | awk '{print $1}'
 }
 
+# Print "CLOSED" when a branch has a PR that was closed without merging (REQ-014),
+# normalized across platforms. Anything else (open, merged, none, error) prints
+# nothing — the safe default is to leave the branch/worktree untouched.
+# `gh pr view --json state` reports MERGED (not CLOSED) for merged PRs, so a
+# squash-merged branch cannot false-positive here; AzDO's closed-not-merged
+# state is a distinct "abandoned" status.
+pr_state_for_branch() {
+  local branch="$1"
+  if [ "$PLATFORM" = azdo ]; then
+    local n
+    n=$(az repos pr list --source-branch "$branch" --status abandoned \
+      --query 'length(@)' -o tsv 2>/dev/null)
+    [ -n "$n" ] && [ "$n" -gt 0 ] 2>/dev/null && echo "CLOSED"
+  else
+    [ "$(gh pr view "$branch" --json state --jq '.state' 2>/dev/null)" = "CLOSED" ] && echo "CLOSED"
+  fi
+}
+
 # Step 1: Check state
 BRANCH=$(git branch --show-current 2>/dev/null || echo "DETACHED")
 CURRENT_BRANCH="$BRANCH"
@@ -181,6 +205,11 @@ if [ "$WORKTREE_MODE" = true ]; then
   if gone_branches | grep -qxF "$BRANCH"; then
     FINISHED=true
     GONE=true
+  fi
+  # REQ-014: a PR closed without merging also counts as finished. Bounded — one
+  # lookup for this worktree's branch only.
+  if [ "$FINISHED" != true ] && [ "$(pr_state_for_branch "$BRANCH")" = "CLOSED" ]; then
+    FINISHED=true
   fi
 
   if [ "$FINISHED" = true ]; then
@@ -296,23 +325,27 @@ worktree_path_for_branch() {
 prepare_branch_for_delete() {
   local branch="$1" wt
   wt=$(worktree_path_for_branch "$branch") || return 0
-  [ -f "$wt/.mad-skills-auto" ] || return 0
   # Dirty if anything other than our own untracked sentinel is present.
   if [ -n "$(git -C "$wt" status --porcelain 2>/dev/null | grep -v '^?? \.mad-skills-auto$')" ]; then
     SKIPPED+=("$branch: worktree has uncommitted changes")
     return 1
   fi
-  # Remove our sentinel first so a plain (non-force) worktree removal succeeds,
-  # keeping its content so it can be restored if removal fails below.
-  local sentinel_backup
-  sentinel_backup=$(cat "$wt/.mad-skills-auto" 2>/dev/null)
-  rm -f "$wt/.mad-skills-auto"
+  # Back up and remove our sentinel (if present) so a plain (non-force) worktree
+  # removal succeeds, restoring it if removal fails below. Sentinel-less
+  # worktrees — every /build worktree now that /speccy no longer writes the
+  # sentinel (REQ-012) — take the same plain-removal path.
+  local sentinel_present=false sentinel_backup=""
+  if [ -f "$wt/.mad-skills-auto" ]; then
+    sentinel_present=true
+    sentinel_backup=$(cat "$wt/.mad-skills-auto" 2>/dev/null)
+    rm -f "$wt/.mad-skills-auto"
+  fi
   if git worktree remove "$wt" 2>/dev/null; then
     return 0
   fi
   # Removal failed (lock, race, etc.) — restore the sentinel so this worktree
   # is still recognized as an auto worktree and retried on the next /sync.
-  printf '%s\n' "$sentinel_backup" > "$wt/.mad-skills-auto"
+  [ "$sentinel_present" = true ] && printf '%s\n' "$sentinel_backup" > "$wt/.mad-skills-auto"
   SKIPPED+=("$branch: worktree removal failed")
   return 1
 }
@@ -344,6 +377,28 @@ if [ "$NO_CLEANUP" = false ]; then
       CLEANED+=("$b")
     fi
   done < <(git branch --merged "$DEFAULT_BRANCH" --format='%(refname:short)' 2>/dev/null | grep -vxF "$DEFAULT_BRANCH")
+
+  # Closed-not-merged PRs (REQ-014): a branch neither merged nor gone-upstream
+  # but whose PR was closed is finished too. Bounded — iterate live worktrees
+  # only (few), one PR-state lookup each, skipping branches already swept above.
+  while IFS= read -r line; do
+    case "$line" in
+      "branch refs/heads/"*) b="${line#branch refs/heads/}" ;;
+      *) continue ;;
+    esac
+    [ -z "$b" ] && continue
+    [ "$b" = "$CURRENT_BRANCH" ] && continue
+    if [ ${#CLEANED[@]} -gt 0 ] && printf '%s\n' "${CLEANED[@]}" | grep -qxF "$b"; then
+      continue
+    fi
+    [ "$(pr_state_for_branch "$b")" = "CLOSED" ] || continue
+    prepare_branch_for_delete "$b" || continue
+    # Closed-not-merged means unmerged commits, so -d refuses; the closed PR is
+    # the human sign-off that the work is abandoned, authorizing -D.
+    if git branch -d "$b" 2>/dev/null || git branch -D "$b" 2>/dev/null; then
+      CLEANED+=("$b")
+    fi
+  done < <(git worktree list --porcelain 2>/dev/null)
 
   if [ ${#CLEANED[@]} -gt 0 ]; then
     SWEPT=$(IFS=,; echo "${CLEANED[*]}")
