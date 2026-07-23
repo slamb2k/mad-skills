@@ -70,7 +70,7 @@ Spec template and writing guidelines: `references/spec-template.md`
 
 Parse optional flags from the request:
 - `--no-superpowers`: Force the standalone interview even when Superpowers is installed
-- `--auto`: Run autonomously — run the interview and completeness-gated spec write via `references/autonomous-interview.md` in the plain working directory (no git state until approval), then the post-approval handoff bundle. Dispatch only; see Stage 1 and Stage 3 below.
+- `--auto`: Run autonomously — run the interview and completeness-gated spec write via `references/autonomous-interview.md` in the plain working directory, then write the pending-build marker and stop. No git state is created (that is `/build`'s find-or-create job). Dispatch only; see Stage 1 and Stage 3 below.
 
 ## Pre-flight
 
@@ -91,7 +91,7 @@ For each row, in order:
 
 ## Stage 1: Context Gathering
 
-**No git state before approval (bundled-approval-handoff.md REQ-001, superseding unified-autonomous-build.md's REQ-001):** `/speccy` creates no worktree, branch, commit, or PR before the spec is approved, in **both** `--auto` and interactive modes. The interview and inference run in the plain invoking working directory; all git state is created at the approval moment by the post-approval handoff bundle (see Output & Handoff, and `references/autonomous-worktree-lifecycle.md` repo root). This supersedes the former worktree-first model, per `specs/bundled-approval-handoff.md`.
+**No git state — spec + marker only (pr-first-autonomous-build.md REQ-012, superseding bundled-approval-handoff.md's REQ-001/REQ-002):** `/speccy` creates no worktree, branch, commit, or PR at any point, in **both** `--auto` and interactive modes. The interview and inference run in the plain invoking working directory; `/speccy` writes only the spec file and the pending-build marker, then stops. All git state — worktree, branch, commit, draft PR — is now created by `/build`'s find-or-create pre-flight the first time `/build {spec}` runs (see Output & Handoff, and `references/autonomous-worktree-lifecycle.md` repo root).
 
 **If `--auto`:** read `skills/speccy/references/autonomous-interview.md` and follow it for the rest of this skill instead of the interactive flow below.
 
@@ -269,12 +269,16 @@ After the spec is created, report to the user:
 └─────────────────────────────────────────────────
 ```
 
-**Handoff bundle (bundled-approval-handoff.md REQ-002):** at the approval moment — in **both** `--auto`
-and interactive modes — run the 8-step post-approval handoff bundle (canonical
-list, blocking semantics, and step details in
-`references/autonomous-worktree-lifecycle.md`, repo root, "Creation — the
-handoff bundle" section). The pending-build marker below is the bundle's final
-step, written per those semantics:
+**Handoff — spec + marker only (pr-first-autonomous-build.md REQ-012):** `/speccy`
+creates **no git state** — no worktree, branch, commit, or PR. In **both**
+`--auto` and interactive modes it writes only the spec file (above) and the
+pending-build marker below, then stops. Worktree/branch/draft-PR creation is now
+`/build`'s job, done as its find-or-create pre-flight the first time
+`/build {spec}` runs (see `references/autonomous-worktree-lifecycle.md`, repo
+root, "Creation — find-or-create" section). To pre-decide the ship-readiness
+outcome, hand-edit the optional `completion_mode: pr | auto-ship` field into the
+spec's frontmatter after generation (absent = ask at ship-readiness); `/speccy`
+does not set it automatically.
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"

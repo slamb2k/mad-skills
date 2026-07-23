@@ -29,6 +29,8 @@ date_created: [YYYY-MM-DD]
 last_updated: [YYYY-MM-DD]
 tags: [e.g., infrastructure, process, design, app, schema, tool, data, architecture]
 autonomy_ready: true | false   # NEW — set when the completeness gate passes, --auto or interactive
+# branch / worktree_path are written by /build's find-or-create — not set here
+completion_mode: pr | auto-ship   # NEW, optional — absent = ask at ship-readiness
 ---
 
 # Introduction

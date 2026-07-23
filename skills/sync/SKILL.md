@@ -140,13 +140,16 @@ worktree's path, `skipped (<reason>)`, or `none`), and `main_sync`
 (`updated`, `already up to date`, or `skipped (<reason>)` — whether main was
 pulled in the primary).
 
-Branch cleanup also tears down associated worktrees: when a stale branch
-(merged or remote-gone) is checked out in a git worktree carrying a
-`.mad-skills-auto` sentinel (an autonomous `--auto` run, per
-`references/autonomous-worktree-lifecycle.md` (repo root)), the worktree is removed
-before the branch is deleted. A worktree with uncommitted changes is never
-force-removed — it and its branch are left intact and reported in
-`worktrees_skipped`.
+Branch cleanup also tears down associated worktrees: a branch is "finished"
+when it's merged, its remote is gone, OR its PR is closed without merging
+(pr-first-autonomous-build.md REQ-014) — checked via a bounded `gh`/`az`
+PR-state lookup, once per live worktree, not once per local branch. A
+finished branch's worktree is removed before the branch is deleted, whether
+or not it carries a `.mad-skills-auto` sentinel — that sentinel is no longer
+written by `/speccy` (see `references/autonomous-worktree-lifecycle.md`,
+repo root), so most `/build`-owned worktrees are sentinel-less by default.
+A worktree with uncommitted changes is never force-removed — it and its
+branch are left intact and reported in `worktrees_skipped`.
 
 **Run from a linked worktree**, the script auto-detects this (no flag
 needed) and behaves differently: it syncs main in the primary checkout

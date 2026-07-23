@@ -109,8 +109,12 @@ Skills call each other where it makes sense:
   session is already context-heavy and the plan is self-contained, it writes a
   waybill and lets a clean session re-run the same `/build` (subagents underneath
   either way). The plugin's SessionStart hook auto-loads the waybill after `/clear`
-- `/speccy` writes specs to `specs/`, `/build` reads them via file path detection
-  (e.g., `/build specs/user-auth.md` reads the file as its plan)
+- `/speccy` writes only the spec to `specs/` plus a pending-build marker — it
+  creates no git state. `/build` reads the spec via file path detection (e.g.,
+  `/build specs/user-auth.md`) and owns **find-or-create**: its first pre-flight
+  action creates the branch/worktree/draft-PR for a fresh spec (commit-before-
+  worktree), or resumes the existing one for an interrupted spec — so the same
+  `/build {spec}` is resumable across interruptions
 - When Superpowers is installed, `/speccy`, `/build`, and `/ship` auto-defer their
   methodology stages to it (see **Positioning: Complementary to Superpowers**),
   announcing the deferral in one line and preserving the `specs/` → `/build` →
