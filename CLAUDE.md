@@ -2,7 +2,7 @@
 
 ## Skill Usage Guide
 
-MAD Skills provides 14 skills covering the full development lifecycle. When this
+MAD Skills provides 15 skills covering the full development lifecycle. When this
 plugin is installed, use these skills proactively — don't wait for the user to
 invoke them by name if the situation clearly calls for one.
 
@@ -58,6 +58,7 @@ their standalone descriptions below.
 | Generating web design variations | `/distil` | `/distil 3 --port 5173` |
 | Resetting context without losing the thread | `/ferry` | `/ferry` or `/ferry commit` |
 | Seeing what's on deck: lifecycle steps + follow-ups backlog | `/logbook` | `/logbook` or `/logbook review` |
+| Updating installed Claude Code plugins | `/wright` | `/wright` or `/wright superpowers --dry-run` |
 
 ### Lifecycle Ordering
 
@@ -75,7 +76,8 @@ Skills produce artifacts that downstream skills consume. The recommended order:
   static sites, or serverless functions directly — no image build)
 - **Utility:** `/sync` keeps your branch current, `/prime` loads project context,
   `/ferry` hands a bloated session off to a clean one (also `/build`'s
-  hand-off execution mode — see **Cross-Skill Integration**)
+  hand-off execution mode — see **Cross-Skill Integration**), `/wright`
+  updates installed plugins (mad-skills itself included)
 
 ### Proactive Skill Suggestions
 
@@ -93,6 +95,7 @@ Suggest or invoke these skills when you observe:
 - User wants to explore design directions for a web UI → `/distil`
 - User says "wrap up", "checkpoint", "clear context", or "start fresh" → `/ferry`
 - User asks "what's next"/"next steps", wants the lifecycle overview, or wants to see/clean up captured follow-ups → `/logbook`
+- User wants to update plugins, refresh a plugin, or update mad-skills/superpowers without the interactive picker → `/wright`
 
 ### Cross-Skill Integration
 
@@ -180,7 +183,7 @@ their behavior accordingly. Both GitHub and Azure DevOps are first-class:
 | PR workflow | `gh pr create/merge` | `az repos pr create` / REST API |
 
 Skills that are platform-aware: `/ship`, `/brace`, `/rig`, `/dock`, `/keel`, `/hoist`.
-Skills that are platform-agnostic: `/sync`, `/prime`, `/speccy`, `/build`, `/distil`.
+Skills that are platform-agnostic: `/sync`, `/prime`, `/speccy`, `/build`, `/distil`, `/wright`.
 
 ### Script-Based Execution
 
@@ -198,7 +201,7 @@ Guidance for contributing to the mad-skills repository itself.
 
 ### Repository Overview
 
-**MAD Skills** is a skill framework for Claude Code. It ships 14 skills
+**MAD Skills** is a skill framework for Claude Code. It ships 15 skills
 covering the full development lifecycle with first-class support for both
 GitHub and Azure DevOps platforms. Skills are installed via
 `npx skills add slamb2k/mad-skills` or as a Claude Code plugin, and invoked
@@ -208,7 +211,7 @@ as slash commands.
 
 ```
 mad-skills/
-├── skills/                  # Skill definitions (14 skills)
+├── skills/                  # Skill definitions (15 skills)
 │   ├── brace/               # Project scaffold initialization
 │   ├── build/               # Context-isolated feature dev pipeline
 │   ├── distil/              # Web design variation generator
@@ -222,7 +225,8 @@ mad-skills/
 │   ├── rig/                 # Repo bootstrapping (hooks, CI, templates)
 │   ├── ship/                # Full PR lifecycle
 │   ├── speccy/              # Interview-driven spec builder
-│   └── sync/                # Repo sync with origin/main
+│   ├── sync/                # Repo sync with origin/main
+│   └── wright/              # Update installed Claude Code plugins
 ├── scripts/                 # Build and CI tooling
 │   ├── validate-skills.js   # Structural validation
 │   ├── lint-skills.js       # SKILL.md linting
