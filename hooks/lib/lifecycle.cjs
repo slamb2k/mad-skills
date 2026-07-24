@@ -703,13 +703,22 @@ function staleBuildRecs({ builds, prefs, session, now, pull }) {
 // IO: of the /build specs (readSpecBuilds), find the one whose branch is
 // checked out in the primary checkout itself — the state find-or-create is
 // meant to avoid. Deliberately bypasses isActiveCycle: dirty + non-default
-// branch is exactly the condition this signal exists to catch.
+// branch is exactly the condition this signal exists to catch. Skips a
+// branch whose PR is already MERGED/CLOSED — same "nothing left to nudge"
+// rule staleBuildRecs applies — since the correct action there is /sync
+// cleanup, not worktree creation.
 function gatherPrimaryCheckoutBuilds(projectDir, builds) {
   if (!builds || !builds.length) return [];
   if (!isPrimaryCheckout(projectDir)) return [];
   const branch = git('rev-parse --abbrev-ref HEAD', projectDir);
   if (!branch || branch === defaultBranch(projectDir)) return [];
-  return builds.filter(b => b.branch === branch);
+  const matched = builds.filter(b => b.branch === branch);
+  if (!matched.length) return [];
+  const platform = detectPlatform(projectDir);
+  return matched.filter(b => {
+    const pr = prInfoForBranch(projectDir, b.branch, platform);
+    return !pr || pr.state === 'OPEN';
+  });
 }
 
 // Pure: builds already filtered to the checked-out branch -> recs, applying
