@@ -45,12 +45,39 @@ if [ "$PLATFORM" = "github" ]; then
   GH_MERGE_FLAG=$( [ "$SQUASH" = true ] && echo "--squash" || echo "--merge" )
   GH_BRANCH_FLAG=$( [ "$DELETE_BRANCH" = true ] && echo "--delete-branch" || echo "" )
 
+  # gh pr merge can fail on its post-merge local branch-switch/delete step
+  # (e.g. base branch already checked out in a sibling worktree) even though
+  # the merge itself succeeded on GitHub. Before trusting a non-zero exit,
+  # check the PR's actual state; if it's already MERGED, treat as success
+  # and finish branch deletion remotely instead of via local git.
+  confirm_merged_despite_error() {
+    local pr_state
+    pr_state=$(gh pr view "$PR_NUMBER" --json state -q '.state' 2>/dev/null)
+    [ "$pr_state" = "MERGED" ]
+  }
+
+  finish_branch_deletion() {
+    [ "$DELETE_BRANCH" = true ] || { BRANCH_DELETED=false; return; }
+    local head_ref
+    head_ref=$(gh pr view "$PR_NUMBER" --json headRefName -q '.headRefName' 2>/dev/null)
+    if [ -n "$head_ref" ] && gh api -X DELETE "repos/{owner}/{repo}/git/refs/heads/$head_ref" >/dev/null 2>&1; then
+      BRANCH_DELETED=true
+    else
+      BRANCH_DELETED=false
+    fi
+  }
+
   GH_MERGE_ERR=$(mktemp)
   RETRY_FAILED=false
   if gh pr merge "$PR_NUMBER" $GH_MERGE_FLAG $GH_BRANCH_FLAG 2>"$GH_MERGE_ERR"; then
     STATUS="success"
     MERGE_COMMIT=$(gh pr view "$PR_NUMBER" --json mergeCommit -q '.mergeCommit.oid' 2>/dev/null | head -c 7)
     BRANCH_DELETED=$DELETE_BRANCH
+  elif confirm_merged_despite_error; then
+    STATUS="success"
+    MERGE_COMMIT=$(gh pr view "$PR_NUMBER" --json mergeCommit -q '.mergeCommit.oid' 2>/dev/null | head -c 7)
+    ERRORS="none (merged; local post-merge cleanup failed: $(tr '\n' ' ' <"$GH_MERGE_ERR" | cut -c1-200))"
+    finish_branch_deletion
   else
     STATUS="failed"
     ERRORS="gh pr merge failed: $(tr '\n' ' ' <"$GH_MERGE_ERR" | cut -c1-200)"
@@ -75,6 +102,11 @@ if [ "$PLATFORM" = "github" ]; then
         MERGE_COMMIT=$(gh pr view "$PR_NUMBER" --json mergeCommit -q '.mergeCommit.oid' 2>/dev/null | head -c 7)
         BRANCH_DELETED=$DELETE_BRANCH
         ERRORS="none (merged after update-branch retry)"
+      elif confirm_merged_despite_error; then
+        STATUS="success"
+        MERGE_COMMIT=$(gh pr view "$PR_NUMBER" --json mergeCommit -q '.mergeCommit.oid' 2>/dev/null | head -c 7)
+        ERRORS="none (merged after update-branch retry; local post-merge cleanup failed: $(tr '\n' ' ' <"$GH_MERGE_ERR" | cut -c1-200))"
+        finish_branch_deletion
       else
         RETRY_FAILED=true
         ERRORS="gh pr merge failed after update-branch retry: $(tr '\n' ' ' <"$GH_MERGE_ERR" | cut -c1-200)"
