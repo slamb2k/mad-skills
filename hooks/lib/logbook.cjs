@@ -795,7 +795,7 @@ function daysBetween(fromDate, toDate) {
 module.exports = {
   // IO surface
   read, write, openItems, count, capture, previewCapture, resolve, dismiss, add,
-  restore, archiveView, autoResolveLinked, reviewCandidates,
+  restore, archiveView, autoResolveLinked, reviewCandidates, defaultBranch,
   // pure core (round-trip test) + the heading map used by session-guard
   parse, serialize, HEADINGS,
 };

@@ -506,3 +506,55 @@ test('stale-build-pr: per-branch keying — dismissing one build does not mute a
   assert.equal(recs.length, 1, 'only the un-dismissed build surfaces');
   assert.equal(recs[0].branch, 'build/b');
 });
+
+// ── REQ-006: primary-checkout-should-be-worktree recommendations (pure primaryCheckoutRecs) ──
+
+const { primaryCheckoutRecs } = lifecycle;
+
+// A /build spec already filtered to the checked-out branch, as
+// gatherPrimaryCheckoutBuilds would produce it.
+function pcBuild(overrides = {}) {
+  return {
+    spec: overrides.spec || 'specs/feature-x.md',
+    branch: overrides.branch || 'build/feature-x',
+  };
+}
+
+function pcRecsFor(builds, extra = {}) {
+  return primaryCheckoutRecs({ builds, prefs: {}, session: 1, now: NOW, pull: false, ...extra });
+}
+
+test('primary-checkout-should-be-worktree: matching build -> rec, even when activeCycle would be true', () => {
+  // dirty + non-default-branch is exactly isActiveCycle's condition — this
+  // signal must fire anyway, since gatherPrimaryCheckoutBuilds is called
+  // unconditionally in evaluate()/next(), not behind the activeCycle gate.
+  const recs = pcRecsFor([pcBuild()]);
+  assert.equal(recs.length, 1);
+  assert.equal(recs[0].id, 'primary-checkout-should-be-worktree:build/feature-x');
+  assert.equal(recs[0].branch, 'build/feature-x');
+  assert.equal(recs[0].spec, 'specs/feature-x.md');
+  assert.equal(recs[0].recommendation, 'create worktree for existing branch');
+});
+
+test('primary-checkout-should-be-worktree: muted status suppresses the rec', () => {
+  const prefs = { recs: { 'primary-checkout-should-be-worktree:build/feature-x': { status: 'muted' } } };
+  const recs = primaryCheckoutRecs({ builds: [pcBuild()], prefs, session: 5, now: NOW, pull: false });
+  assert.deepEqual(recs, []);
+});
+
+test('primary-checkout-should-be-worktree: dismissed within cooldown suppresses; pull bypasses it', () => {
+  const prefs = { recs: { 'primary-checkout-should-be-worktree:build/feature-x': { status: 'dismissed', lastOfferedSession: 4 } } };
+  const ambient = primaryCheckoutRecs({ builds: [pcBuild()], prefs, session: 5, now: NOW, pull: false });
+  assert.deepEqual(ambient, []);
+  const pulled = primaryCheckoutRecs({ builds: [pcBuild()], prefs, session: 5, now: NOW, pull: true });
+  assert.equal(pulled.length, 1);
+});
+
+test('primary-checkout-should-be-worktree: per-branch keying — dismissing one build does not mute another', () => {
+  const a = pcBuild({ branch: 'build/a', spec: 'specs/a.md' });
+  const b = pcBuild({ branch: 'build/b', spec: 'specs/b.md' });
+  const prefs = { recs: { 'primary-checkout-should-be-worktree:build/a': { status: 'dismissed', lastOfferedSession: 5 } } };
+  const recs = primaryCheckoutRecs({ builds: [a, b], prefs, session: 5, now: NOW, pull: false });
+  assert.equal(recs.length, 1, 'only the un-dismissed build surfaces');
+  assert.equal(recs[0].branch, 'build/b');
+});

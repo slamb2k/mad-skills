@@ -12,9 +12,10 @@
 const { existsSync, writeFileSync, mkdirSync, readdirSync } = require('fs');
 const { execFileSync } = require('child_process');
 const { join, dirname } = require('path');
-const { git, gitArgs, readText, readJson } = require('./utils.cjs');
+const { git, gitArgs, readText, readJson, isPrimaryCheckout } = require('./utils.cjs');
 const state = require('./state.cjs');
 const { detectSuperpowers } = require('./superpowers-core.cjs');
+const { defaultBranch } = require('./logbook.cjs');
 
 const COOLDOWN = 3; // sessions before the same dismissed rec may re-offer
 // Days a /build-originated PR may sit without a new commit before the ambient
@@ -697,6 +698,46 @@ function staleBuildRecs({ builds, prefs, session, now, pull }) {
   return recs;
 }
 
+// ─── primary-checkout-should-be-worktree signal ───────────────────────
+
+// IO: of the /build specs (readSpecBuilds), find the one whose branch is
+// checked out in the primary checkout itself — the state find-or-create is
+// meant to avoid. Deliberately bypasses isActiveCycle: dirty + non-default
+// branch is exactly the condition this signal exists to catch.
+function gatherPrimaryCheckoutBuilds(projectDir, builds) {
+  if (!builds || !builds.length) return [];
+  if (!isPrimaryCheckout(projectDir)) return [];
+  const branch = git('rev-parse --abbrev-ref HEAD', projectDir);
+  if (!branch || branch === defaultBranch(projectDir)) return [];
+  return builds.filter(b => b.branch === branch);
+}
+
+// Pure: builds already filtered to the checked-out branch -> recs, applying
+// the same per-branch muted/dismissed/cooldown suppression as staleBuildRecs.
+function primaryCheckoutRecs({ builds, prefs, session, now, pull }) {
+  const recsPref = (prefs && prefs.recs) || {};
+  const recs = [];
+  for (const b of builds || []) {
+    const id = `primary-checkout-should-be-worktree:${b.branch}`;
+    const pref = recsPref[id];
+    if (pref && pref.status === 'muted') continue;
+    if (!pull && pref && pref.status === 'dismissed') {
+      if ((session - (pref.lastOfferedSession || 0)) < COOLDOWN) continue;
+    }
+
+    recs.push({
+      id,
+      type: 'primary-checkout-should-be-worktree',
+      branch: b.branch,
+      spec: b.spec,
+      recommendation: 'create worktree for existing branch',
+      presentation: 'causal',
+      reArm: 'causal',
+    });
+  }
+  return recs;
+}
+
 // ─── evaluate (IO wrapper) ─────────────────────────────────────────────
 
 function evaluate(projectDir, { surface, sourceSkill } = {}) {
@@ -723,9 +764,14 @@ function evaluate(projectDir, { surface, sourceSkill } = {}) {
     const stale = activeCycle ? [] : staleBuildRecs({
       builds: gatherStaleBuilds(projectDir, now), prefs, session, now, pull: false,
     });
-    const allRecs = [...(all || []), ...stale];
+    // Primary-checkout-should-be-worktree — unconditional, bypasses activeCycle
+    // (the dirty + non-default-branch state it exists to catch, not suppress).
+    const primaryCheckout = primaryCheckoutRecs({
+      builds: gatherPrimaryCheckoutBuilds(projectDir, readSpecBuilds(projectDir)), prefs, session, now, pull: false,
+    });
+    const allRecs = [...(all || []), ...stale, ...primaryCheckout];
     // Keep a REGISTRY offer first; surface a stale nudge only when nothing else is.
-    return { offer: offer || stale[0] || null, all: allRecs };
+    return { offer: offer || stale[0] || primaryCheckout[0] || null, all: allRecs };
   } catch {
     return { offer: null, all: [] }; // CON-003
   }
@@ -750,7 +796,10 @@ function next(projectDir) {
     const stale = staleBuildRecs({
       builds: gatherStaleBuilds(projectDir, now), prefs, session, now, pull: true,
     });
-    const annotated = [...(all || []), ...stale].map(r => ({
+    const primaryCheckout = primaryCheckoutRecs({
+      builds: gatherPrimaryCheckoutBuilds(projectDir, readSpecBuilds(projectDir)), prefs, session, now, pull: true,
+    });
+    const annotated = [...(all || []), ...stale, ...primaryCheckout].map(r => ({
       ...r,
       status: (recsPref[r.id] && recsPref[r.id].status) || 'available',
     }));
@@ -788,4 +837,6 @@ module.exports = {
   releaseSelect,
   // stale-build-pr signal (REQ-016) — pure helper + IO gatherer exposed for tests
   STALE_BUILD_PR_DAYS, staleBuildRecs, gatherStaleBuilds,
+  // primary-checkout-should-be-worktree signal (REQ-006) — pure helper + IO gatherer
+  readSpecBuilds, primaryCheckoutRecs, gatherPrimaryCheckoutBuilds,
 };
