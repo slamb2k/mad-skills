@@ -321,21 +321,21 @@ This specification is satisfied when:
 
 # Definition of Done
 
-- [ ] `skills/build/SKILL.md`'s find-or-create Create path and spec-file
+- [x] `skills/build/SKILL.md`'s find-or-create Create path and spec-file
       refusal live in a section separate from `## Pre-flight`, positioned
       before it (REQ-001, AC-003).
-- [ ] The restructured section explicitly states worktree creation MUST
+- [x] The restructured section explicitly states worktree creation MUST
       NOT be skipped for cost/convenience reasons (REQ-002, AC-003).
-- [ ] A post-Create enforcement check verifies the session is inside a
+- [x] A post-Create enforcement check verifies the session is inside a
       worktree before Stage 1, reusing the git-native detection primitive
       (REQ-003, AC-001).
-- [ ] On guard failure, `/build` hard-stops with an error naming the
+- [x] On guard failure, `/build` hard-stops with an error naming the
       existing branch/commit and the two recovery options, with no
       automated repair attempted (REQ-004, AC-002).
-- [ ] `hooks/lib/lifecycle.cjs` surfaces a "primary checkout should be a
+- [x] `hooks/lib/lifecycle.cjs` surfaces a "primary checkout should be a
       worktree" recommendation, reusing existing cooldown/dismissal
       conventions (REQ-006, AC-004).
-- [ ] Audit finding documented: speccy/ship have no MUST-level content
+- [x] Audit finding documented: speccy/ship have no MUST-level content
       inside their Pre-flight sections (REQ-005, AC-005).
-- [ ] `npm run validate && npm run lint && npm run test:unit` all pass
+- [x] `npm run validate && npm run lint && npm run test:unit` all pass
       with updated and new tests covering the above.
