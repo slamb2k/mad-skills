@@ -168,5 +168,21 @@
       { "type": "regex", "value": "(consisten|drift)", "flags": "i" },
       { "type": "semantic", "value": "One lightweight subagent checks whether shared identifiers touched by the group's files — spec REQ/AC citations, renamed section headings, shared terminology — still agree with what sibling files in this or already-completed groups assume, since isolated-context parallel agents can't see each other's changes. This is explicitly not a substantive spec-compliance or code-quality review (that's still Stage 5) — it's a cheap, one-dispatch-per-group check for cross-file drift, skipped entirely when a group has only one implementer" }
     ]
+  },
+  {
+    "name": "build-worktree-creation-non-degradable-cost",
+    "prompt": "Run /build on a spec in a monorepo where each worktree needs a full package-manager install, which takes several minutes and nothing else is currently running. Per the Find-or-Create section, is this a valid reason to skip or degrade worktree creation and commit the spec/branch in the primary checkout instead?",
+    "assertions": [
+      { "type": "regex", "value": "MUST NOT", "flags": "i" },
+      { "type": "semantic", "value": "No — worktree creation must not be skipped or degraded for any reason, including perceived cost such as per-tree install time. This is stated as a correctness requirement (traceability, evidence isolation, avoiding polluting the primary checkout), not a performance optimization to weigh against convenience" }
+    ]
+  },
+  {
+    "name": "build-enforcement-guard-hard-stop",
+    "prompt": "After find-or-create's Create path completes, /build checks git rev-parse --git-common-dir against git rev-parse --git-dir and finds they are identical, meaning it is still in the primary checkout. What does /build do?",
+    "assertions": [
+      { "type": "regex", "value": "hard-stop|hard stop", "flags": "i" },
+      { "type": "semantic", "value": "/build hard-stops immediately, before Stage 1, with an error naming the branch and commit that already exist in the primary checkout, and offers exactly two recovery options: manually create a worktree checking out the existing branch and re-run /build, or investigate why creation failed. It does not proceed to Stage 1 and does not attempt any automated repair" }
+    ]
   }
 ]
