@@ -700,6 +700,21 @@ function staleBuildRecs({ builds, prefs, session, now, pull }) {
 
 // ─── primary-checkout-should-be-worktree signal ───────────────────────
 
+// This is a low-confidence, symptom-based backstop, not a general lifecycle
+// recommendation like its neighbors above. It exists because find-or-create's
+// worktree step was skipped in production once already (the real-talk
+// incident) despite being spec'd correctly — the actual fix is the
+// non-degradable prose + hard-stop guard in skills/build/SKILL.md; this
+// signal only catches the resulting state if that guard is ever rationalized
+// past again. It cannot tell "find-or-create's guard failed" apart from
+// "this checkout was deliberately built without a worktree" (e.g. a session
+// configured to work in place) — it only sees the structural match (primary
+// checkout, non-default branch, matches a spec's frontmatter). Revisit
+// whether this should remain a permanent engine feature once there's real
+// post-release signal on whether the SKILL.md guard holds: if it keeps
+// firing across genuine /build runs, the guard isn't working; if it never
+// fires, it's dead weight worth removing rather than extending further.
+
 // IO: of the /build specs (readSpecBuilds), find the one whose branch is
 // checked out in the primary checkout itself — the state find-or-create is
 // meant to avoid. Deliberately bypasses isActiveCycle: dirty + non-default
@@ -741,7 +756,7 @@ function primaryCheckoutRecs({ builds, prefs, session, now, pull }) {
       spec: b.spec,
       recommendation: 'create worktree for existing branch',
       offers: `/build ${b.spec}`,
-      prompt: `Branch ${b.branch} is checked out directly in the primary checkout instead of a worktree (${b.spec}) — resume it via /build to move it into a worktree?`,
+      prompt: `Branch ${b.branch} (${b.spec}) is in the primary checkout instead of a worktree — find-or-create may have missed this one; resume via /build to fix it?`,
       presentation: 'causal',
       reArm: 'causal',
     });

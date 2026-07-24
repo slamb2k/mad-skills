@@ -21,6 +21,7 @@
 
 ## Open questions
 - [ ] Redesign /ship (interactive mode) to stop at open PR by default, with trigger-based post-merge trunk-sync + branch/worktree cleanup, instead of merge-and-wait — user-stated principle during autonomous-execution-mode build, scoped out of that spec (CON-003 limits it to --auto only) — /build clarifying questions (autonomous-execution-mode) (2026-07-19)
+- [ ] primary-checkout-should-be-worktree lifecycle signal is a low-confidence symptom-based backstop for find-or-create's guard, not a general recommendation — revisit whether it should remain a permanent engine feature once there's real post-release data: if it keeps firing on genuine /build runs the SKILL.md guard isn't holding, if it never fires it's dead weight worth removing — design discussion following build-find-or-create-enforcement (PR #126) (2026-07-24)
 
 ## Risks
 
