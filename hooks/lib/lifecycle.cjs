@@ -731,6 +731,8 @@ function primaryCheckoutRecs({ builds, prefs, session, now, pull }) {
       branch: b.branch,
       spec: b.spec,
       recommendation: 'create worktree for existing branch',
+      offers: `/build ${b.spec}`,
+      prompt: `Branch ${b.branch} is checked out directly in the primary checkout instead of a worktree (${b.spec}) — resume it via /build to move it into a worktree?`,
       presentation: 'causal',
       reArm: 'causal',
     });
