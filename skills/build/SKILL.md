@@ -83,28 +83,13 @@ Caps (flag/env/default, any hit forces stop-and-report): `--iterations`/`BUILD_A
 
 ---
 
-## Pre-flight
+## Find-or-Create
 
-Before starting, check all dependencies in this table:
-
-| Dependency | Type | Check | Required | Resolution | Detail |
-|-----------|------|-------|----------|------------|--------|
-| ship | skill | `ls .claude/skills/ship/SKILL.md ~/.claude/skills/ship/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ship/SKILL.md 2>/dev/null` | yes | stop | Install with: npx skills add slamb2k/mad-skills --skill ship |
-| prime | skill | `ls .claude/skills/prime/SKILL.md ~/.claude/skills/prime/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md 2>/dev/null` | no | fallback | Context loading; falls back to manual CLAUDE.md/goals scan |
-| feature-dev | plugin | on-disk glob via scripts/lib/feature-dev.js | no | fallback | Detected on disk → try feature-dev:code-explorer / code-architect / code-reviewer first, general-purpose agent as fallback if the subagent_type isn't actually registered |
-| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Detected for `--no-superpowers` parity with speccy/ship; Stage 4 never defers to it (model-tiering enforceability, see references/autonomous-pipeline.md's Model tiering section) — see references/superpowers-deferral.md |
-| ferry | skill | `ls .claude/skills/ferry/SKILL.md ~/.claude/skills/ferry/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ferry/SKILL.md 2>/dev/null` | no | fallback | Powers the "hand off to a clean session" execution mode; ships with mad-skills, so normally present |
-
-For each row, in order:
-1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
-2. If found: continue silently
-3. If missing: apply Resolution strategy
-   - **stop**: notify user with Detail, halt execution
-   - **url**: notify user with Detail (install link), halt execution
-   - **install**: notify user, run the command in Detail, continue if successful
-   - **ask**: notify user, offer to run command in Detail, continue either way (or halt if required)
-   - **fallback**: notify user with Detail, continue with degraded behavior
-4. After all checks: summarize what's available and what's degraded
+Worktree creation MUST NOT be skipped or degraded for any reason, including
+perceived cost (e.g. per-tree dependency install time) — it is a correctness
+requirement (traceability, evidence isolation, avoiding polluting the primary
+checkout with in-progress feature branches), not a performance optimization
+(REQ-002).
 
 **Find-or-create (REQ-002–REQ-006):** before any other pre-flight check, run
 find-or-create (canonical flow in `references/autonomous-pipeline.md`'s
@@ -130,11 +115,50 @@ find-or-create (canonical flow in `references/autonomous-pipeline.md`'s
   draft PR via `skills/ship/scripts/create-pr.sh --draft` (idempotent, reuses
   any existing open PR).
 
+**Enforcement guard (REQ-003–REQ-004):** immediately after find-or-create's
+Create path completes, and before Stage 1 (Explore) begins, verify the
+working directory actually landed inside the new worktree:
+```bash
+if [ "$(git rev-parse --git-common-dir)" = "$(git rev-parse --git-dir)" ]; then
+  echo "❌ find-or-create did not result in a worktree — still in the primary checkout."
+  # report branch/commit state and the two recovery options; hard-stop, no Stage 1.
+fi
+```
+`--git-common-dir` and `--git-dir` differ inside a linked worktree and are
+identical in the primary checkout. On mismatch, hard-stop immediately, before
+Stage 1, with an error naming the branch and commit that already exist in the
+primary checkout and exactly two recovery options: manually create a worktree
+checking out the existing branch, then re-run `/build`; or investigate why
+creation failed. Do NOT attempt automated repair of the inconsistent state.
+
 `/build` still refuses to run without a resolvable spec file argument (REQ-001,
 AC-011): invoked with no spec (or a path that doesn't resolve to an existing
 `specs/*.md`), it refuses immediately, directing the user to run `/speccy` first
 — naming the missing *spec* (not a missing worktree) as the precondition, and
 stops. Never fall back silently.
+
+## Pre-flight
+
+Before starting, check all dependencies in this table:
+
+| Dependency | Type | Check | Required | Resolution | Detail |
+|-----------|------|-------|----------|------------|--------|
+| ship | skill | `ls .claude/skills/ship/SKILL.md ~/.claude/skills/ship/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ship/SKILL.md 2>/dev/null` | yes | stop | Install with: npx skills add slamb2k/mad-skills --skill ship |
+| prime | skill | `ls .claude/skills/prime/SKILL.md ~/.claude/skills/prime/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md 2>/dev/null` | no | fallback | Context loading; falls back to manual CLAUDE.md/goals scan |
+| feature-dev | plugin | on-disk glob via scripts/lib/feature-dev.js | no | fallback | Detected on disk → try feature-dev:code-explorer / code-architect / code-reviewer first, general-purpose agent as fallback if the subagent_type isn't actually registered |
+| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Detected for `--no-superpowers` parity with speccy/ship; Stage 4 never defers to it (model-tiering enforceability, see references/autonomous-pipeline.md's Model tiering section) — see references/superpowers-deferral.md |
+| ferry | skill | `ls .claude/skills/ferry/SKILL.md ~/.claude/skills/ferry/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ferry/SKILL.md 2>/dev/null` | no | fallback | Powers the "hand off to a clean session" execution mode; ships with mad-skills, so normally present |
+
+For each row, in order:
+1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
+2. If found: continue silently
+3. If missing: apply Resolution strategy
+   - **stop**: notify user with Detail, halt execution
+   - **url**: notify user with Detail (install link), halt execution
+   - **install**: notify user, run the command in Detail, continue if successful
+   - **ask**: notify user, offer to run command in Detail, continue either way (or halt if required)
+   - **fallback**: notify user with Detail, continue with degraded behavior
+4. After all checks: summarize what's available and what's degraded
 
 1. Capture **PLAN** (the user's argument) and **FLAGS**
 2. **Clear pending-build marker** — if a marker was left by `/speccy`, clear it:

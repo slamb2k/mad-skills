@@ -49,6 +49,11 @@ function gitArgs(argv, cwd) {
   }
 }
 
+/** True when cwd is the primary checkout (not a linked worktree). */
+function isPrimaryCheckout(cwd) {
+  return git('rev-parse --git-common-dir', cwd) === git('rev-parse --git-dir', cwd);
+}
+
 /** Parse a JSON file, return null on failure. */
 function readJson(filePath) {
   try {
@@ -103,4 +108,4 @@ function countFiles(dir, pattern) {
   }
 }
 
-module.exports = { fileMtime, git, gitArgs, readJson, readText, getDirectories, countFiles, existsSync };
+module.exports = { fileMtime, git, gitArgs, isPrimaryCheckout, readJson, readText, getDirectories, countFiles, existsSync };
