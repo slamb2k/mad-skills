@@ -324,6 +324,15 @@ file-count-plus-risk-keyword-path rule from
 **Deep** depth, then invoke the native `/code-review` and `/security-review`
 commands directly via the Skill tool, passing the selected depth.
 
+**Draft PR is expected here — proceed anyway.** Find-or-create opens the PR
+as a draft and it stays draft through Stage 5; undrafting only happens at
+Stage 9 (Ship). The native `/code-review` command's own eligibility check
+treats any draft PR as "not eligible for review" — that check is written for
+a human running `/code-review` on some arbitrary half-finished PR, not for
+this pipeline, where Stage 4 (Implementation) has already completed and the
+draft flag is pure bookkeeping. Do not let that check halt the pipeline:
+dispatch the review regardless of the draft-eligibility verdict.
+
 Parse findings into REVIEW_REPORT.
 
 ---

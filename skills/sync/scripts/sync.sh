@@ -169,7 +169,11 @@ if [ "$WORKTREE_MODE" = true ]; then
   git fetch "$REMOTE" 2>/dev/null
 
   # REQ-003: primary-side main sync — never checked out here, never stashed.
-  if [ -n "$(git -C "$PRIMARY" status --porcelain 2>/dev/null | head -1)" ]; then
+  # Untracked files don't block a fast-forward pull of a different branch's
+  # history, so they don't count as "dirty" here (only staged/modified/
+  # deleted tracked changes do) — git itself still refuses the pull if an
+  # untracked file would actually be overwritten (caught below as a failure).
+  if [ -n "$(git -C "$PRIMARY" status --porcelain 2>/dev/null | grep -v '^??' | head -1)" ]; then
     MAIN_SYNC="skipped (dirty primary)"
   elif [ "$(git -C "$PRIMARY" branch --show-current 2>/dev/null)" != "$DEFAULT_BRANCH" ]; then
     MAIN_SYNC="skipped (primary not on $DEFAULT_BRANCH)"

@@ -276,6 +276,27 @@ test("AC-006: dirty primary — main sync skipped without mutating primary, work
   }
 });
 
+test("regression: untracked-only file in primary does not block main sync", () => {
+  const fx = makeFixture({ withWorktree: true });
+  try {
+    mergeFeatureViaTempClone(fx.root, fx.originPath);
+    fs.writeFileSync(path.join(fx.primaryPath, "SCRATCH.txt"), "untracked, not dirt\n");
+
+    const res = runSync(fx.wtPath);
+    const report = parseReport(res.stdout);
+
+    assert.equal(res.status, 0, res.stderr);
+    assert.equal(report.main_sync, "updated");
+    assert.equal(
+      fs.readFileSync(path.join(fx.primaryPath, "SCRATCH.txt"), "utf-8"),
+      "untracked, not dirt\n",
+      "primary's untracked file must be untouched"
+    );
+  } finally {
+    fx.cleanup();
+  }
+});
+
 test("AC-007: --no-cleanup syncs main but leaves a finished worktree and branch untouched", () => {
   const fx = makeFixture({ withWorktree: true });
   try {
