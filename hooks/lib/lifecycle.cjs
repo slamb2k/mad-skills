@@ -10,12 +10,17 @@
  */
 
 const { existsSync, writeFileSync, mkdirSync, readdirSync } = require('fs');
+const { execFileSync } = require('child_process');
 const { join, dirname } = require('path');
-const { git, readText, readJson } = require('./utils.cjs');
+const { git, gitArgs, readText, readJson } = require('./utils.cjs');
 const state = require('./state.cjs');
 const { detectSuperpowers } = require('./superpowers-core.cjs');
 
 const COOLDOWN = 3; // sessions before the same dismissed rec may re-offer
+// Days a /build-originated PR may sit without a new commit before the ambient
+// staleness nudge (REQ-016) fires. Middle of the spec's authorized 7-14 range;
+// a named const so it's trivially retunable without a config mechanism.
+const STALE_BUILD_PR_DAYS = 10;
 const CODE_EXT = new Set([
   '.js', '.ts', '.tsx', '.jsx', '.py', '.go', '.rs', '.rb',
   '.java', '.cs', '.cjs', '.mjs', '.sh',
@@ -550,6 +555,148 @@ function isActiveCycle(projectDir) {
   }
 }
 
+// ─── stale-build-pr signal (REQ-016) ──────────────────────────────────
+
+// Live per-branch gh/az PR lookups can surface multiple simultaneous results,
+// which REGISTRY's one-offer-per-signature shape can't express — so this lives
+// beside selectOffer, not inside it, and keys its dismissal by branch name.
+
+function sh(cmd, argv, cwd) {
+  try {
+    return execFileSync(cmd, argv, {
+      cwd, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 10000, windowsHide: true,
+    }).trim();
+  } catch { return null; }
+}
+
+function detectPlatform(projectDir) {
+  const url = git('remote get-url origin', projectDir) || '';
+  return /dev\.azure\.com|visualstudio\.com/i.test(url) ? 'azdo' : 'github';
+}
+
+// Parse the leading YAML frontmatter block into a flat key->value map.
+function parseFrontmatter(txt) {
+  const out = {};
+  const m = /^---\n([\s\S]*?)\n---/.exec(txt);
+  if (!m) return out;
+  for (const line of m[1].split('\n')) {
+    const kv = /^([A-Za-z0-9_]+):\s*(.+?)\s*$/.exec(line);
+    if (kv) out[kv[1]] = kv[2].replace(/^["']|["']$/g, '');
+  }
+  return out;
+}
+
+// /build provenance: specs carrying a `branch:` set by find-or-create (REQ-004).
+function readSpecBuilds(projectDir) {
+  let files = [];
+  try {
+    files = readdirSync(join(projectDir, 'specs')).filter(f => f.endsWith('.md'));
+  } catch { return []; }
+  const builds = [];
+  for (const f of files) {
+    const txt = readText(join(projectDir, 'specs', f));
+    if (!txt) continue;
+    const fm = parseFrontmatter(txt);
+    if (!fm.branch) continue;
+    builds.push({ spec: `specs/${f}`, branch: fm.branch, completionMode: fm.completion_mode || null });
+  }
+  return builds;
+}
+
+// One bounded PR lookup: { state: OPEN|CLOSED|MERGED, url } or null.
+function prInfoForBranch(projectDir, branch, platform) {
+  if (platform === 'azdo') {
+    const out = sh('az', ['repos', 'pr', 'list', '--source-branch', branch, '--status', 'all',
+      '--query', '[0].{status:status,url:url}', '-o', 'json'], projectDir);
+    if (!out) return null;
+    try {
+      const j = JSON.parse(out);
+      if (!j || !j.url) return null;
+      const state = j.status === 'completed' ? 'MERGED'
+        : j.status === 'abandoned' ? 'CLOSED' : 'OPEN';
+      return { state, url: j.url };
+    } catch { return null; }
+  }
+  const out = sh('gh', ['pr', 'view', '--json', 'state,url', '--', branch], projectDir);
+  if (!out) return null;
+  try {
+    const j = JSON.parse(out);
+    return j && j.url ? { state: j.state, url: j.url } : null;
+  } catch { return null; }
+}
+
+// IO: resolve each /build spec to its last-commit age, and — only for branches
+// already past the threshold — one PR lookup. Cheap git-log gate keeps the
+// gh/az calls off the hot path when nothing is actually stale.
+function gatherStaleBuilds(projectDir, now = Math.floor(Date.now() / 1000)) {
+  const builds = readSpecBuilds(projectDir);
+  if (!builds.length) return [];
+  let platform = null;
+  const out = [];
+  for (const b of builds) {
+    // `refs/heads/` prefix (not a bare `--` separator, which would make git log
+    // treat b.branch as a pathspec rather than a revision and always return
+    // nothing) resolves the branch as a revision while staying argument-
+    // injection-safe: the resulting token can never start with `-`.
+    const ct = gitArgs(['log', '-1', '--format=%ct', `refs/heads/${b.branch}`], projectDir);
+    const lastCommitEpoch = ct && /^\d+$/.test(ct) ? parseInt(ct, 10) : null;
+    let pr = null;
+    if (lastCommitEpoch != null && Math.floor((now - lastCommitEpoch) / 86400) >= STALE_BUILD_PR_DAYS) {
+      if (!platform) platform = detectPlatform(projectDir);
+      pr = prInfoForBranch(projectDir, b.branch, platform);
+    }
+    out.push({ ...b, lastCommitEpoch, pr });
+  }
+  return out;
+}
+
+// Pure: builds (with resolved lastCommitEpoch + pr) -> stale-build-pr recs,
+// applying the threshold and the existing per-branch suppression conventions.
+function staleBuildRecs({ builds, prefs, session, now, pull }) {
+  const recsPref = (prefs && prefs.recs) || {};
+  const recs = [];
+  for (const b of builds || []) {
+    if (b.lastCommitEpoch == null || !b.pr || !b.pr.url) continue;
+    const daysInactive = Math.floor((now - b.lastCommitEpoch) / 86400);
+    if (daysInactive < STALE_BUILD_PR_DAYS) continue;
+
+    let recommendation;
+    let offers;
+    if (b.pr.state === 'OPEN') {
+      recommendation = b.completionMode === 'auto-ship' ? 'ship' : 'resume';
+      offers = recommendation === 'ship' ? '/ship --auto' : `/build ${b.spec}`;
+    } else if (b.pr.state === 'CLOSED') {
+      recommendation = 'close';
+      offers = `close ${b.pr.url}`;
+    } else {
+      continue; // MERGED or unknown — nothing to nudge
+    }
+
+    // Per-branch keying so one stale PR's dismissal doesn't mute the others.
+    const id = `stale-build-pr:${b.branch}`;
+    const pref = recsPref[id];
+    if (pref && pref.status === 'muted') continue;
+    if (!pull && pref && pref.status === 'dismissed') {
+      if ((session - (pref.lastOfferedSession || 0)) < COOLDOWN) continue;
+    }
+
+    recs.push({
+      id,
+      type: 'stale-build-pr',
+      branch: b.branch,
+      spec: b.spec,
+      pr_url: b.pr.url,
+      days_inactive: daysInactive,
+      recommendation,
+      offers,
+      prompt: `This build has been open ${daysInactive} days with no activity (${b.branch}) — resume, ship, or close it?`,
+      presentation: 'causal',
+      reArm: 'causal',
+    });
+  }
+  return recs;
+}
+
 // ─── evaluate (IO wrapper) ─────────────────────────────────────────────
 
 function evaluate(projectDir, { surface, sourceSkill } = {}) {
@@ -571,7 +718,14 @@ function evaluate(projectDir, { surface, sourceSkill } = {}) {
       }
     }
 
-    return { offer: offer || null, all: all || [] };
+    // REQ-016: ambient stale-build-pr nudges, alongside REGISTRY offers.
+    const now = Math.floor(Date.now() / 1000);
+    const stale = activeCycle ? [] : staleBuildRecs({
+      builds: gatherStaleBuilds(projectDir, now), prefs, session, now, pull: false,
+    });
+    const allRecs = [...(all || []), ...stale];
+    // Keep a REGISTRY offer first; surface a stale nudge only when nothing else is.
+    return { offer: offer || stale[0] || null, all: allRecs };
   } catch {
     return { offer: null, all: [] }; // CON-003
   }
@@ -592,7 +746,11 @@ function next(projectDir) {
       signature, prefs, markers, session, activeCycle: false, pull: true,
     });
     const recsPref = (prefs && prefs.recs) || {};
-    const annotated = (all || []).map(r => ({
+    const now = Math.floor(Date.now() / 1000);
+    const stale = staleBuildRecs({
+      builds: gatherStaleBuilds(projectDir, now), prefs, session, now, pull: true,
+    });
+    const annotated = [...(all || []), ...stale].map(r => ({
       ...r,
       status: (recsPref[r.id] && recsPref[r.id].status) || 'available',
     }));
@@ -628,4 +786,6 @@ module.exports = {
   sliceFor, tier,
   // exposed for release-selection tests
   releaseSelect,
+  // stale-build-pr signal (REQ-016) — pure helper + IO gatherer exposed for tests
+  STALE_BUILD_PR_DAYS, staleBuildRecs, gatherStaleBuilds,
 };

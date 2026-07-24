@@ -1,193 +1,137 @@
 # Autonomous Worktree Lifecycle Contract
 
-Shared worktree-lifecycle rule for `speccy`, `build`, and `ship`
-(REQ-003–REQ-007, plus REQ-001/REQ-009 from
-`specs/unified-autonomous-build.md`, which generalize creation to both
-`--auto` and interactive modes and decouple `/build`'s worktree check from
-the `--auto`-only sentinel). `specs/bundled-approval-handoff.md` further
-amends REQ-001: worktree/branch creation is no longer `/speccy`'s literal
-first action — it moves into a post-approval handoff bundle (see Creation,
-below). mad-skills does not invent its own worktree creation or teardown
-mechanism — this file only defines *when* creation happens and how the
-resulting worktree is marked, reusing the mechanisms already established by
-`specs/worktree-discipline-guardrails.md`.
+> **Superseded by `specs/pr-first-autonomous-build.md`** — worktree/branch/draft-PR
+> creation has moved out of `/speccy`'s post-approval bundle and into `/build`'s
+> own find-or-create pre-flight. This doc now describes only the **find-or-create
+> contract** (who creates or resumes a worktree, and how) and **teardown** — it no
+> longer describes `/speccy`'s handoff bundle, which no longer exists. `/speccy`
+> now only writes the spec file and the pending-build marker.
 
-## Creation — the handoff bundle (bundled-approval-handoff.md REQ-002)
+Shared worktree-lifecycle rule for `build`, `ship`, and `sync`. `/build` owns
+find-or-create (creation on a fresh spec, resumption on an interrupted one);
+`/ship` and `/sync` own teardown of the resulting worktree once its PR is
+finished. mad-skills does not invent its own worktree creation or teardown
+mechanism — this file only defines *when* creation/resumption happens and how
+the worktree is torn down, reusing the mechanisms already established by
+`specs/worktree-discipline-guardrails.md` (CON-001).
 
-`/speccy` (both `--auto` and interactive) runs its entire interview/inference
-flow in the plain invoking working directory and creates **no git state at
-all** — no worktree, no branch, no commit, no PR — until the spec is approved
-(REQ-001). At the **approval moment** — the user confirms the Decision Summary
-(interactive) or zero-interview inference completes and passes its checks
-(`--auto`) — `/speccy` runs the **handoff bundle**: one ordered eight-step
-sequence that always runs together, every time, immediately before the
-stop-and-marker handoff to `/build`. The property that matters is not *when*
-each step happens individually but that they always happen together at the
-moment the spec becomes stable.
+## Creation — find-or-create (build-owned)
 
-The eight steps, in order:
+`/build`'s **first action** against a spec is find-or-create (REQ-002). It
+still refuses to run without a real spec file argument (REQ-001) — the
+traceability forcing function is unchanged — but the *worktree* is now
+`/build`'s to find or create, not a precondition `/speccy` must have satisfied.
 
-1. **Freeze** — compute a SHA-256 content hash over the finalized spec body
-   *below* the frontmatter block (the frontmatter carries the hash field
-   itself, so it is excluded from the input). Use `sha256sum` (fallback
-   `shasum -a 256`) and record it in frontmatter as `content_hash:
-   sha256:<hex>` (bundled-approval-handoff.md REQ-005) — proof of exactly what was approved.
-2. **Sync base** — actively fetch and pull the remote default branch so the
-   feature branches off current main. Reuse `/sync`'s stash-restore behavior
-   for any dirty working tree, and surface any stash activity in the bundle
-   report. This replaces the old advisory-only branch-staleness warning.
-3. **Create worktree + branch together** — one operation, using whichever
-   mechanism below is available, in order. For `--auto` runs, drop the
-   `.mad-skills-auto` sentinel file at the worktree root as part of this same
-   step (see Sentinel file, below). If the branch slug collides with an
-   existing branch, suffix `-2`, `-3`, … as needed and report the final name.
-4. **Materialize the spec** inside the worktree with the new frontmatter
-   fields (bundled-approval-handoff.md REQ-005): `content_hash`, `branch`, `worktree_path`. There is no
-   `pr_url` field — the PR is always resolved live from `branch` via the same
-   lookup `create-pr.sh` performs (bundled-approval-handoff.md REQ-006).
-5. **Commit** the spec as the branch's first commit.
-6. **Push** the feature branch.
-7. **Draft PR** — `bash skills/ship/scripts/create-pr.sh --draft` (idempotent;
-   reuses an existing open PR rather than erroring). **Best-effort**
-   (bundled-approval-handoff.md REQ-004):
-   on failure (missing `gh`/`az`, network, auth), report the failure with the
-   exact `create-pr.sh` retry command, then still proceed to step 8. A missing
-   PR never blocks the handoff.
-8. **Marker + stop** — write the pending-build marker, display
-   `/build {spec path}`, stop. Identical to today's handoff; no same-turn
-   auto-invoke of `/build` (bundled-approval-handoff.md CON-001).
+The decision flow (REQ-002–REQ-006):
 
-**Mechanism for step 3** — use whichever is available, in this order, exactly
-as `specs/worktree-discipline-guardrails.md` already establishes for the rest
-of mad-skills:
+```
+spec has valid branch+worktree_path AND worktree exists?
+  yes → resume (skip creation)
+  no  → branch/worktree exists but locked or has an open PR? (REQ-003)
+          yes → stop, report conflict
+          no  → create (REQ-004, REQ-005)
+```
 
-1. **Harness native tools** — `EnterWorktree` (creates under
-   `.claude/worktrees/` and explicitly switches the session's own working
-   directory when used).
-2. **Superpowers fallback** — `using-git-worktrees`, if the harness tools
-   are unavailable and Superpowers is installed (raw `git worktree add` +
-   Bash `cd` under `.worktrees/`/`worktrees/`, per that skill's own
-   convention).
+- **Resume (REQ-002).** Read the spec's frontmatter for `branch`/`worktree_path`.
+  If both are present AND a live worktree exists at that path checked out on
+  that branch, resume it directly — converge on the front-load checkpoint and
+  autonomous loop (REQ-006), no re-creation.
+- **Lock/PR-awareness (REQ-003).** If there is no valid existing worktree, but a
+  branch matching this spec's derived slug already exists (locally or on the
+  remote) with a *locked* worktree, or an *open PR* already exists for that
+  branch (`gh pr list` / AzDO equivalent), `/build` MUST NOT create a second,
+  competing worktree/branch. It reports the conflict (lock holder, or existing
+  PR URL) and stops. This is a **stop condition, not something to route around**
+  (CON-002) — it closes the `real-talk` duplicate-PR failure mode.
+- **Create, commit-before-worktree (REQ-004).** Otherwise create, in this exact
+  order: (1) fetch/sync the default branch; (2) create a new branch pointed at
+  current `origin/main` (or the resume-target ref) *in the current working
+  directory* — git branches are repo-wide, not worktree-local, so no worktree is
+  needed yet; (3) update the spec's frontmatter in place with `branch` and
+  `worktree_path`, and content-hash it; (4) commit that updated spec as the new
+  branch's **first commit**; (5) **only then** create the worktree, checking out
+  the already-populated branch. Because the spec is never written to disk
+  uncommitted before the worktree exists, there is no window in which a
+  pre-worktree draft can be orphaned in the invoking checkout — the orphaned-draft
+  bug class (LOGBOOK.md, 2026-07-22) cannot recur by construction, not by added
+  cleanup.
+- **Push + draft PR (REQ-005).** After worktree creation, `/build` pushes the
+  branch and opens a draft PR — `bash skills/ship/scripts/create-pr.sh --draft`,
+  idempotent (reuses any existing open PR rather than erroring). This is now the
+  **only** creation path for the PR — it is no longer a backstop for a bundle
+  that might have failed upstream.
+- **Converge (REQ-006).** Whether resumed or freshly created, `/build` proceeds
+  identically from here — both paths meet at the single front-load checkpoint
+  and the autonomous loop.
+
+**Mechanism for worktree creation** — use whichever is available, in this order,
+exactly as `specs/worktree-discipline-guardrails.md` establishes (CON-001):
+
+1. **Harness native tool** — `EnterWorktree` (creates under `.claude/worktrees/`
+   and switches the session's own working directory).
+2. **Superpowers fallback** — `using-git-worktrees`, if the harness tool is
+   unavailable and Superpowers is installed.
 
 mad-skills does not call `git worktree add`/`remove` directly and does not
 prescribe a path convention beyond what the chosen mechanism already uses
-(CON-001). This mirrors `specs/worktree-discipline-guardrails.md` §"Out of
-scope" verbatim — this spec amends *when* worktree creation happens, not *how*
-worktrees are created.
+(CON-001).
 
-**Blocking semantics (bundled-approval-handoff.md REQ-003).** Steps 1–6 are **blocking**: if any fails,
-stop the bundle, report exactly which step failed, and leave all
-already-succeeded state in place for inspection. Do **not** write the
-pending-build marker on a step-1–6 failure. Step 7 **degrades**
-(bundled-approval-handoff.md REQ-004) —
-its failure is reported with the retry command but never blocks the handoff.
-Only steps 1–6 succeeding earns the marker written in step 8.
+**Refusal that survives is no-spec-file, not no-worktree (REQ-001, AC-011).**
+`/build` no longer uses git-native worktree detection
+(`git rev-parse --git-common-dir` vs `--git-dir`) to refuse — that check is
+gone, replaced by find-or-create. The one refusal that remains is the missing
+*spec file*: invoked without a spec argument (or with a path that doesn't
+resolve to an existing `specs/*.md`), `/build` refuses immediately, directing
+the user to run `/speccy` first — same fail-fast shape as before, just naming
+the spec (not the worktree) as the missing precondition.
 
-**The unlinked state is self-healing — no detector exists on purpose.** A
-degraded step 7 leaves the spec committed and pushed with no PR on its branch
-(the "unlinked state"). No ambient or scheduled detection is built for this:
-the failure report prints the exact `create-pr.sh` retry command, the
-pending-build marker still nudges the next session toward `/build`, and
-`/build`'s Early-draft-PR backstop runs the same idempotent `create-pr.sh
---draft` — so the state repairs itself the moment it is acted on. The only
-case this leaves uncovered is a spec that is *abandoned* after the bundle
-(branch pushed, `/build` never run) — that is a stale-branch cleanup concern,
-not a PR-linking one.
+## Sentinel file: `.mad-skills-auto` (no longer written)
 
-## Why speccy, not build (rationale)
+`.mad-skills-auto` is **no longer written** by any skill (REQ-012). `/speccy`
+previously dropped it at the worktree root during its `--auto` bundle to mark a
+worktree as belonging to an autonomous run; under find-or-create there is no
+such propagated git-side autonomy state, since `/build`'s execution is now
+uniform regardless of how the spec was produced (REQ-008). The
+`--auto`/interactive distinction on `/speccy` still governs *speccy's own*
+interview mode, but no longer writes any sentinel or worktree-local `mode: auto`
+field.
 
-The pending-build marker `/speccy` writes (see
-`references/superpowers-deferral.md`) is keyed by `process.cwd()`. If `/speccy`
-approved on the primary checkout and `/build` later created a separate
-worktree, the marker would not transfer without new handoff plumbing. Running
-the bundle at the approval moment keeps worktree creation on the `/speccy`
-side, makes the spec file the branch's literal first commit (bundle step 5),
-and brings push + draft PR forward so the PR exists before `/build` starts —
-closing the gap where `/build`'s own mid-build questions needed a PR that only
-`/build` would otherwise create. Bundling at approval also never creates git
-state for specs that don't survive the interview (an abandoned interview
-leaves nothing to clean up), while still guaranteeing `/build` always finds a
-worktree, because the bundle always runs before the marker.
+This is dead-code context, not an active mechanism. `sync.sh` still contains
+sentinel-restore logic that reads this file; that code is now unreachable in
+practice but is out of scope to remove here — it is simply never exercised,
+because nothing writes the sentinel anymore.
 
-## Persistence (REQ-004)
+## Teardown
 
-The same worktree persists through `/build --auto` and `/ship --auto` for
-that unit of work. Neither stage creates a new worktree — both operate
-inside the worktree `/speccy --auto` already created, using absolute paths
-rooted at that worktree for every file-tool call (per the existing
-absolute-path rule in `skills/build/references/stage-prompts.md` and the
-advisory note in `references/superpowers-deferral.md`).
+A `/build`-originated worktree persists until its PR is **finished**, then is
+torn down by `sync.sh`'s existing worktree-mode removal — no new teardown
+mechanism is built (REQ-015). Teardown remains owned by whichever mechanism
+created the worktree (`ExitWorktree` for native `.claude/worktrees/`,
+`finishing-a-development-branch` for Superpowers-created worktrees); mad-skills
+does not take on lifecycle ownership beyond `specs/worktree-discipline-guardrails.md`
+(CON-001).
 
-Interactive (non-`--auto`) `/speccy` also creates a worktree — at the approval
-moment, via the same handoff bundle (see Creation, above) — so the old REQ-005
-prohibition no longer applies. `/build` and
-`/ship` do not need to know which mode created the worktree they're
-operating in; both simply require one to already exist (see `/build`'s
-refusal check, below).
+A branch is **finished** when `sync.sh` recognizes it as safe to tear down:
+merged into the default branch, its upstream gone (squash-merge signature), OR
+— new, REQ-014 — its PR is `CLOSED` without being merged. This last clause
+closes the gap where an abandoned (closed, not merged) PR's worktree was
+previously treated as perpetually unfinished. The exact PR-state check and its
+dual-platform (GitHub / AzDO) form live in `skills/sync/scripts/sync.sh`; this
+file only records that closed-not-merged now counts as finished. `/ship --auto`'s
+post-merge teardown reaches this same `sync.sh` logic on every autopilot run,
+identically to interactive `/ship`.
 
-## First commit
+## Why build owns creation now (rationale)
 
-The spec file is committed as the branch's first commit by bundle step 5 at
-the approval moment — pass or fail on the completeness gate (see Creation,
-above) — making the spec the self-documenting root of the PR history.
+The forcing function's actual value — "every autonomous build traces to a
+reviewable spec" — never depended on *where* the git state was created, only on
+*whether a spec was required first* (REQ-001 preserves that exactly). Relocating
+creation into `/build` makes the same spec **resumable** across interruptions
+and sequential phases, and lets commit-before-worktree structurally fix the
+orphaned-draft bug rather than patching it after the fact.
 
-## `/build`'s worktree-refusal check (REQ-009)
-
-`/build` MUST NOT create its own worktree under any circumstance. Invoked
-without an existing worktree, it MUST refuse immediately, directing the
-user to run `/speccy` first — the same fail-fast, do-no-partial-work shape
-as the original `autonomy_ready`-missing check, but for a missing worktree
-instead.
-
-This check MUST use pure git-native worktree detection, not the
-`.mad-skills-auto` sentinel (below) — the sentinel is written only by
-`--auto` runs, but REQ-001 means an interactive `/speccy` run also produces
-a worktree `/build` must recognize as valid. Compare
-`git rev-parse --git-common-dir` against `git rev-parse --git-dir`: they
-differ when run inside a linked worktree and are identical inside a main
-working copy. `/build` treats "they differ" as "a worktree exists" and
-proceeds; "they match" as "no worktree" and refuses.
-
-## Sentinel file: `.mad-skills-auto`
-
-`/speccy --auto`'s worktree-creation step drops a sentinel file,
-`.mad-skills-auto`, at the worktree root, as part of the same bundle step 3
-that creates the worktree (see Creation, above). Its presence marks a worktree
-as belonging to an autonomous `--auto` run, distinguishing it from a
-worktree created manually or by interactive mad-skills usage.
-
-**Format**: plain text, one `key: value` pair per line —
-
-```
-spec: specs/{slug}.md
-created: {ISO-8601 timestamp}
-stage: speccy
-mode: auto
-```
-
-- `spec` — repo-relative path to the spec file this run is building.
-- `created` — when the sentinel was written.
-- `stage` — the `--auto` stage that last touched the worktree
-  (`speccy` → `build` → `ship`), updated in place as the run progresses,
-  so a later stage or a cleanup consumer can tell how far the run got.
-- `mode` — `auto` or `interactive`; inert for this build, no consumer reads
-  it yet. Documented now for future parity once interactive runs also
-  write the sentinel.
-
-**Consumer**: `/sync`'s cleanup extension (implemented separately, not by
-this file) reads `.mad-skills-auto` to identify autonomous-run worktrees
-and applies PR-state-based cleanup once the associated PR merges or closes
-(REQ-007), mirroring `superpowers:finishing-a-development-branch`'s
-provenance-based cleanup. This file defines the sentinel's existence and
-format only — it does not implement the consumer.
-
-## Teardown (REQ-007)
-
-The worktree persists until the PR opened by `/ship --auto` merges or
-closes. Teardown itself remains owned by whichever mechanism created the
-worktree (`ExitWorktree` for native/`.claude/worktrees/`,
-`finishing-a-development-branch` for Superpowers-created
-`.worktrees/`/`worktrees/`), triggered by PR state via the `.mad-skills-auto`
-sentinel rather than an explicit user choice mid-run. mad-skills does not
-take on worktree lifecycle ownership beyond what
-`specs/worktree-discipline-guardrails.md` already establishes (CON-001).
+Lock/PR-awareness is a **stop condition, not a merge/join**: the `real-talk`
+incident's failure was routing *around* a lock into a second branch, producing a
+duplicate PR against already-merged work. The fix isn't smarter merging of
+concurrent work — it's refusing to start a second, competing line of work at
+all, and telling the operator what's already in flight.

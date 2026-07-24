@@ -13,20 +13,22 @@ unchanged.
 
 ---
 
-## Stage 0: No git state before approval (bundled-approval-handoff.md REQ-001)
+## Stage 0: No git state, ever (pr-first-autonomous-build.md REQ-012)
 
-`/speccy --auto` creates **no worktree, branch, commit, or PR** until the spec
-is approved (AC-001). The entire `--auto` flow — the Eligibility Gate,
-Zero-Interview Inference (Stage A), and the fallback interview (Stages 1–3) —
-runs in the plain invoking working directory. This supersedes the former
-"worktree first" model (`unified-autonomous-build.md` REQ-001), per
-`specs/bundled-approval-handoff.md`.
+`/speccy --auto` creates **no worktree, branch, commit, or PR** at any point —
+not before approval, not after. The entire `--auto` flow — the Eligibility
+Gate, Zero-Interview Inference (Stage A), and the fallback interview (Stages
+1–3) — runs in the plain invoking working directory, and stays there. This
+supersedes both the former "worktree first" model
+(`unified-autonomous-build.md` REQ-001) and the post-approval handoff bundle
+(`bundled-approval-handoff.md` REQ-001/REQ-002): all git state — worktree,
+branch, commit, draft PR — is now created by `/build`'s find-or-create
+pre-flight the first time `/build {spec}` runs, not by `/speccy` at any stage.
 
 The **approval moment** for `--auto` is when zero-interview inference completes
 and passes its checks (Stage A), or when the fallback interview's Decision
-Summary is confirmed (Stage 3). All git state is created at that moment by the
-handoff bundle — see the **Post-approval handoff bundle** section below, which
-is where the former "worktree first" step now lives.
+Summary is confirmed (Stage 3). At that moment `/speccy` writes the spec file
+and the pending-build marker, then stops — see **Output & Handoff** below.
 
 ---
 
@@ -236,37 +238,27 @@ SPEC_REPORT:
 
 ---
 
-## Post-approval handoff bundle (bundled-approval-handoff.md REQ-002)
-
-Once the subagent returns (from Stage A's zero-interview inference or the
-fallback Stage 3) and the spec exists, the approval moment is reached. Run the
-**handoff bundle** — the canonical ordered eight-step sequence defined in
-`references/autonomous-worktree-lifecycle.md` (repo root), "Creation — the
-handoff bundle" section. That section is the single source of truth for the
-step order, blocking semantics (steps 1–6 block; step 7 degrades), the three
-new frontmatter fields (`content_hash`, `branch`, `worktree_path`), and
-branch-collision suffixing — do **not** restate the steps here.
-
-For this `--auto` path specifically:
-- The spec written by Stage A / Stage 3 is materialized inside the bundle's
-  worktree (bundle step 4) and committed as the branch's **first commit**
-  (bundle step 5) — pass or fail on the gate (REQ-010 writes it either way;
-  Stage A's spec is always `autonomy_ready: true`). Use a conventional-commit
-  message, e.g. `docs(specs): add {slug} spec (autonomy_ready: {true|false})`.
-- The `.mad-skills-auto` sentinel is dropped at bundle step 3 with its
-  `stage:` line set to `speccy`.
-
----
-
 ## Output & Handoff
 
-Report as the interactive flow does (Speccy · Report box), then add one line
-stating which path ran — zero-interview inference (Stage A) or fallback
-interview (Stage 1–3) — and the resulting `autonomy_ready` value. If
-`false`, name which gate items failed and note that `/build --auto` will
-refuse this spec (REQ-011) while interactive `/build` will not. The
-pending-build marker's timing follows the bundle's blocking semantics (see the
-canonical bundle in `references/autonomous-worktree-lifecycle.md`): the marker
-is written only in the degraded-PR or full-success paths; a degraded PR reports
-the exact `bash skills/ship/scripts/create-pr.sh --draft` retry command. Do NOT
-invoke `/build` yourself — the handoff artifact is the committed spec.
+Once the subagent returns (from Stage A's zero-interview inference or the
+fallback Stage 3) and the spec exists on disk, write the spec via the Write
+tool (already done by the subagent above) and stop — **no git state is
+created here or anywhere else in `/speccy`** (Stage 0). Report as the
+interactive flow does (Speccy · Report box), then add one line stating which
+path ran — zero-interview inference (Stage A) or fallback interview (Stage
+1–3) — and the resulting `autonomy_ready` value. If `false`, name which gate
+items failed and note that `/build --auto` will refuse this spec (REQ-011)
+while interactive `/build` will not.
+
+Save the pending-build marker unconditionally (both `autonomy_ready` values —
+the gate never blocks spec creation or handoff):
+```bash
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
+node -e "require('$PLUGIN_ROOT/hooks/lib/state.cjs').savePendingBuild(process.cwd(), 'specs/{slug}.md')"
+```
+Then display the build command, exactly as the interactive flow's Output &
+Handoff does. Do NOT invoke `/build` yourself — the spec file plus marker is
+the handoff artifact; `/build`'s find-or-create pre-flight creates the
+worktree, branch, commit, and draft PR the first time `/build {spec}` runs
+(see `references/autonomous-worktree-lifecycle.md`, repo root, "Creation —
+find-or-create" section).

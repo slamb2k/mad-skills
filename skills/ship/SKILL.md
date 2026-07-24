@@ -71,7 +71,7 @@ Parse optional flags from the request:
 - `--no-squash`: Use regular merge instead of squash
 - `--keep-branch`: Don't delete the source branch after merge
 - `--no-superpowers`: Force standalone merge even when Superpowers is installed
-- `--auto`: Autonomous mode — stop at an open PR and never merge, regardless of CI/review outcome (REQ-029). The PR description body is the report; see `references/autonomous-report.md`.
+- `--auto`: Full autopilot (pr-first-autonomous-build.md REQ-013, superseding autonomous-execution-mode.md REQ-029) — CI-watch and fix-loop run exactly as interactive `/ship` (2-attempt cap unchanged), and on green checks it **proceeds to merge (Stage 5) and post-merge sync/teardown (Stage 5b)** just like interactive `/ship`, rather than stopping at the PR. The PR description body remains the durable report; see `references/autonomous-report.md`.
 
 ---
 
@@ -312,10 +312,13 @@ verification fails), display the failure banner and STOP:
 
 ## Stage 5: Merge & Final Sync
 
-**If `--auto`: STOP HERE — do not merge.** `--auto` mode ends at an open PR
-regardless of CI/review outcome (REQ-029). Read `references/autonomous-report.md`
-for the `--auto` completion report format instead of proceeding to the merge
-stage below.
+**`--auto` proceeds through this stage** (pr-first-autonomous-build.md REQ-013,
+superseding REQ-029's stop-at-PR): on green checks it merges and runs Stage 5b
+teardown exactly as interactive `/ship` does — it does not stop at the open PR.
+The PR description body remains the durable report (`references/autonomous-report.md`),
+now a record of what *was* merged. The completion-mode opt-in that authorizes an
+unattended merge is set earlier, on the spec (`completion_mode: auto-ship`), not
+by this flag.
 
 Once checks pass, **immediately proceed to merge — do not ask the user for
 confirmation.** The user invoked `/ship` expecting the full lifecycle; stopping
@@ -482,10 +485,12 @@ being acted on now) into the committed ledger so they survive `/clear`. Capture
 is automatic and deduped — don't ask permission to capture, only decide what to
 *do* with the items.
 
-This section only ever runs after a successful merge on the primary interactive
-thread — `--auto` mode already stopped at Stage 5 and never reaches here, so
-REQ-007's "skip the breach-time prompt in `--auto` mode" is already satisfied
-structurally; no additional flag check is needed below.
+This section runs after every successful merge — including `--auto`, which now
+proceeds through merge rather than stopping at Stage 5 (REQ-013). On a headless
+`--auto` run, **skip the breach-time `AskUserQuestion` prompt below** and go
+straight to the real capture (the silent safety net, matching `/build` Stage
+10's headless path); the interactive per-candidate prompt only runs when a live
+session is watching. Capture itself always runs, in both modes.
 
 **Preview before capturing (REQ-006/008).** Call the non-mutating preview with
 the same items about to be captured, so a would-be cap breach surfaces before

@@ -71,7 +71,7 @@ Project detection: `references/project-detection.md`
 ## Flags
 
 Parse optional flags from the request:
-- `--skip-questions`: Skip Stage 2 (the first checkpoint interview, REQ-012)
+- `--skip-questions`: Skip Stage 2 (the single front-load checkpoint, REQ-007)
 - `--skip-review`: Skip Stage 5's native `/code-review` + `/security-review` dispatch
 - `--no-ship`: Stop after Stage 8 docs update
 - `--parallel-impl`: Split implementation into parallel agents when independent
@@ -106,12 +106,35 @@ For each row, in order:
    - **fallback**: notify user with Detail, continue with degraded behavior
 4. After all checks: summarize what's available and what's degraded
 
-**Worktree refusal (REQ-009):** before anything else, run the check documented
-in `references/autonomous-pipeline.md`'s "Worktree refusal" section — `/build`
-MUST NOT create its own worktree under any circumstance; it only ever operates
-inside one `/speccy` already created. On failure (no worktree found), refuse
-immediately with the exact message specified there, directing the user to run
-`/speccy` first, and stop — never fall back silently.
+**Find-or-create (REQ-002–REQ-006):** before any other pre-flight check, run
+find-or-create (canonical flow in `references/autonomous-pipeline.md`'s
+"Find-or-create" section and `references/autonomous-worktree-lifecycle.md`'s
+"Creation — find-or-create" section):
+
+- **Resume** — the spec has valid `branch`/`worktree_path` frontmatter AND a
+  live worktree exists at that path on that branch → resume it, skipping
+  straight to the front-load checkpoint (step 6 below).
+- **Conflict → stop** — no valid existing worktree, but a branch matching this
+  spec's derived slug already has a *locked* worktree or an *open PR*
+  (`gh pr list` / AzDO equivalent) → STOP and report the conflict (lock holder,
+  or existing PR URL). Do NOT create a second competing worktree/branch (REQ-003,
+  CON-002).
+- **Create** — otherwise create, in this exact order (REQ-004): sync the default
+  branch → create the branch off `origin/main` *in the current working directory*
+  (no worktree yet) → update the spec's frontmatter (`branch`, `worktree_path`)
+  and content-hash it → commit that updated spec as the branch's first commit →
+  **only then** create the worktree checking out that branch (native
+  `EnterWorktree`, or Superpowers' `using-git-worktrees` fallback, per
+  `references/autonomous-worktree-lifecycle.md`'s standing CON-001 constraint
+  that mad-skills never invents its own worktree primitive) → push → open a
+  draft PR via `skills/ship/scripts/create-pr.sh --draft` (idempotent, reuses
+  any existing open PR).
+
+`/build` still refuses to run without a resolvable spec file argument (REQ-001,
+AC-011): invoked with no spec (or a path that doesn't resolve to an existing
+`specs/*.md`), it refuses immediately, directing the user to run `/speccy` first
+— naming the missing *spec* (not a missing worktree) as the precondition, and
+stops. Never fall back silently.
 
 1. Capture **PLAN** (the user's argument) and **FLAGS**
 2. **Clear pending-build marker** — if a marker was left by `/speccy`, clear it:
@@ -127,29 +150,19 @@ immediately with the exact message specified there, directing the user to run
 5. **Create task list** — ALWAYS create tasks upfront for all stages using
    `TaskCreate`. This provides visible progress tracking throughout the build:
    - Task: "Stage 1: Explore codebase"
-   - Task: "Stage 2: Clarifying questions" (if not `--skip-questions`)
+   - Task: "Stage 2: Front-load checkpoint" (if not `--skip-questions`)
    - Task: "Stage 3: Architecture design"
    - Task: "Stage 4: Implementation"
    - Task: "Stage 5: Code review" (if not `--skip-review`)
    - Task: "Stage 7: Verify"
    - Task: "Stage 9: Ship" (if not `--no-ship`)
    Mark each task `in_progress` when starting and `completed` when done.
-6. Check for outstanding items from previous work:
+6. **Gather** outstanding items from previous work (do not prompt yet — they are
+   presented in the single front-load checkpoint at Stage 2, REQ-007):
    - Query persistent tasks via `TaskList` for incomplete items
    - Search CLAUDE.md for a "Known Issues" or "Open Questions" section
    - Search memory (if available) for recent unresolved items
-7. If outstanding items found, present via AskUserQuestion:
-   ```
-   "Found {count} outstanding items from previous work:"
-   {numbered list with summary of each}
-   "Address any of these before starting the build?"
-   ```
-   Options:
-   - **"Yes, let me choose which ones"** → present each; options:
-     "Incorporate into this build" / "Skip for now" / "Explain more"
-     Items marked "incorporate" get appended to the PLAN as additional
-     requirements for Stage 1 to explore.
-   - **"No, proceed with the build"** → continue normally
+   Hold them as OUTSTANDING_ITEMS for Stage 2.
 ---
 
 ## Pre-Stage Setup
@@ -187,20 +200,27 @@ Parse EXPLORE_REPORT. Extract `questions` for Stage 2.
 
 ---
 
-## Stage 2: Clarifying Questions
+## Stage 2: Front-Load Checkpoint
 
-**Skip if `--skip-questions` or no questions found.**
+**Skip if `--skip-questions` or no questions and no OUTSTANDING_ITEMS found.**
 
-This is the first of the pipeline's defined interview checkpoints (REQ-012) —
-see the mid-build question mechanism in `references/autonomous-pipeline.md`
-for how later ambiguities surface at the review/verify checkpoints instead of
-here, and for channel-adaptive delivery when no live session is watching.
+This is the **single front-load checkpoint** (REQ-007) — the only interview
+round in the run. It asks all clarifying questions `/build` can reasonably
+anticipate in one continuous Q&A phase (it may span multiple `AskUserQuestion`
+calls if there are more than the 4-per-call limit, but no second checkpoint
+occurs later). After it, the autonomous loop runs unattended — every later
+ambiguity is decided-and-recorded, never escalated to a mid-build interview
+(REQ-008; see `references/autonomous-pipeline.md`'s per-decision self-evaluation).
 
 Runs on the **primary thread** (requires user interaction).
 
 1. Review EXPLORE_REPORT `questions` and `potential_issues`
-2. Present questions to user via AskUserQuestion
-3. Store answers as CLARIFICATIONS
+2. If OUTSTANDING_ITEMS were gathered in pre-flight, fold them into this same
+   round: present each ("Incorporate into this build" / "Skip for now" /
+   "Explain more"); items marked "incorporate" are appended to the PLAN as
+   additional requirements.
+3. Present the clarifying questions to the user via AskUserQuestion
+4. Store answers as CLARIFICATIONS
 
 ---
 
@@ -236,16 +256,11 @@ runs the standalone implementation below — see
 interaction) for the full rationale, and `references/superpowers-deferral.md`
 for how this differs from `speccy` and `ship`.
 
-**Early draft PR (REQ-014 (unified-autonomous-build.md), timing-amended by
-bundled-approval-handoff.md GUD-001):** before dispatching
-the implementation subagent(s) below, open the PR as a draft per
-`references/autonomous-pipeline.md`'s "Early draft PR" section — call
-`skills/ship/scripts/create-pr.sh --draft` directly (idempotent: reuses any
-existing open PR on the branch rather than erroring). Normally this reuses
-the draft PR the `/speccy` approval bundle already opened (`reused=true`);
-actually creating one here is the degraded backstop path. Capture the returned
-`pr_url`; every checkpoint-interview comment and evidence artifact from here
-on posts against it.
+**Draft PR (REQ-005):** the draft PR was already opened by find-or-create in
+pre-flight (`skills/ship/scripts/create-pr.sh --draft`, idempotent) — see
+`references/autonomous-pipeline.md`'s "Draft PR" section. It is not re-opened
+here. Capture the `pr_url` from find-or-create; every evidence artifact from
+here on posts against it.
 
 If ARCH_REPORT identifies independent `parallel_groups`, launch **multiple
 general-purpose subagents in parallel** — one per group. Do NOT wait for
@@ -340,16 +355,27 @@ Task(
 
 ---
 
-## Stage 9: Ship
+## Stage 9: Ship-Readiness Decision
 
+Reached once Stage 7 confirms every `## Definition of Done` item verified.
 Invoke `/ferry` to checkpoint before proceeding (GUD-004,
 `references/autonomous-pipeline.md`).
 
-Invoke the `/ship` skill:
+Undraft the PR (mark ready for review) and push final state. Then branch on
+the spec's `completion_mode` frontmatter field (REQ-009, REQ-011):
 
-```
-/ship {approach_summary from ARCH_REPORT}. Files: {files from IMPL_REPORT}
-```
+- **`completion_mode: auto-ship`** — invoke `/ship --auto` directly, no
+  question asked (AC-004). `--auto` now runs full autopilot: CI-watch,
+  fix-loop, merge, and post-merge teardown (REQ-013).
+  ```
+  /ship --auto {approach_summary from ARCH_REPORT}. Files: {files from IMPL_REPORT}
+  ```
+- **`completion_mode: pr`** — report the PR URL and summary, then stop. No
+  question asked (AC-005).
+- **absent** — present exactly two options via `AskUserQuestion` (AC-006):
+  - **"Finish here"** → report the PR URL and summary, stop.
+  - **"`/ship --auto`"** → hand off to full autopilot, same as the
+    `auto-ship` branch above.
 
 ---
 

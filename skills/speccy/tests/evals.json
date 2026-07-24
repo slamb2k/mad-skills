@@ -136,60 +136,57 @@
     ]
   },
   {
-    "name": "speccy-auto-bundled-handoff",
-    "prompt": "Run /speccy --auto \"add dark mode toggle to settings page\". When does speccy create the git worktree and branch, relative to the interview/inference and the spec being approved?",
+    "name": "speccy-auto-no-git-state",
+    "prompt": "Run /speccy --auto \"add dark mode toggle to settings page\". Does speccy create a git worktree, branch, commit, or PR at any point — during inference or at approval?",
     "assertions": [
       {
         "type": "semantic",
-        "value": "No worktree, branch, commit, or PR is created during the eligibility gate, inference, or interview — /speccy --auto runs entirely in the plain working directory and only at the approval moment (zero-interview inference completes and passes, or the Decision Summary is confirmed) runs the handoff bundle that creates the worktree and branch. Worktree creation is not the literal first action; it happens at approval, bundled with sync, spec commit, push, and draft PR."
+        "value": "No worktree, branch, commit, or PR is ever created — /speccy --auto runs entirely in the plain working directory and, once the spec is written, writes only the spec file and the pending-build marker, then stops. It writes no .mad-skills-auto sentinel. All git state (worktree, branch, commit, draft PR) is created later by /build's find-or-create pre-flight, not by /speccy."
       }
     ]
   },
   {
-    "name": "speccy-interactive-bundled-handoff",
-    "prompt": "Run /speccy (no --auto flag) to spec out a new feature. Does it create a git worktree before or during the interview, or only after the spec is approved?",
+    "name": "speccy-interactive-no-git-state",
+    "prompt": "Run /speccy (no --auto flag) to spec out a new feature. Does it create a git worktree or branch before, during, or after the interview?",
     "assertions": [
       {
         "type": "semantic",
-        "value": "Interactive (non---auto) /speccy creates no git state during the interview — the worktree and branch are created only at the approval moment (when the Decision Summary is confirmed) by the same post-approval handoff bundle used in --auto mode. Both modes defer all git state to approval; neither creates the worktree as a first action."
+        "value": "Interactive (non---auto) /speccy creates no git state at all — no worktree, branch, commit, or PR, in either mode. It writes only the spec file and the pending-build marker, then stops. Worktree/branch/draft-PR creation is now /build's find-or-create job, not /speccy's."
       }
     ]
   },
   {
-    "name": "speccy-bundle-no-git-state-mid-interview",
-    "prompt": "During a /speccy run, the interview (or --auto inference) is still in progress and the spec has not been approved yet. What git state exists at this point — is there a worktree, branch, commit, or PR?",
+    "name": "speccy-no-git-state-mid-interview",
+    "prompt": "During a /speccy run, the interview (or --auto inference) is still in progress and the spec has not been written yet. What git state exists at this point — is there a worktree, branch, commit, or PR?",
     "assertions": [
       {
         "type": "semantic",
-        "value": "No worktree, no branch, no commit, and no PR exist while the interview or inference is still in progress — /speccy creates zero git state before the approval moment. Everything runs in the plain invoking working directory until the spec is approved."
+        "value": "No worktree, no branch, no commit, and no PR exist — and none will be created by /speccy at any later point either. /speccy creates zero git state in both modes; everything runs in the plain invoking working directory, and it only ever writes the spec file and the pending-build marker. Git state is /build's find-or-create responsibility."
       }
     ]
   },
   {
-    "name": "speccy-bundle-blocking-step-failure",
-    "prompt": "During /speccy's post-approval handoff bundle, the push step (bundle step 6) fails — the remote rejects the push. Steps 1-5 (freeze, sync, worktree+branch, materialize spec, commit) already succeeded. Does the bundle write the pending-build marker, and how does it report the failure?",
+    "name": "speccy-writes-marker-after-spec",
+    "prompt": "A /speccy run has just finished writing the spec file to specs/. What does it do next, and what git state (worktree/branch/commit/PR) has it created?",
     "assertions": [
       {
         "type": "semantic",
-        "value": "Steps 1-6 are blocking, so the bundle aborts on the push failure, names the exact failed step, and leaves the already-succeeded state (freeze, sync, worktree, branch, commit) in place for inspection. It does NOT write the pending-build marker on a step-1-6 failure."
+        "value": "After writing the spec file, /speccy writes the pending-build marker (via state.cjs savePendingBuild) and stops. It has created no git state — no worktree, branch, commit, or PR — in either --auto or interactive mode. The marker is what the session-guard hook picks up on the next session start to surface the /build command; /build's find-or-create then creates all git state on first run."
       },
       {
         "type": "regex",
-        "value": "(push|step 6)"
+        "value": "(marker|pending)",
+        "flags": "i"
       }
     ]
   },
   {
-    "name": "speccy-bundle-degraded-pr",
-    "prompt": "During /speccy's post-approval handoff bundle, the draft-PR step (bundle step 7) fails because gh is not installed. Steps 1-6 all succeeded (freeze, sync, worktree, branch, commit, push). What does the bundle do about the pending-build marker and the failed PR step?",
+    "name": "speccy-no-sentinel-file",
+    "prompt": "Does /speccy write a .mad-skills-auto sentinel file or any worktree-local autonomy-mode state when it finishes? How is ship-readiness/autonomy behavior propagated to /build instead?",
     "assertions": [
       {
         "type": "semantic",
-        "value": "Step 7 is best-effort and degrades rather than blocking: the worktree, branch, commit, and push all stand, the pending-build marker IS still written (step 8), and the report includes the exact create-pr.sh retry command so the PR can be created later. /build's own Early-draft-PR backstop will create the PR when it runs."
-      },
-      {
-        "type": "contains",
-        "value": "create-pr.sh"
+        "value": "/speccy no longer writes a .mad-skills-auto sentinel or any worktree-local mode state. The --auto/interactive distinction governs only speccy's own interview mode, not any git-side autonomy state. Ship-readiness is instead pre-set (optionally) via the spec's completion_mode frontmatter, hand-edited after generation — /speccy does not set it automatically — and that survives interruption where a worktree-local sentinel would not."
       }
     ]
   },
