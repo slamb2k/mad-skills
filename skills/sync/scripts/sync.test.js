@@ -297,6 +297,53 @@ test("regression: untracked-only file in primary does not block main sync", () =
   }
 });
 
+// ─── stash detection (false-conflict regression) ─────────────────────────
+// `git stash push` exits 0 even when it saves nothing, so trusting its exit
+// code left STASH_CREATED true against a stash that never existed — the later
+// pop then failed and was reported as a conflict. The existing untracked-only
+// regression above does not catch this: it exercises worktree mode against the
+// PRIMARY and never asserts the stash field.
+
+test("untracked-only dirt reports stash=none, not a conflict, and leaves the file alone", () => {
+  const fx = makeFixture({ withWorktree: false });
+  try {
+    advanceMainViaTempClone(fx.root, fx.originPath);
+    const scratch = path.join(fx.primaryPath, "UNTRACKED.txt");
+    fs.writeFileSync(scratch, "untracked only\n");
+
+    const res = runSync(fx.primaryPath);
+    const report = parseReport(res.stdout);
+
+    // Nothing was stashed, so nothing could conflict. The old code reported
+    // "conflict — run 'git stash show' to inspect" and exited 2 here.
+    assert.equal(report.stash, "none");
+    assert.equal(res.status, 0, res.stderr);
+    assert.equal(fs.readFileSync(scratch, "utf-8"), "untracked only\n");
+  } finally {
+    fx.cleanup();
+  }
+});
+
+test("a tracked modification is still stashed and restored", () => {
+  const fx = makeFixture({ withWorktree: false });
+  try {
+    advanceMainViaTempClone(fx.root, fx.originPath);
+    const readme = path.join(fx.primaryPath, "README.md");
+    fs.writeFileSync(readme, "seed\nlocal edit\n");
+
+    const res = runSync(fx.primaryPath);
+    const report = parseReport(res.stdout);
+
+    // The path the delta check must not break: a real stash still round-trips.
+    assert.equal(report.stash, "restored");
+    assert.equal(res.status, 0, res.stderr);
+    assert.match(fs.readFileSync(readme, "utf-8"), /local edit/);
+    assert.equal(git(fx.primaryPath, ["stash", "list"]).trim(), "", "stash must be popped, not left behind");
+  } finally {
+    fx.cleanup();
+  }
+});
+
 test("AC-007: --no-cleanup syncs main but leaves a finished worktree and branch untouched", () => {
   const fx = makeFixture({ withWorktree: true });
   try {
