@@ -116,7 +116,9 @@ test('21st capture relocates oldest lowest-priority open item to the archive fil
     fl.write(dir, seed);
     assert.equal(fl.count(dir), 20);
 
-    const res = fl.capture(dir, [{ title: 'Xbrandnewitem', category: 'ideas', source: 'new' }], { today: '2026-03-01' });
+    // cap pinned rather than inherited from the CAP constant: this asserts the
+    // relocation *behaviour* at a breach, not whatever value the cap is tuned to.
+    const res = fl.capture(dir, [{ title: 'Xbrandnewitem', category: 'ideas', source: 'new' }], { today: '2026-03-01', cap: 20 });
 
     assert.deepEqual(res.relocationCandidates.map((c) => c.title), ['Xlowpriorityvictim']);
     assert.equal(fl.count(dir), 20); // hot-only count unchanged — relocation, not truncation
@@ -143,7 +145,7 @@ test('archive-triage AC-001 capture breach relocates candidates without ever set
     const res = fl.capture(dir, [
       { title: 'Xac1new1', category: 'ideas', source: 'new' },
       { title: 'Xac1new2', category: 'ideas', source: 'new' },
-    ], { today: '2026-03-01' });
+    ], { today: '2026-03-01', cap: 20 });
 
     assert.equal(res.relocationCandidates.length, 2);
     const items = fl.read(dir).items;
@@ -491,7 +493,7 @@ test('archive-triage AC-008 restore moves an archive item back to hot, and immed
     fl.write(dir, seed);
     assert.equal(fl.count(dir), 20);
 
-    const res = fl.restore(dir, 'a1');
+    const res = fl.restore(dir, 'a1', { cap: 20 });
 
     assert.equal(res.restored.title, 'Xarchived');
     assert.equal(res.restored.location, 'hot');
@@ -557,7 +559,7 @@ test('previewCapture never writes to disk while still reporting relocation candi
     const archivePath = path.join(dir, 'LOGBOOK-ARCHIVE.md');
     const archiveExistedBefore = fs.existsSync(archivePath);
 
-    const res = fl.previewCapture(dir, [{ title: 'Xnewcandidate', category: 'ideas', source: 'preview' }], { today: '2026-03-01' });
+    const res = fl.previewCapture(dir, [{ title: 'Xnewcandidate', category: 'ideas', source: 'preview' }], { today: '2026-03-01', cap: 20 });
 
     assert.equal(res.added, 1);
     assert.equal(res.relocationCandidates.length, 1);

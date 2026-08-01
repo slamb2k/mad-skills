@@ -38,7 +38,16 @@ const ARCHIVE_FILENAME = 'LOGBOOK-ARCHIVE.md';
 // repos, so a rename must never orphan committed items: read() merges these in
 // and write() consolidates them into LOGBOOK.md, migrating each project forward.
 const LEGACY_FILENAMES = ['LOG.md', 'FOLLOWUPS.md'];
-const CAP = 20;            // REQ-020/CON-003: soft cap on hot-file open items
+// REQ-020/CON-003: soft cap on hot-file open items. An *attention* budget —
+// what's on deck stays legible — not a file-size or conflict limit.
+//
+// Raised from 20 after a triage pass over two real ledgers found both pinned
+// at exactly 20 with ~38 live items between them, so relocation fired on every
+// single capture and the eviction order, not the author, was choosing what
+// stopped being visible. Grooming did not help: the items were real, not
+// stale. A cap below the steady-state backlog stops being an attention budget
+// and becomes a treadmill.
+const CAP = 40;
 const ARCHIVE_MAX = 30;    // Recent-history window kept in the hot file's own
                             // Archive section; excess relocates (never truncates).
 const DEDUPE_THRESHOLD = 0.6; // REQ-011: token-set Jaccard for "closely matches"
