@@ -63,9 +63,33 @@ emit_report() {
 }
 
 # Stash uncommitted changes (REQ-006 worktree path / Step 2 non-worktree path).
+#
+# `git stash push` exits 0 even when it saves nothing — it prints "No local
+# changes to save" and returns success. The common trigger is a repo whose only
+# dirt is untracked, since HAS_CHANGES counts untracked files (deliberately —
+# the worktree-removal guard below needs them to count as dirty) while `push`
+# without -u does not stash them. Trusting the exit code therefore left
+# STASH_CREATED true against a stash that never existed, the later `git stash
+# pop` failed with "No stash entries found", and that was reported as
+# "conflict — run 'git stash show' to inspect" with EXIT_CODE=2 — the most
+# alarming possible wording for a repo where nothing was stashed, nothing
+# conflicted and nothing was ever at risk.
+#
+# Compare refs/stash across the push instead: creating an entry always moves
+# it, and a no-op never does. This is what STASH_CREATED gates, so it fixes
+# the report and both bare `git stash pop` recovery paths at once.
+#
+# ponytail: still no -u, so untracked files are not stashed — unchanged
+# behaviour, and out of scope here. Adding it would trade this cosmetic false
+# alarm for a real conflict whenever a pulled commit adds a file at the same
+# path as a stashed untracked one. Tracked separately in the ledger.
 do_stash() {
   if [ "$HAS_CHANGES" = true ] && [ "$NO_STASH" = false ]; then
-    if git stash push -m "sync-auto-stash-$(date +%Y%m%d-%H%M%S)" 2>/dev/null; then
+    local stash_before stash_after
+    stash_before=$(git rev-parse --verify -q refs/stash 2>/dev/null || echo none)
+    git stash push -m "sync-auto-stash-$(date +%Y%m%d-%H%M%S)" >/dev/null 2>&1
+    stash_after=$(git rev-parse --verify -q refs/stash 2>/dev/null || echo none)
+    if [ "$stash_before" != "$stash_after" ]; then
       STASH_CREATED=true
     fi
   fi
