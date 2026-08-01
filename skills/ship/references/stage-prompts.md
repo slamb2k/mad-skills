@@ -56,6 +56,13 @@ FILES TO EXCLUDE: {FILES_TO_EXCLUDE}
 
 Types: feat, fix, refactor, docs, chore, test, perf
 
+**Ledger files.** `LOGBOOK.md` and `LOGBOOK-ARCHIVE.md` are often modified when
+this stage runs — `/build`'s debrief and `/ship`'s Stage 1b both write to them
+before you are launched. They are part of this ship: stage them, and give them
+their own `docs(logbook): …` commit rather than folding them into a code commit.
+Never leave them uncommitted — the whole point of capturing before the commit is
+that this stage carries them.
+
 Good examples:
 - feat(auth): replace pairing gate with channel allowlist
 - fix(memory): correct positional arg order in get_recent_commitments

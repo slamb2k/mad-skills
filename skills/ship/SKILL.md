@@ -178,6 +178,90 @@ to commit on a now-gone branch.
 
 ---
 
+## Stage 1b: Follow-ups Ledger (REQ-010/044)
+
+Capture any follow-up ideas, deferred fixes, or open questions surfaced during
+this work into the committed ledger so they survive `/clear`. Capture is
+automatic and deduped — don't ask permission to capture, only decide what to
+*do* with the items.
+
+**This runs before Stage 2, and that placement is the point.** The ledger is a
+committed file, so a ledger write needs a commit to carry it. Every stage from
+here on has one; the post-merge report does not. Capturing here means the
+entries ride the same commit series as the work, land in the same PR, get
+reviewed alongside it, and never leave the default branch dirty. Capturing
+after the merge — where this used to live — writes to a freshly-clean default
+branch with nothing left to pick it up.
+
+Because no PR exists yet, `source` is the branch name (`/ship <branch>`), not
+`/ship #<pr>`. That is provenance, not data: the branch is equally traceable
+from the merge commit, and it is knowable at the only moment the write is free.
+
+`--auto` runs this identically. On a headless run, **skip the breach-time
+`AskUserQuestion` prompt below** and go straight to the real capture (the silent
+safety net, matching `/build` Stage 10's headless path); the interactive
+per-candidate prompt only runs when a live session is watching. Capture itself
+always runs, in both modes.
+
+**Preview before capturing (REQ-006/008).** Call the non-mutating preview with
+the same items about to be captured, so a would-be cap breach surfaces before
+anything relocates:
+
+```bash
+_R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
+node "$_R/hooks/session-guard.cjs" logbook-capture-preview \
+  '[{"title":"…","category":"ideas","source":"/ship <branch>"}, …]'
+```
+
+Parse `would_relocate` from the `LOGBOOK_CAPTURE_PREVIEW_BEGIN…END` block.
+
+- **If `would_relocate: none`** → skip straight to the real capture below.
+- **If `would_relocate` lists candidates** → present each one individually via
+  AskUserQuestion (mirroring Stage 10's "Let me choose per item" pattern) before
+  the real capture runs. Address each candidate by its title text, not the
+  preview list's ordinal — the preview numbers candidates in victim-selection
+  order (lowest priority, then oldest date), which does not match
+  `logbook-resolve`/`logbook-dismiss`'s plain-number selector (hot-file display
+  order); the title is matched by substring regardless of ordering, so it's the
+  only selector guaranteed to hit the right item. Options per candidate:
+  - **"Resolve now"** → `node "$_R/hooks/session-guard.cjs" logbook-resolve "<title>"`
+  - **"Dismiss"** → `node "$_R/hooks/session-guard.cjs" logbook-dismiss "<title>"`
+  - **"Leave it"** → no action; it relocates to `LOGBOOK-ARCHIVE.md` when the
+    real capture runs
+
+**Where the items come from.** The same sources the "What's Next?" section reads
+after the merge — `TaskList`, the session so far, and Claude Code's auto-memory
+— plus anything this session deferred, skipped, or flagged as a known gap. All
+of that is knowable now; only the PR number is not. Anything "What's Next?"
+would have listed but that isn't being acted on belongs here.
+
+**Check for entries already in the tree first.** `/build` Stage 10 captures to
+the same ledger at the end of a build, so `LOGBOOK.md` is often already dirty
+when `/ship` starts. Run `git diff --stat LOGBOOK.md` before capturing: an item
+`/build` already recorded is present with different wording, which dedup will
+not catch, and capturing it again mints a near-duplicate. Capture only what is
+genuinely new to this session.
+
+Then run the real capture:
+
+```bash
+node "$_R/hooks/session-guard.cjs" logbook-capture \
+  '[{"title":"…","category":"ideas","source":"/ship <branch>"}, …]'
+```
+
+If a captured item is also turned into a `TaskCreate` task, re-capture it with a
+`"link":"task#<id>"` so it auto-resolves when the task completes (REQ-012).
+`logbook-capture`'s output reports `relocated:[…]` titles — those items moved to
+the archive file (`LOGBOOK-ARCHIVE.md`), never dismissed or resolved; they're
+still open and still addressable via `/logbook archive`. Report them to the user
+(never silent, GUD-002). Do NOT show the full ledger here — that comes with the
+final report, after the merge.
+
+If no follow-ups were surfaced and the ledger is empty, do nothing (AC-008) and
+proceed to Stage 2.
+
+---
+
 ## Stage 2: Commit, Push & Create PR
 
 This stage needs to **read and understand code** to write good commit messages
@@ -477,63 +561,32 @@ If the command prints a `LIFECYCLE_OFFER_BEGIN…END` block, present that offer 
 the user via AskUserQuestion as instructed inside the block. If it prints nothing
 (or `LIFECYCLE_OFFER_NONE`), do not mention the lifecycle engine.
 
-## Follow-ups Ledger (REQ-010/044)
+## Follow-ups Ledger — post-merge net (REQ-010/044)
 
-After the report, capture any follow-up ideas, deferred fixes, or open questions
-surfaced during this ship (including anything listed in "What's Next?" that isn't
-being acted on now) into the committed ledger so they survive `/clear`. Capture
-is automatic and deduped — don't ask permission to capture, only decide what to
-*do* with the items.
+The bulk of capture already happened at **Stage 1b**, before the commit, so
+those entries are in the merge commit. This is only the net for follow-ups that
+could not have been known then — ones the shipping itself produced: a CI failure
+and its fix, a merge surprise, something learned from the deploy.
 
-This section runs after every successful merge — including `--auto`, which now
-proceeds through merge rather than stopping at Stage 5 (REQ-013). On a headless
-`--auto` run, **skip the breach-time `AskUserQuestion` prompt below** and go
-straight to the real capture (the silent safety net, matching `/build` Stage
-10's headless path); the interactive per-candidate prompt only runs when a live
-session is watching. Capture itself always runs, in both modes.
-
-**Preview before capturing (REQ-006/008).** Call the non-mutating preview with
-the same items about to be captured, so a would-be cap breach surfaces before
-anything relocates:
+Show the ledger either way, so the report ends with what is outstanding:
 
 ```bash
 _R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
-node "$_R/hooks/session-guard.cjs" logbook-capture-preview \
-  '[{"title":"…","category":"ideas","source":"/ship #<pr>"}, …]'
-```
-
-Parse `would_relocate` from the `LOGBOOK_CAPTURE_PREVIEW_BEGIN…END` block.
-
-- **If `would_relocate: none`** → skip straight to the real capture below.
-- **If `would_relocate` lists candidates** → present each one individually via
-  AskUserQuestion (mirroring Stage 10's "Let me choose per item" pattern) before
-  the real capture runs. Address each candidate by its title text, not the
-  preview list's ordinal — the preview numbers candidates in victim-selection
-  order (lowest priority, then oldest date), which does not match
-  `logbook-resolve`/`logbook-dismiss`'s plain-number selector (hot-file display
-  order); the title is matched by substring regardless of ordering, so it's the
-  only selector guaranteed to hit the right item. Options per candidate:
-  - **"Resolve now"** → `node "$_R/hooks/session-guard.cjs" logbook-resolve "<title>"`
-  - **"Dismiss"** → `node "$_R/hooks/session-guard.cjs" logbook-dismiss "<title>"`
-  - **"Leave it"** → no action; it relocates to `LOGBOOK-ARCHIVE.md` when the
-    real capture runs
-
-Then run the real capture:
-
-```bash
-node "$_R/hooks/session-guard.cjs" logbook-capture \
-  '[{"title":"…","category":"ideas","source":"/ship #<pr>"}, …]'
-```
-
-If a captured item is also turned into a `TaskCreate` task, re-capture it with a
-`"link":"task#<id>"` so it auto-resolves when the task completes (REQ-012). Then
-show the current open ledger and mention any relocations. `logbook-capture`'s
-output reports `relocated:[…]` titles — those items moved to the archive file
-(`LOGBOOK-ARCHIVE.md`), never dismissed or resolved; they're still open and
-still addressable via `/logbook archive` (never silent, GUD-002):
-
-```bash
 node "$_R/hooks/session-guard.cjs" logbook-list
 ```
 
-If no follow-ups were surfaced and the ledger is empty, show nothing (AC-008).
+If nothing new arose after Stage 1b — the common case — stop here. If the ledger
+is empty and nothing was surfaced, show nothing at all (AC-008).
+
+**If shipping genuinely produced new follow-ups**, capture them with
+`source: "/ship #<pr>"` (the PR number *is* known now), using the same
+preview-then-capture flow as Stage 1b. Then tell the user plainly:
+
+> The ledger now has uncommitted changes on `{DEFAULT_BRANCH}` — captured after
+> the merge, so no commit was left to carry them.
+
+Offer, do not assume: commit in place on the default branch, or leave them for
+the next ship's Stage 1b to fold into that branch. Both are reasonable; a
+docs-only PR for one ledger line usually is not. **Never leave the default
+branch dirty without saying so** — a silently modified ledger looks like a
+clean tree to the next session, and `/sync` will stash it.

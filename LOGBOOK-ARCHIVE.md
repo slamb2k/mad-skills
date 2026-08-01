@@ -8,6 +8,7 @@
      preserved; keep the checkbox shape and category headings. -->
 
 ## Ideas
+- [ ] Consider a dedicated debugging skill (e.g. /diagnose) mirroring /build's subagent-isolated pipeline but scoped to root-causing a reported bug rather than implementing a plan — reproduce/hypothesize/verify/fix/reverify stages, deferring to superpowers:systematic-debugging when present, same deferral pattern /build already uses for implementation — unfurl project session debugging a Flow-mode drill-through bug (2026-07-18) <!-- relocated:2026-08-01 -->
 
 ## Deferred fixes
 
