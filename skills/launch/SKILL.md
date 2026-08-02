@@ -10,19 +10,19 @@ disable-model-invocation: true
 
 When this skill is invoked, IMMEDIATELY output the banner below before doing anything else.
 Pick ONE tagline at random — vary your choice each time.
-CRITICAL: Reproduce the banner EXACTLY character-for-character, including the leading `/` on the first art line.
+CRITICAL: Reproduce the banner EXACTLY character-for-character, including the diagonal `/` glyph before the name.
 
 ```
 {tagline}
 
-/$$        /$$$$$$  /$$   /$$ /$$   /$$  /$$$$$$  /$$   /$$
-| $$       /$$__  $$| $$  | $$| $$$ | $$ /$$__  $$| $$  | $$
-| $$      | $$  \ $$| $$  | $$| $$$$| $$| $$  \__/| $$  | $$
-| $$      | $$$$$$$$| $$  | $$| $$ $$ $$| $$      | $$$$$$$$
-| $$      | $$__  $$| $$  | $$| $$  $$$$| $$      | $$__  $$
-| $$      | $$  | $$| $$  | $$| $$\  $$$| $$    $$| $$  | $$
-| $$$$$$$$| $$  | $$|  $$$$$$/| $$ \  $$|  $$$$$$/| $$  | $$
-|________/|__/  |__/ \______/ |__/  \__/ \______/ |__/  |__/
+       /$$ /$$        /$$$$$$  /$$   /$$ /$$   /$$  /$$$$$$  /$$   /$$
+      /$$/| $$       /$$__  $$| $$  | $$| $$$ | $$ /$$__  $$| $$  | $$
+     /$$/ | $$      | $$  \ $$| $$  | $$| $$$$| $$| $$  \__/| $$  | $$
+    /$$/  | $$      | $$$$$$$$| $$  | $$| $$ $$ $$| $$      | $$$$$$$$
+   /$$/   | $$      | $$__  $$| $$  | $$| $$  $$$$| $$      | $$__  $$
+  /$$/    | $$      | $$  | $$| $$  | $$| $$\  $$$| $$    $$| $$  | $$
+ /$$/     | $$$$$$$$| $$  | $$|  $$$$$$/| $$ \  $$|  $$$$$$/| $$  | $$
+|__/      |________/|__/  |__/ \______/ |__/  \__/ \______/ |__/  |__/
 ```
 
 Taglines:
