@@ -9,17 +9,19 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, WebFetch, AskUserQues
 
 When this skill is invoked, IMMEDIATELY output the banner below before doing anything else.
 Pick ONE tagline at random — vary your choice each time.
-CRITICAL: Reproduce the banner EXACTLY character-for-character. The first line of the art has 4 leading spaces — you MUST preserve them.
+CRITICAL: Reproduce the banner EXACTLY character-for-character, including the leading `/` on the first art line.
 
 ```
 {tagline}
 
-⠀   ██╗██████╗ ██╗███████╗████████╗██╗██╗
-   ██╔╝██╔══██╗██║██╔════╝╚══██╔══╝██║██║
-  ██╔╝ ██║  ██║██║███████╗   ██║   ██║██║
- ██╔╝  ██║  ██║██║╚════██║   ██║   ██║██║
-██╔╝   ██████╔╝██║███████║   ██║   ██║███████╗
-╚═╝    ╚═════╝ ╚═╝╚══════╝   ╚═╝   ╚═╝╚══════╝
+/$$$$$$$  /$$$$$$  /$$$$$$  /$$$$$$$$ /$$$$$$ /$$      
+| $$__  $$|_  $$_/ /$$__  $$|__  $$__/|_  $$_/| $$      
+| $$  \ $$  | $$  | $$  \__/   | $$     | $$  | $$      
+| $$  | $$  | $$  |  $$$$$$    | $$     | $$  | $$      
+| $$  | $$  | $$   \____  $$   | $$     | $$  | $$      
+| $$  | $$  | $$   /$$  \ $$   | $$     | $$  | $$      
+| $$$$$$$/ /$$$$$$|  $$$$$$/   | $$    /$$$$$$| $$$$$$$$
+|_______/ |______/ \______/    |__/   |______/|________/
 ```
 
 Taglines:
