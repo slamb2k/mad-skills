@@ -9,17 +9,19 @@ allowed-tools: Bash, AskUserQuestion
 
 When this skill is invoked, IMMEDIATELY output the banner below before doing anything else.
 Pick ONE tagline at random — vary your choice each time.
-CRITICAL: Reproduce the banner EXACTLY character-for-character. The first line of the art has 4 leading spaces (a U+2800 blank + 3 spaces) — you MUST preserve them.
+CRITICAL: Reproduce the banner EXACTLY character-for-character, including the leading `/` on the first art line.
 
 ```
 {tagline}
 
-⠀   ██╗██╗      ██████╗  ██████╗ ██████╗  ██████╗  ██████╗ ██╗  ██╗
-   ██╔╝██║     ██╔═══██╗██╔════╝ ██╔══██╗██╔═══██╗██╔═══██╗██║ ██╔╝
-  ██╔╝ ██║     ██║   ██║██║  ███╗██████╔╝██║   ██║██║   ██║█████╔╝
- ██╔╝  ██║     ██║   ██║██║   ██║██╔══██╗██║   ██║██║   ██║██╔═██╗
-██╔╝   ███████╗╚██████╔╝╚██████╔╝██████╔╝╚██████╔╝╚██████╔╝██║  ██╗
-╚═╝    ╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
+/$$        /$$$$$$   /$$$$$$  /$$$$$$$   /$$$$$$   /$$$$$$  /$$   /$$
+| $$       /$$__  $$ /$$__  $$| $$__  $$ /$$__  $$ /$$__  $$| $$  /$$/
+| $$      | $$  \ $$| $$  \__/| $$  \ $$| $$  \ $$| $$  \ $$| $$ /$$/ 
+| $$      | $$  | $$| $$ /$$$$| $$$$$$$ | $$  | $$| $$  | $$| $$$$$/  
+| $$      | $$  | $$| $$|_  $$| $$__  $$| $$  | $$| $$  | $$| $$  $$  
+| $$      | $$  | $$| $$  \ $$| $$  \ $$| $$  | $$| $$  | $$| $$\  $$ 
+| $$$$$$$$|  $$$$$$/|  $$$$$$/| $$$$$$$/|  $$$$$$/|  $$$$$$/| $$ \  $$
+|________/ \______/  \______/ |_______/  \______/  \______/ |__/  \__/
 ```
 
 Taglines:
@@ -29,6 +31,8 @@ Taglines:
 - 🗺️ Where you are, and what you noted to circle back to.
 - 📋 The captain's running record.
 - 🚢 Best-practice heading + your own remarks.
+- 🖋️ Logging it before it drifts away.
+- 📌 Flagging what's still outstanding.
 
 ---
 

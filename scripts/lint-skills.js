@@ -26,18 +26,17 @@ function lint(skillName, content) {
   const lines = content.replace(/\r\n/g, "\n").split("\n");
   const issues = [];
 
-  // Banner house-style: the ASCII banner must carry the leading "/" prefix
-  // (a staircase of box-drawing chars starting with U+2800 + 3 spaces + "██╗"),
-  // so it renders as "/NAME" like every other mad-skills banner. Catches a
-  // hand-written banner that forgot the slash.
-  const bannerSlash = /^⠀ {3}██╗/m;
+  // Banner house-style: the ASCII banner's first art line must start with
+  // "/", so it renders as "/NAME" like every other mad-skills banner (and
+  // like the slash command that invokes it). Catches a hand-written banner
+  // that forgot the slash.
+  const bannerSlash = /\{tagline\}\n\n\//;
   if (!bannerSlash.test(content)) {
-    const bannerLine = lines.findIndex((l) => /[█╗╔╝═║]/.test(l));
+    const bannerLine = lines.findIndex((l) => /\{tagline\}/.test(l));
     issues.push({
-      line: bannerLine >= 0 ? bannerLine + 1 : 1,
+      line: bannerLine >= 0 ? bannerLine + 3 : 1,
       severity: "error",
-      message:
-        'Banner missing the "/" prefix staircase (first art line must start with U+2800 + "   ██╗")',
+      message: 'Banner missing the "/" prefix (first art line must start with "/")',
     });
   }
 
