@@ -41,6 +41,26 @@ function lint(skillName, content) {
     });
   }
 
+  // Catches figlet's own default terminal-width wrapping: a long word (e.g.
+  // "LOGBOOK") can wrap onto a second stacked block, leaving blank lines in
+  // the middle of the art instead of one contiguous 8-row banner. Generate
+  // with `figlet -w 200` to avoid this.
+  const tagIdx = lines.findIndex((l) => l.trim() === "{tagline}");
+  if (tagIdx >= 0) {
+    let j = tagIdx + 2; // skip the blank line after {tagline}
+    while (j < lines.length && lines[j].trim() !== "```") {
+      if (lines[j].trim() === "") {
+        issues.push({
+          line: j + 1,
+          severity: "error",
+          message: "Banner art contains a blank line mid-block (figlet wrapped the word — regenerate with -w 200)",
+        });
+        break;
+      }
+      j++;
+    }
+  }
+
   let inCodeBlock = false;
   let inFrontmatter = false;
   let frontmatterClosed = false;
