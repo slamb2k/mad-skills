@@ -26,17 +26,18 @@ function lint(skillName, content) {
   const lines = content.replace(/\r\n/g, "\n").split("\n");
   const issues = [];
 
-  // Banner house-style: the ASCII banner's first art line must start with
-  // "/", so it renders as "/NAME" like every other mad-skills banner (and
-  // like the slash command that invokes it). Catches a hand-written banner
-  // that forgot the slash.
-  const bannerSlash = /\{tagline\}\n\n\//;
+  // Banner house-style: the ASCII banner must lead with the Big Money-ne
+  // "/" glyph (a diagonal `/$$` staircase, 7-space indent on its top row,
+  // terminating in a flush-left "|__/" on the bottom row) before the name,
+  // so it renders as "/NAME" like the slash command that invokes it.
+  // Catches a hand-written banner that forgot the slash glyph.
+  const bannerSlash = /\{tagline\}\n\n {7}\/\$\$/;
   if (!bannerSlash.test(content)) {
     const bannerLine = lines.findIndex((l) => /\{tagline\}/.test(l));
     issues.push({
       line: bannerLine >= 0 ? bannerLine + 3 : 1,
       severity: "error",
-      message: 'Banner missing the "/" prefix (first art line must start with "/")',
+      message: 'Banner missing the "/" glyph (first art line must start with 7 spaces + "/$$")',
     });
   }
 
