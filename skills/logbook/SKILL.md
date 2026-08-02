@@ -215,7 +215,7 @@ node "$_R/hooks/session-guard.cjs" logbook-restore a<n>
 ```
 Moves a still-open archive item back into `LOGBOOK.md`, clearing its
 `relocated:` marker — it's an ordinary open hot-file item again. If this
-pushes the hot file back over cap (20 open items), the system immediately
+pushes the hot file back over cap (40 open items), the system immediately
 relocates whatever is now lowest-priority/oldest in the hot file, the same
 victim-selection rule as capture-time relocation. Report both the restore and
 any resulting relocation to the user — never silent.
