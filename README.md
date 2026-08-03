@@ -2,7 +2,7 @@
 
 ![Mad Skills](assets/mad-skills.png)
 
-A skill framework for Claude Code. Ships 14 skills covering the full development lifecycle — from project initialization to shipping PRs.
+A skill framework for Claude Code. Ships 13 skills covering the full development lifecycle — from project initialization to shipping PRs.
 
 ## Skills
 
@@ -15,7 +15,6 @@ A skill framework for Claude Code. Ships 14 skills covering the full development
 | **ferry** | `/ferry` | Ferry a session's live state across a context reset — write a waybill and signal a fresh session to resume from it. Clean-context handoff / checkpoint before `/clear`. |
 | **hoist** | `/hoist` | Generate low-infrastructure release pipelines that publish artifacts directly — npm/PyPI/crates/RubyGems/NuGet/Go packages, GitHub Releases, static sites, serverless functions. OIDC/trusted publishing. The non-container sibling of /dock. |
 | **keel** | `/keel` | Generate IaC pipelines (Terraform, Bicep, Pulumi, CDK) to provision cloud infrastructure. Plans on PR, applies on merge. Provisions what /dock deploys to. |
-| **launch** | `/launch` | Run the full idea-to-merged-PR pipeline end to end (interview → plan → build → ship). Explicit-only. |
 | **logbook** | `/logbook` | "What's on deck" — one command, two sections: computed best-practice lifecycle steps + your committed follow-ups backlog (`LOGBOOK.md`). List, review, resolve, dismiss, or add follow-ups. |
 | **prime** | `/prime` | Load project context before feature work. Supports domain-specific context (security, routing, dashboard, etc.). |
 | **rig** | `/rig` | Bootstrap repos with lefthook hooks, commit templates, PR templates, and GitHub Actions workflows. Idempotent. |
@@ -25,7 +24,7 @@ A skill framework for Claude Code. Ships 14 skills covering the full development
 
 ## Lifecycle Overview
 
-The 14 skills form a complete development-to-deployment pipeline. Each skill produces artifacts that downstream skills consume.
+The 13 skills form a complete development-to-deployment pipeline. Each skill produces artifacts that downstream skills consume.
 
 ```mermaid
 graph LR
@@ -400,7 +399,6 @@ graph TB
 | `/hoist` | Release workflow, publish config | CI/CD (publish) |
 | `/ferry` | `waybill.md` (session state) | A fresh session (resume) |
 | `/logbook` | `LOGBOOK.md` (follow-ups backlog) | You (review/resolve) |
-| `/launch` | Orchestrates the full pipeline | — |
 
 ---
 
@@ -504,7 +502,7 @@ ln -sfn "$DOTFILES_DIR/skills/my-skill" "$HOME/.claude/skills/my-skill"
 
 ```
 mad-skills/
-├── skills/                  # Skill definitions (14 skills)
+├── skills/                  # Skill definitions (13 skills)
 │   ├── build/
 │   ├── brace/
 │   ├── distil/
