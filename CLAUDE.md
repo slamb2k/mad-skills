@@ -2,7 +2,7 @@
 
 ## Skill Usage Guide
 
-MAD Skills provides 15 skills covering the full development lifecycle. When this
+MAD Skills provides 14 skills covering the full development lifecycle. When this
 plugin is installed, use these skills proactively — don't wait for the user to
 invoke them by name if the situation clearly calls for one.
 
@@ -205,7 +205,7 @@ Guidance for contributing to the mad-skills repository itself.
 
 ### Repository Overview
 
-**MAD Skills** is a skill framework for Claude Code. It ships 15 skills
+**MAD Skills** is a skill framework for Claude Code. It ships 14 skills
 covering the full development lifecycle with first-class support for both
 GitHub and Azure DevOps platforms. Skills are installed via
 `npx skills add slamb2k/mad-skills` or as a Claude Code plugin, and invoked
@@ -215,7 +215,7 @@ as slash commands.
 
 ```
 mad-skills/
-├── skills/                  # Skill definitions (15 skills)
+├── skills/                  # Skill definitions (14 skills)
 │   ├── brace/               # Project scaffold initialization
 │   ├── build/               # Context-isolated feature dev pipeline
 │   ├── distil/              # Web design variation generator
@@ -224,7 +224,6 @@ mad-skills/
 │   ├── logbook/             # What's on deck — lifecycle steps + follow-ups backlog
 │   ├── hoist/               # Non-container release pipelines
 │   ├── keel/                # Infrastructure as Code pipelines
-│   ├── launch/              # Full idea-to-merged-PR pipeline (explicit-only)
 │   ├── prime/               # Project context loading
 │   ├── rig/                 # Repo bootstrapping (hooks, CI, templates)
 │   ├── ship/                # Full PR lifecycle
@@ -267,6 +266,7 @@ mad-skills/
 │   ├── cyberarian/          # Archived skill
 │   ├── example-skill/       # Archived skill
 │   ├── graphite-skill/      # Archived skill
+│   ├── launch/              # Archived skill (OMC pipeline — hard-dependent on oh-my-claudecode)
 │   ├── pixel-pusher/        # Archived skill
 │   ├── play-tight/          # Archived skill
 │   └── start-right/         # Archived skill

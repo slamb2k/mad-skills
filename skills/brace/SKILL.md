@@ -86,7 +86,6 @@ Before starting, check all dependencies in this table:
 
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
-| oh-my-claudecode | plugin | — | no | ask | `claude plugin install oh-my-claudecode` |
 | superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | ask | `claude plugin install superpowers` |
 
 For each row, in order:
@@ -100,14 +99,9 @@ For each row, in order:
    - **fallback**: notify user with Detail, continue with degraded behavior
 4. After all checks: summarize what's available and what's degraded
 
-**Plugin detection:** For plugin dependencies (Type = plugin), check
-`~/.claude/settings.json` → `enabledPlugins` for a key containing the plugin
-name set to `true`.
-
-**Superpowers detection differs:** Superpowers is a soft dependency detected via
-the on-disk glob helper `scripts/lib/superpowers.js` (anchor file
-`using-superpowers/SKILL.md`), **not** the `enabledPlugins` settings.json check
-used for OMC — see `references/superpowers-deferral.md`.
+Superpowers is a soft dependency detected via the on-disk glob helper
+`scripts/lib/superpowers.js` (anchor file `using-superpowers/SKILL.md`) —
+see `references/superpowers-deferral.md`.
 
 1. Capture **FLAGS** from the user's request
 

@@ -18,9 +18,6 @@ Thumbs.db
 # Claude Code local files
 .claude/
 
-# Oh-My-ClaudeCode local state
-.omc/
-
 # Temporary extraction directories
 *.skill/
 
