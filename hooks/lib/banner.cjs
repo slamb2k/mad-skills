@@ -2,27 +2,24 @@
 
 const config = require('./config.cjs');
 
-// Unicode banner (Delta Corps Priest 1) — used when the terminal supports UTF-8.
+// Unicode banner (Nancyj-Fancy) — used when the terminal supports UTF-8.
 // prettier-ignore
 const BANNER_UNICODE = [
-  "  ▄▄▄▄███▄▄▄▄      ▄████████ ████████▄",
-  "▄██▀▀▀███▀▀▀██▄   ███    ███ ███   ▀███",
-  "███   ███   ███   ███    ███ ███    ███",
-  "███   ███   ███   ███    ███ ███    ███",
-  "███   ███   ███ ▀███████████ ███    ███",
-  "███   ███   ███   ███    ███ ███    ███",
-  "███   ███   ███   ███    ███ ███   ▄███",
-  " ▀█   ███   █▀    ███    █▀  ████████▀",
+  "M\"\"\"\"\"`'\"\"\"`YM MMP\"\"\"\"\"\"\"MM M\"\"\"\"\"\"'YMM",
+  "M  mm.  mm.  M M' .mmmm  MM M  mmmm. `M",
+  "M  MMM  MMM  M M         `M M  MMMMM  M",
+  "M  MMM  MMM  M M  MMMMM  MM M  MMMMM  M",
+  "M  MMM  MMM  M M  MMMMM  MM M  MMMM' .M",
+  "M  MMM  MMM  M M  MMMMM  MM M       .MM",
+  "MMMMMMMMMMMMMM MMMMMMMMMMMM MMMMMMMMMMM",
   "",
-  "   ▄████████    ▄█   ▄█▄  ▄█   ▄█        ▄█          ▄████████",
-  "  ███    ███   ███ ▄███▀ ███  ███       ███         ███    ███",
-  "  ███    █▀    ███▐██▀   ███▌ ███       ███         ███    █▀",
-  "  ███         ▄█████▀    ███▌ ███       ███         ███",
-  "▀███████████ ▀▀█████▄    ███▌ ███       ███       ▀███████████",
-  "         ███   ███▐██▄   ███  ███       ███                ███",
-  "   ▄█    ███   ███ ▀███▄ ███  ███▌    ▄ ███▌    ▄    ▄█    ███",
-  " ▄████████▀    ███   ▀█▀ █▀   █████▄▄██ █████▄▄██  ▄████████▀",
-  "               ▀              ▀         ▀",
+  "MP\"\"\"\"\"\"`MM M\"\"MMMMM\"\"M M\"\"M M\"\"MMMMMMMM M\"\"MMMMMMMM MP\"\"\"\"\"\"`MM",
+  "M  mmmmm..M M  MMMM' .M M  M M  MMMMMMMM M  MMMMMMMM M  mmmmm..M",
+  "M.      `YM M       .MM M  M M  MMMMMMMM M  MMMMMMMM M.      `YM",
+  "MMMMMMM.  M M  MMMb. YM M  M M  MMMMMMMM M  MMMMMMMM MMMMMMM.  M",
+  "M. .MMM'  M M  MMMMb  M M  M M  MMMMMMMM M  MMMMMMMM M. .MMM'  M",
+  "Mb.     .dM M  MMMMM  M M  M M         M M         M Mb.     .dM",
+  "MMMMMMMMMMM MMMMMMMMMMM MMMM MMMMMMMMMMM MMMMMMMMMMM MMMMMMMMMMM",
 ];
 
 // ASCII fallback (Rowan Cap) — used when the terminal locale is not UTF-8.
