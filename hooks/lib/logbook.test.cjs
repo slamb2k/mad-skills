@@ -732,3 +732,70 @@ test('a line with no separator at all is still skipped, not guessed at', () => {
     assert.equal(fl.read(dir).items.length, 0);
   } finally { rm(dir); }
 });
+
+test('a rewrite keeps the separator the ledger already used', () => {
+  // Reading tolerantly and writing dogmatically is how a tool ends up arguing
+  // with its host project. Parsing accepted three separators; writing emitted
+  // an em dash unconditionally, so ONE resolve converted all 63 separators in
+  // a repository whose own CLAUDE.md says "no em dashes anywhere" — no data
+  // lost, but the file no longer complied with the rules of the repo it lives
+  // in, and the next commit would have carried that.
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), [
+      '# Follow-ups',
+      '',
+      '## Ideas',
+      '- [ ] Keep the hyphen - /build a (2026-08-06)',
+      '- [ ] And this one too - /build b (2026-08-06)',
+      '',
+    ].join('\n'));
+
+    fl.capture(dir, [{ title: 'A new one', category: 'idea', source: '/build c' }], {
+      today: '2026-08-07',
+    });
+
+    const text = fs.readFileSync(path.join(dir, 'LOGBOOK.md'), 'utf8');
+    assert.equal(text.includes('—'), false, 'must not restyle a hyphen ledger');
+    assert.match(text, /A new one - \/build c/, 'and the NEW item follows the house style too');
+    assert.equal(fl.read(dir).items.length, 3);
+  } finally { rm(dir); }
+});
+
+test('an em-dash ledger stays em-dash, and so does a brand new one', () => {
+  // The other direction, because the risk in a fix like this is quietly
+  // changing the default for everybody who was already fine.
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), [
+      '# Follow-ups', '', '## Ideas', '- [ ] Existing — /build a (2026-08-06)', '',
+    ].join('\n'));
+    fl.capture(dir, [{ title: 'Added', category: 'idea', source: '/build b' }], { today: '2026-08-07' });
+    const text = fs.readFileSync(path.join(dir, 'LOGBOOK.md'), 'utf8');
+    assert.match(text, /Added — \/build b/);
+    assert.equal(text.includes(' - /build'), false);
+  } finally { rm(dir); }
+
+  const fresh = mkRepo();
+  try {
+    fl.capture(fresh, [{ title: 'First ever', category: 'idea', source: '/build a' }], { today: '2026-08-07' });
+    assert.match(fs.readFileSync(path.join(fresh, 'LOGBOOK.md'), 'utf8'), /First ever — \/build a/);
+  } finally { rm(fresh); }
+});
+
+test('a title containing a hyphen does not out-vote the real separator', () => {
+  // Why detection counts per ITEM LINE with the parser's own last-separator
+  // rule, rather than tallying substrings over the whole text: prose inside a
+  // title contains ` - ` often enough to win a naive count outright.
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), [
+      '# Follow-ups', '', '## Ideas',
+      '- [ ] Fix the A - B - C mapping — /build a (2026-08-06)',
+      '- [ ] Another A - B thing — /build b (2026-08-06)',
+      '',
+    ].join('\n'));
+    fl.capture(dir, [{ title: 'Added', category: 'idea', source: '/build c' }], { today: '2026-08-07' });
+    assert.match(fs.readFileSync(path.join(dir, 'LOGBOOK.md'), 'utf8'), /Added — \/build c/);
+  } finally { rm(dir); }
+});
