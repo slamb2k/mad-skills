@@ -659,3 +659,76 @@ test('parse/serialize round-trips items, links, archive, empty categories', () =
   assert.equal(relocated.resolvedDate, null);
   assert.equal(relocated.dismissedDate, null);
 });
+
+// ─── separator tolerance ────────────────────────────────────────────────
+
+test('a hyphen-separated ledger parses, and a write does not delete it', () => {
+  // Found in a real repository whose CLAUDE.md says "no em dashes anywhere",
+  // so every hand-written entry used a hyphen. The parser accepted only an em
+  // dash, `safe()` swallowed the throw per line, and 45 open items read as an
+  // EMPTY ledger while the file looked perfectly healthy on disk.
+  //
+  // Empty parsing alone is survivable. What made it DATA LOSS is that every
+  // write rebuilds the file from the parsed model, so a single `logbook-add`
+  // took that file from 45 items to 1. This asserts both halves: it reads, and
+  // adding to it keeps what was already there.
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), [
+      '# Follow-ups',
+      '',
+      '## Ideas',
+      '- [ ] Heartbeat onto the pull request - /build phase-4a-2 (2026-08-06)',
+      '',
+      '## Deferred fixes',
+      '- [ ] Orphan draft pull requests accumulate - /build RT-build-verb (2026-08-05)',
+      '',
+    ].join('\n'));
+
+    const items = fl.read(dir).items;
+    assert.equal(items.length, 2);
+    assert.equal(items[0].source, '/build phase-4a-2');
+    assert.equal(items[0].title, 'Heartbeat onto the pull request');
+    assert.equal(items[1].category, 'fixes');
+
+    fl.capture(dir, [{ title: 'A third thing', category: 'idea', source: '/build x' }], {
+      today: '2026-08-07',
+    });
+    assert.equal(fl.read(dir).items.length, 3, 'the write must not have eaten the existing items');
+  } finally { rm(dir); }
+});
+
+test('an em-dash ledger still parses when a TITLE contains a hyphen separator', () => {
+  // Why the last separator wins rather than the first that matches. A title
+  // may legitimately contain ` - `; the real separator is always nearer the
+  // end than any punctuation inside the title.
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), [
+      '# Follow-ups',
+      '',
+      '## Ideas',
+      '- [ ] Fix the A - B mapping — /build phase-3e (2026-08-06)',
+      '',
+    ].join('\n'));
+
+    const items = fl.read(dir).items;
+    assert.equal(items.length, 1);
+    assert.equal(items[0].title, 'Fix the A - B mapping');
+    assert.equal(items[0].source, '/build phase-3e');
+  } finally { rm(dir); }
+});
+
+test('a line with no separator at all is still skipped, not guessed at', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'LOGBOOK.md'), [
+      '# Follow-ups',
+      '',
+      '## Ideas',
+      '- [ ] No source here (2026-08-07)',
+      '',
+    ].join('\n'));
+    assert.equal(fl.read(dir).items.length, 0);
+  } finally { rm(dir); }
+});

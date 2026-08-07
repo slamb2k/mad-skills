@@ -210,6 +210,27 @@ function parse(text) {
   return items;
 }
 
+/**
+ * Separators accepted between a title and its source, longest-first so an
+ * en dash never matches inside something else. Em dash is the canonical one
+ * and the only one `serializeItem` emits.
+ */
+const SEPARATORS = [' — ', ' – ', ' - '];
+
+/** The last separator in a line, whichever kind it is. */
+function lastSeparator(rest) {
+  let index = -1;
+  let length = 0;
+  for (const candidate of SEPARATORS) {
+    const at = rest.lastIndexOf(candidate);
+    if (at > index) {
+      index = at;
+      length = candidate.length;
+    }
+  }
+  return { index, length };
+}
+
 /** Parse one checkbox line's body into an item (throws on malformed → skipped). */
 function parseItemLine(checkChar, body, category, inArchive) {
   let rest = body;
@@ -248,11 +269,25 @@ function parseItemLine(checkChar, body, category, inArchive) {
   const date = dateM[1];
   rest = rest.slice(0, dateM.index);
 
-  // ` — source` (split on the last em-dash separator)
-  const sep = rest.lastIndexOf(' — ');
-  if (sep === -1) throw new Error('no source separator');
-  const source = rest.slice(sep + 3).trim();
-  const { title, priority } = splitPriority(rest.slice(0, sep));
+  // ` — source`. WRITTEN as an em dash always (serializeItem); PARSED
+  // tolerantly, because a hand-maintained ledger does not have to have been
+  // written by us.
+  //
+  // This was em-dash-only, and a repository whose own style rules forbid em
+  // dashes wrote every entry with a hyphen. All 45 threw `no source
+  // separator`, `safe()` swallowed each one, and the ledger parsed as EMPTY
+  // while looking perfectly healthy on disk. That is survivable on its own.
+  // What made it data loss is that every write rebuilds the file from the
+  // parsed model: one `logbook-add` took that file from 45 open items to 1.
+  //
+  // Taking the LAST index across all three, rather than the first separator
+  // that matches, is what keeps a title containing ` - ` parsing correctly in
+  // a file that does use em dashes: the real separator is always nearer the
+  // end than any punctuation inside the title.
+  const sep = lastSeparator(rest);
+  if (sep.index === -1) throw new Error('no source separator');
+  const source = rest.slice(sep.index + sep.length).trim();
+  const { title, priority } = splitPriority(rest.slice(0, sep.index));
   if (!title) throw new Error('empty title');
 
   const checked = checkChar.toLowerCase() === 'x';
