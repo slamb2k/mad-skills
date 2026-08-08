@@ -231,6 +231,41 @@ function lastSeparator(rest) {
   return { index, length };
 }
 
+/**
+ * The separator a ledger already uses, so a rewrite does not restyle the file.
+ *
+ * Parsing accepts three (see SEPARATORS); writing used to emit an em dash
+ * unconditionally, which meant one `resolve` converted every line in a
+ * repository whose own rules forbid em dashes. Reading tolerantly and writing
+ * dogmatically is how a tool ends up arguing with its host project.
+ *
+ * Counted per ITEM LINE using the same last-separator rule the parser uses,
+ * never as a raw substring tally over the whole text: prose inside a title
+ * contains ` - ` often enough to win a naive count outright.
+ *
+ * An absent or separator-less ledger gets the em dash, so a new file and every
+ * existing em-dash file are byte-identical to before.
+ */
+function dominantSeparator(text) {
+  if (!text) return SEPARATORS[0];
+  const tally = new Map();
+  for (const line of text.split('\n')) {
+    const box = line.match(/^-\s+\[[ xX]\]\s+(.*)$/);
+    if (!box) continue;
+    const found = lastSeparator(box[1]);
+    if (found.index === -1) continue;
+    const sep = box[1].slice(found.index, found.index + found.length);
+    tally.set(sep, (tally.get(sep) || 0) + 1);
+  }
+  let best = SEPARATORS[0];
+  let bestCount = 0;
+  for (const sep of SEPARATORS) {
+    const n = tally.get(sep) || 0;
+    if (n > bestCount) { best = sep; bestCount = n; }
+  }
+  return best;
+}
+
 /** Parse one checkbox line's body into an item (throws on malformed → skipped). */
 function parseItemLine(checkChar, body, category, inArchive) {
   let rest = body;
@@ -310,9 +345,9 @@ function parseItemLine(checkChar, body, category, inArchive) {
 
 // ─── serialize (pure) ───────────────────────────────────────────────────
 
-function serializeItem(item) {
+function serializeItem(item, sep = SEPARATORS[0]) {
   const mark = item.status === 'open' ? ' ' : 'x';
-  let line = `- [${mark}] ${priorityMarker(item.priority)}${item.title} — ${item.source} (${item.date})`;
+  let line = `- [${mark}] ${priorityMarker(item.priority)}${item.title}${sep}${item.source} (${item.date})`;
   const parts = [];
   if (item.link) parts.push(`link:${item.link}`);
   // Exactly one date-marker part, chosen by status priority (REQ-005): a
@@ -336,12 +371,12 @@ function serializeItem(item) {
  * non-open item passed to it; the ARCHIVE_MAX invariant is enforced by
  * relocation before this is called (write()), not by truncation here.
  */
-function serialize(items, header = HEADER) {
+function serialize(items, header = HEADER, sep = SEPARATORS[0]) {
   const out = [header];
   for (const cat of CATEGORIES) {
     out.push(`## ${HEADINGS[cat]}`);
     for (const it of items) {
-      if (it.status === 'open' && it.category === cat) out.push(serializeItem(it));
+      if (it.status === 'open' && it.category === cat) out.push(serializeItem(it, sep));
     }
     out.push('');
   }
@@ -350,7 +385,7 @@ function serialize(items, header = HEADER) {
     .filter((it) => it.status !== 'open')
     .sort((a, b) => historyOrDate(b).localeCompare(historyOrDate(a)));
   out.push('## Archive');
-  for (const it of archived) out.push(serializeItem(it));
+  for (const it of archived) out.push(serializeItem(it, sep));
   out.push('');
 
   return out.join('\n');
@@ -495,11 +530,15 @@ function write(projectDir, items) {
   const path = ledgerPath(projectDir);
   const archivePath = archiveLedgerPath(projectDir);
   relocateArchiveOverflow(items, ARCHIVE_MAX);
+  // Read BEFORE writing, obviously, and per file: the archive is allowed to
+  // have been written by an older version than the hot file was.
+  const hotSep = dominantSeparator(readText(path));
+  const archiveSep = dominantSeparator(readText(archivePath));
   const hot = items.filter((it) => it.location !== 'archive');
   const archive = items.filter((it) => it.location === 'archive');
-  writeFileSync(path, serialize(hot));
+  writeFileSync(path, serialize(hot, HEADER, hotSep));
   if (archive.length || existsSync(archivePath)) {
-    writeFileSync(archivePath, serialize(archive, ARCHIVE_HEADER));
+    writeFileSync(archivePath, serialize(archive, ARCHIVE_HEADER, archiveSep));
   }
   // Consolidation: the merged items now live in LOGBOOK.md / LOGBOOK-ARCHIVE.md,
   // so retire any legacy FOLLOWUPS.md / LOG.md. A visible git deletion, never a
