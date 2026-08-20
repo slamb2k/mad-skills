@@ -26,20 +26,24 @@ check() {
 # autonomy_ready frontmatter field present (either value)
 grep -Eq '^autonomy_ready:[[:space:]]*(true|false)' "$SPEC"; AR=$?
 
+# Heading matches are level-agnostic (^#+): specs in the wild use both `# Foo`
+# and `## Foo` for these sections, and a level-2-only match silently reported
+# them missing.
+
 # Definition of Done heading present
-grep -Eq '^##[[:space:]]+Definition of Done' "$SPEC"; DOD_H=$?
+grep -Eq '^#+[[:space:]]+Definition of Done' "$SPEC"; DOD_H=$?
 # ...with at least one checkbox item
 grep -qF -e '- [ ]' "$SPEC"; DOD_ITEM=$?
 
 # Assumption Authorization heading present (conditional — see note below)
-grep -Eq '^##[[:space:]]+Assumption Authorization' "$SPEC"; AA=$?
+grep -Eq '^#+[[:space:]]+Assumption Authorization' "$SPEC"; AA=$?
 
 # Roadmap / what's-next context (dedicated heading or Related Specifications)
-grep -Eiq '^##.*(Roadmap|What.?s Next|Related Specifications)' "$SPEC"; ROAD=$?
+grep -Eiq '^#+[[:space:]].*(Roadmap|What.?s Next|Related Specifications)' "$SPEC"; ROAD=$?
 
 # Risks — a Risks heading, or the standard Rationale/Constraints sections that
 # carry risk/tradeoff content in this template
-grep -Eiq '^##.*(Risk|Rationale|Constraints)' "$SPEC"; RISK=$?
+grep -Eiq '^#+[[:space:]].*(Risk|Rationale|Constraints)' "$SPEC"; RISK=$?
 
 echo "── Structural completeness check ─────────────────"
 echo "  $SPEC"

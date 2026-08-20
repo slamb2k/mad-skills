@@ -33,6 +33,26 @@ next steps here
 some risk
 `;
 
+// Real specs in this repo (e.g. specs/pr-first-autonomous-build.md) write these
+// sections as level-1 headings; a level-2-only match reported them missing.
+const LEVEL_ONE_SPEC = `---
+title: Example
+autonomy_ready: true
+---
+
+# Definition of Done
+- [ ] thing works
+
+# Assumption Authorization
+delegated to /build
+
+# Roadmap
+next steps here
+
+# Risks
+some risk
+`;
+
 const MISSING_DOD_SPEC = `---
 title: Example
 autonomy_ready: true
@@ -50,6 +70,15 @@ test("pass case: spec with all required sections reports no missing items", () =
   assert.match(out, /✅ autonomy_ready frontmatter field/);
   assert.match(out, /✅ Definition of Done heading/);
   assert.match(out, /✅ Definition of Done checklist item/);
+  assert.doesNotMatch(out, /❌/);
+});
+
+test("pass case: level-1 headings are detected too", () => {
+  const out = run(LEVEL_ONE_SPEC);
+  assert.match(out, /✅ Definition of Done heading/);
+  assert.match(out, /✅ Roadmap \/ what's-next context/);
+  assert.match(out, /✅ Risks \/ rationale content/);
+  assert.match(out, /✅ Assumption Authorization heading/);
   assert.doesNotMatch(out, /❌/);
 });
 
