@@ -272,6 +272,7 @@ mad-skills/
 │   └── start-right/         # Archived skill
 ├── assets/                  # Project-level static assets
 │   └── mad-skills.png       # Logo/branding
+├── docs/                    # Companion docs (end-to-end walkthrough)
 ├── references/              # Shared reference material for skills
 ├── specs/                   # Feature specifications produced by /speccy
 ├── .claude-plugin/          # Plugin metadata
