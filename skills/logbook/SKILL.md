@@ -1,6 +1,7 @@
 ---
 name: logbook
-description: The project's single "what's on deck" surface — one command, two sections. Shows the best-practice lifecycle stages this project should adopt next (computed from repo state, via the recommendation engine) AND the durable backlog of follow-ups (ideas, deferred fixes, open questions, risks, tech debt) captured at /build and /ship so they survive /clear. Lists both, and resolves, dismisses, adds, or reviews follow-ups. Use when you want to see or act on everything outstanding. Triggers: "what's next", "next steps", "/logbook", "what's on deck", "follow-ups", "the backlog", "what did we defer", "lifecycle steps", "what should I do next".
+description: >-
+  The project's single "what's on deck" surface — one command, two sections. Shows the best-practice lifecycle stages this project should adopt next (computed from repo state, via the recommendation engine) AND the durable backlog of follow-ups (ideas, deferred fixes, open questions, risks, tech debt) captured at /build and /ship so they survive /clear. Lists both, and resolves, dismisses, adds, or reviews follow-ups. Use when you want to see or act on everything outstanding. Triggers: "what's next", "next steps", "/logbook", "what's on deck", "follow-ups", "the backlog", "what did we defer", "lifecycle steps", "what should I do next".
 argument-hint: "[review | archive | resolve <n|a<n>> | dismiss <n|a<n>> | restore a<n> | add <text>]"
 allowed-tools: Bash, AskUserQuestion
 ---
@@ -11,20 +12,21 @@ When this skill is invoked, IMMEDIATELY output the banner below before doing any
 Pick ONE tagline at random — vary your choice each time.
 CRITICAL: Reproduce the banner EXACTLY character-for-character, including the diagonal `/` glyph before the name.
 
-```
+```text
 {tagline}
 
        /$$ /$$        /$$$$$$   /$$$$$$  /$$$$$$$   /$$$$$$   /$$$$$$  /$$   /$$
       /$$/| $$       /$$__  $$ /$$__  $$| $$__  $$ /$$__  $$ /$$__  $$| $$  /$$/
-     /$$/ | $$      | $$  \ $$| $$  \__/| $$  \ $$| $$  \ $$| $$  \ $$| $$ /$$/ 
-    /$$/  | $$      | $$  | $$| $$ /$$$$| $$$$$$$ | $$  | $$| $$  | $$| $$$$$/  
-   /$$/   | $$      | $$  | $$| $$|_  $$| $$__  $$| $$  | $$| $$  | $$| $$  $$  
-  /$$/    | $$      | $$  | $$| $$  \ $$| $$  \ $$| $$  | $$| $$  | $$| $$\  $$ 
+     /$$/ | $$      | $$  \ $$| $$  \__/| $$  \ $$| $$  \ $$| $$  \ $$| $$ /$$/
+    /$$/  | $$      | $$  | $$| $$ /$$$$| $$$$$$$ | $$  | $$| $$  | $$| $$$$$/
+   /$$/   | $$      | $$  | $$| $$|_  $$| $$__  $$| $$  | $$| $$  | $$| $$  $$
+  /$$/    | $$      | $$  | $$| $$  \ $$| $$  \ $$| $$  | $$| $$  | $$| $$\  $$
  /$$/     | $$$$$$$$|  $$$$$$/|  $$$$$$/| $$$$$$$/|  $$$$$$/|  $$$$$$/| $$ \  $$
 |__/      |________/ \______/  \______/ |_______/  \______/  \______/ |__/  \__/
 ```
 
 Taglines:
+
 - 🧭 Reading the ship's log...
 - 📖 Course and remarks, all in one place.
 - ⚓ What's on deck?
@@ -39,6 +41,7 @@ Taglines:
 ## Output Formatting
 
 After the banner, show parsed input:
+
 ```
 ┌─ Input ────────────────────────────────────────
 │  Action:   {show | review | resolve | dismiss | add}
@@ -53,16 +56,16 @@ Status icons: ✅ done · ⏭️ skipped · ⚠️ degraded
 ## What this does
 
 `/logbook` is the project's single **"what's on deck"** surface. It answers the
-one question — *what should I do on this project?* — that used to be split across
+one question — _what should I do on this project?_ — that used to be split across
 two commands, so you no longer have to guess which to call. It shows two things,
 clearly separated because they're genuinely different:
 
-- **🧭 Lifecycle** — best-practice stages this *project* should adopt next
+- **🧭 Lifecycle** — best-practice stages this _project_ should adopt next
   (brace, rig, dock/hoist, keel, envs…), **computed** fresh from repo state by
   the Lifecycle Recommendation Engine. Prescriptive and stateless. Because you're
   explicitly asking, this **bypasses the ambient anti-nag suppression**
   (active-cycle, cooldown, dismissal watermarks) — you see the full picture.
-- **📌 Follow-ups** — what *you* said you'd come back to (ideas, deferred fixes,
+- **📌 Follow-ups** — what _you_ said you'd come back to (ideas, deferred fixes,
   open questions, risks, tech debt), **committed** to `LOGBOOK.md` (plus a
   sibling `LOGBOOK-ARCHIVE.md` for anything that outgrows it — see Notes) at
   the repo root and auto-captured at `/build` and `/ship` debrief so they
@@ -74,16 +77,16 @@ unless you choose to. All operations go through `session-guard.cjs` subcommands
 
 ## Pre-flight
 
-| Dependency | Type | Check | Required | Resolution | Detail |
-|-----------|------|-------|----------|------------|--------|
-| session-guard | skill | `ls "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}/hooks/session-guard.cjs"` | yes | stop | Ships with the mad-skills plugin; reinstall if missing |
-| git | cli | `git --version` | no | fallback | Lifecycle signature + linked-item auto-resolve degrade without git (CON-002/CON-003) |
+| Dependency    | Type  | Check                                                                                            | Required | Resolution | Detail                                                                               |
+| ------------- | ----- | ------------------------------------------------------------------------------------------------ | -------- | ---------- | ------------------------------------------------------------------------------------ |
+| session-guard | skill | `ls "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}/hooks/session-guard.cjs"` | yes      | stop       | Ships with the mad-skills plugin; reinstall if missing                               |
+| git           | cli   | `git --version`                                                                                  | no       | fallback   | Lifecycle signature + linked-item auto-resolve degrade without git (CON-002/CON-003) |
 
 ## Parse the argument
 
 The argument selects the action (default is **show** when empty):
 
-- *(empty)* → **show** both sections
+- _(empty)_ → **show** both sections
 - `review` → **review** follow-ups (assisted cleanup)
 - `archive` → **archive** view (lists relocated-open items with `a`-prefixed
   selectors, plus historical archive entries for context)
@@ -93,6 +96,7 @@ The argument selects the action (default is **show** when empty):
 - `add <text>` → **add** a manual follow-up
 
 Set `_R` once for every command below:
+
 ```bash
 _R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
 ```
@@ -137,6 +141,7 @@ the follow-up **numbers** (1, 2, 3…) so the two act-verbs never collide:
 ```
 
 Empty-state rules (never fabricate):
+
 - Lifecycle `none` → show `✅ fully caught up — no lifecycle steps apply`.
 - `LOGBOOK_LIST_EMPTY` → show `— no open follow-ups`.
 - **Both** empty → collapse to a single line: `✅ All clear — nothing on deck.`
@@ -145,16 +150,18 @@ Empty-state rules (never fabricate):
 ### set up \<A> (act on a lifecycle step)
 
 Only when the user picks one (or asks). Running a lifecycle step just invokes
-that skill (e.g. *set up A* → invoke `/keel`). **Never** run one without the user
+that skill (e.g. _set up A_ → invoke `/keel`). **Never** run one without the user
 choosing it — every lifecycle transition is user-consented. If you want to
-prompt, use `AskUserQuestion` with each listed command plus *Not now*.
+prompt, use `AskUserQuestion` with each listed command plus _Not now_.
 
 ### review (assisted follow-up cleanup)
 
 ```bash
 node "$_R/hooks/session-guard.cjs" logbook-review
 ```
+
 Two tracks:
+
 1. **Deterministic** — linked follow-ups whose link is satisfied (`task#`,
    `spec:`, `rec:`, `pr#`/`commit:`) auto-resolve **silently**; a
    `LOGBOOK_AUTORESOLVED [...]` line means they were already handled.
@@ -185,6 +192,7 @@ it, scan the `logbook-list` output for items annotated `[task#<id>]`; for each, 
 ```bash
 node "$_R/hooks/session-guard.cjs" logbook-archive
 ```
+
 Prints a `LOGBOOK_ARCHIVE_BEGIN` … `LOGBOOK_ARCHIVE_END` block: a numbered
 `a1, a2, …` list of still-open items that relocated off the hot file when it
 hit cap — actionable via `resolve a<n>` · `dismiss a<n>` · `restore a<n>` —
@@ -201,6 +209,7 @@ This is read only on demand — never on the hot path `/logbook`'s default
 node "$_R/hooks/session-guard.cjs" logbook-resolve <n|a<n>>   # done
 node "$_R/hooks/session-guard.cjs" logbook-dismiss <n|a<n>>   # not done, not wanted
 ```
+
 For a plain `<n>`, both move the follow-up to the Archive section and drop it
 from the open list/counts. An `a`-prefixed selector (e.g. `a3`) targets
 `LOGBOOK-ARCHIVE.md`'s still-open (relocated) items instead of the hot file;
@@ -213,6 +222,7 @@ Confirm the archived title either way.
 ```bash
 node "$_R/hooks/session-guard.cjs" logbook-restore a<n>
 ```
+
 Moves a still-open archive item back into `LOGBOOK.md`, clearing its
 `relocated:` marker — it's an ordinary open hot-file item again. If this
 pushes the hot file back over cap (40 open items), the system immediately
@@ -228,6 +238,7 @@ just like an auto-capture:
 ```bash
 node "$_R/hooks/session-guard.cjs" logbook-capture-preview '[{"title":"<text>","category":"<category>","source":"manual","date":"<today>"}]'
 ```
+
 If `would_relocate` is non-empty, present the candidate(s) via
 `AskUserQuestion` — same per-item choice pattern as `review`. Address each
 candidate by its title text, not the preview list's ordinal — the preview
@@ -236,6 +247,7 @@ date), which does not match `logbook-resolve`/`logbook-dismiss`'s plain-number
 selector (hot-file display order); the title is matched by substring
 regardless of ordering, so it's the only selector guaranteed to hit the right
 item. Options per candidate:
+
 - **"Resolve now"** → `node "$_R/hooks/session-guard.cjs" logbook-resolve "<title>"`
 - **"Dismiss"** → `node "$_R/hooks/session-guard.cjs" logbook-dismiss "<title>"`
 - **"Leave it"** → no action; it relocates when the real add runs next.
@@ -243,6 +255,7 @@ item. Options per candidate:
 ```bash
 node "$_R/hooks/session-guard.cjs" logbook-add "<text>" --category <ideas|fixes|questions|risks|debt> --link <link>
 ```
+
 `--category` (default `ideas`) and `--link` are optional. Source is `manual`,
 date is today. Confirm the added item — and if the add itself relocated
 another item to make room (the `Relocated to archive (cap reached): [...]`
@@ -250,8 +263,8 @@ line), mention that relocation to the user too. Never silent.
 
 ## Notes
 
-- **Two sections, one glance — on purpose.** Lifecycle is *what a good repo
-  does* (computed, prescriptive); follow-ups are *what you said you'd do*
+- **Two sections, one glance — on purpose.** Lifecycle is _what a good repo
+  does_ (computed, prescriptive); follow-ups are _what you said you'd do_
   (committed, personal). Same "what now?" moment, different sources — the split
   is in the output, not in which command you call.
 - The follow-ups half is **distinct from tasks**: an item may link to a
