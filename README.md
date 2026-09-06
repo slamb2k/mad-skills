@@ -2,29 +2,30 @@
 
 ![Mad Skills](assets/mad-skills.png)
 
-A skill framework for Claude Code. Ships 13 skills covering the full development lifecycle — from project initialization to shipping PRs.
+A skill framework for Claude Code. Ships 14 skills covering the full development lifecycle — from project initialization to shipping PRs and deploying — with first-class support for both GitHub and Azure DevOps.
 
 ## Skills
 
-| Skill | Command | Description |
-|-------|---------|-------------|
-| **build** | `/build` | Context-isolated feature development pipeline. Takes a design/plan and executes explore, question, architect, implement, review, ship inside subagents. |
-| **brace** | `/brace` | Initialize projects with a standard scaffold. Creates specs/, tools/, context/ directories, project CLAUDE.md, and branch protection. |
-| **distil** | `/distil` | Generate multiple unique web design variations. Creates a Vite + React + TypeScript + Tailwind project with N designs at /1, /2, /3. |
-| **dock** | `/dock` | Generate container release pipelines. Builds once, promotes immutable images through dev → staging → prod. Supports Azure Container Apps, AWS Fargate, Cloud Run, Kubernetes, Dokku, Coolify, CapRover. |
-| **ferry** | `/ferry` | Ferry a session's live state across a context reset — write a waybill and signal a fresh session to resume from it. Clean-context handoff / checkpoint before `/clear`. |
-| **hoist** | `/hoist` | Generate low-infrastructure release pipelines that publish artifacts directly — npm/PyPI/crates/RubyGems/NuGet/Go packages, GitHub Releases, static sites, serverless functions. OIDC/trusted publishing. The non-container sibling of /dock. |
-| **keel** | `/keel` | Generate IaC pipelines (Terraform, Bicep, Pulumi, CDK) to provision cloud infrastructure. Plans on PR, applies on merge. Provisions what /dock deploys to. |
-| **logbook** | `/logbook` | "What's on deck" — one command, two sections: computed best-practice lifecycle steps + your committed follow-ups backlog (`LOGBOOK.md`). List, review, resolve, dismiss, or add follow-ups. |
-| **prime** | `/prime` | Load project context before feature work. Supports domain-specific context (security, routing, dashboard, etc.). |
-| **rig** | `/rig` | Bootstrap repos with lefthook hooks, commit templates, PR templates, and GitHub Actions workflows. Idempotent. |
-| **ship** | `/ship` | Full PR lifecycle — sync with main, create branch, commit, push, create PR, wait for CI, fix issues, squash merge, cleanup. |
-| **speccy** | `/speccy` | Interview-driven specification builder. Reviews code/docs, interviews through targeted questions, produces structured specs. |
-| **sync** | `/sync` | Sync local repo with origin/main. Stashes changes, pulls, restores stash, cleans up stale branches. |
+| Skill | Description | Flags / arguments |
+|-------|-------------|-------------------|
+| `/brace` | Initialize a project with a standard scaffold: `specs/`, `context/`, a project CLAUDE.md, `.gitignore`, and branch protection. Idempotent. | `--force` |
+| `/rig` | Bootstrap a repo with lefthook hooks (including a secret-scan pre-commit check), a commit message template, a PR template, and a CI workflow. Idempotent. | `--skip-system-check` |
+| `/prime` | Load project context before significant work. Scans CLAUDE.md, README, specs, docs, and source structure. | `[domain hints]` (comma-separated directories or topics) |
+| `/speccy` | Interview-driven specification builder. Reviews code and docs, interviews you in rounds, writes a spec to `specs/`. | `<goal or feature description>` |
+| `/build` | Context-isolated feature pipeline. Takes a spec path or plan text and runs explore → architect → implement → review → verify → ship inside subagents. | `<plan or spec path>` `--skip-questions` `--skip-review` `--no-ship` `--parallel-impl` |
+| `/ship` | Full PR lifecycle: sync, branch, semantic commits, push, PR, CI watch with auto-fix, squash merge, cleanup. | `--pr-only` `--no-squash` `--keep-branch` |
+| `/sync` | Sync with origin/main. Stashes changes, pulls, restores, prunes stale branches and finished worktrees. | `--no-stash` `--no-cleanup` `--no-rebase` |
+| `/keel` | Generate Infrastructure as Code pipelines (Terraform, Bicep, Pulumi, CDK). Plans on PR, applies on merge. Provisions what `/dock` deploys to. | `--plan-only` `--skip-interview` `--dry-run` `--tool <terraform\|bicep\|pulumi\|cdk>` |
+| `/dock` | Generate container release pipelines. Build once, promote immutable images dev → staging → prod. Azure Container Apps, AWS Fargate, Cloud Run, Kubernetes, Dokku, Coolify, CapRover. | `--registry-only` `--skip-interview` `--dry-run` |
+| `/hoist` | Generate low-infrastructure release pipelines that publish directly: npm, PyPI, crates, RubyGems, NuGet, Go, GitHub Releases, static sites, serverless. OIDC/trusted publishing. The non-container sibling of `/dock`. | `--skip-interview` `--dry-run` `--registry <name>` |
+| `/distil` | Generate N unique web design variations in a Vite + React + TypeScript + Tailwind project, served at `/1`, `/2`, `/3`. | `<count>` `--port <port>` `--spec <path>` `--favorites <1,2,3>` |
+| `/ferry` | Hand a session's live state across a context reset. Writes a waybill and signals the next fresh session to resume from it. | `repo` \| `tmp` \| `commit` (target, default `repo`) |
+| `/logbook` | "What's on deck": computed best-practice lifecycle steps plus your committed follow-ups backlog in `LOGBOOK.md`. | `review` \| `archive` \| `resolve <n>` \| `dismiss <n>` \| `restore a<n>` \| `add <text>` |
+| `/wright` | Update installed Claude Code marketplace plugins from inside a session, all of them or one by fuzzy name. | `<plugin-name>` `--dry-run` |
 
 ## Lifecycle Overview
 
-The 13 skills form a complete development-to-deployment pipeline. Each skill produces artifacts that downstream skills consume.
+Each skill produces artifacts that downstream skills consume.
 
 ```mermaid
 graph LR
@@ -47,387 +48,90 @@ graph LR
 | Phase | Skills | What happens |
 |-------|--------|--------------|
 | **Setup** | `/brace` → `/rig` | Initialize project structure, install hooks, templates, CI workflows |
-| **Develop** | `/speccy` → `/build` → `/ship` | Spec features, implement in isolated subagents, merge via PR lifecycle |
+| **Develop** | `/speccy` → `/build` → `/ship` | Spec features, implement in isolated subagents, merge via the PR lifecycle |
 | **Deploy** | `/keel` → `/dock` or `/hoist` | Provision cloud infrastructure, then deploy containers (`/dock`) or publish artifacts directly (`/hoist`) |
-| **Utility** | `/sync` · `/prime` · `/ferry` · `/logbook` | Sync with main, load context, hand off across `/clear`, review what's on deck (lifecycle steps + follow-ups) |
+| **Utility** | `/sync` · `/prime` · `/ferry` · `/logbook` · `/wright` · `/distil` | Sync with main, load context, hand off across `/clear`, review what's on deck, update plugins, explore web designs |
 
-Supporting skills (`/sync`, `/prime`, `/distil`) are used as needed throughout:
-- `/sync` — Pull latest changes before starting work
-- `/prime` — Load domain context before complex features
-- `/distil` — Generate multiple web design variations
+Skills call each other where it makes sense: `/build` and `/speccy` load context via `/prime`, `/build` ends by invoking `/ship`, `/ship` invokes `/sync` after merging, and `/dock`, `/keel`, and `/rig` sync before scanning. Deterministic stages (sync, CI polling, merge) run as bundled bash scripts; LLM subagents are used only where reasoning is needed (commit and PR authoring, CI fix analysis, code exploration).
 
----
+For a step-by-step tour of a Node.js app going from an empty folder to a deployed container, see [docs/walkthrough.md](docs/walkthrough.md).
 
-## End-to-End Walkthrough
-
-This walkthrough follows a Node.js app from an empty folder to a deployed container running on cloud infrastructure.
-
-### Step 0: Session Guard
-
-When you open Claude Code in any project with the mad-skills plugin installed, the **session guard** runs automatically. It validates your development environment before you write a single line of code.
-
-```
-┌─────────────────────────────────────────────────────┐
-│  Session Guard — automatic on every session start    │
-│                                                      │
-│  ✅ CLAUDE.md found                                  │
-│  ✅ Git repository initialized                       │
-│  ✅ On branch: main                                  │
-│  ⚠️  CLAUDE.md last modified 5 days ago              │
-│  ℹ️  Task list configured: my-project                │
-└─────────────────────────────────────────────────────┘
-```
-
-The session guard checks: git status, CLAUDE.md presence and freshness, task list configuration, and branch state. If issues are found, they're surfaced before your first prompt.
-
----
-
-### Step 1: `/brace` — Initialize the Project
-
-Start in an empty folder. `/brace` creates the project scaffold.
-
-```
-> /brace my-webapp
-```
-
-**What it generates:**
-
-```
-my-webapp/
-├── CLAUDE.md              # AI-readable project instructions
-├── .gitignore             # Ignores credentials, data, temp files
-├── specs/                 # Specifications (/speccy → /build)
-├── context/               # Domain knowledge and references
-└── .tmp/                  # Scratch work (gitignored)
-```
-
-The CLAUDE.md it creates becomes the foundation — every subsequent skill reads it for project context.
-
----
-
-### Step 2: `/rig` — Set Up Dev Tooling
-
-With the skeleton in place, `/rig` bootstraps the development infrastructure.
-
-```
-> /rig
-```
-
-**What it generates:**
-
-```
-my-webapp/
-├── .github/
-│   ├── workflows/ci.yml       # PR validation pipeline
-│   └── pull_request_template.md
-├── .lefthook.yml              # Git hooks (lint, test on commit)
-├── .commitlintrc.yml          # Conventional commit enforcement
-└── .editorconfig              # Consistent formatting
-```
-
-`/rig` is idempotent — run it again later and it updates without overwriting your customizations.
-
----
-
-### Step 3: `/speccy` — Specify What to Build
-
-Before writing code, `/speccy` interviews you to create a detailed specification.
-
-```
-> /speccy a user authentication system with OAuth2
-```
-
-It asks targeted questions about requirements, edge cases, security concerns, and technical constraints, then produces a structured spec document that `/build` can consume.
-
----
-
-### Step 4: `/build` — Implement Features
-
-Feed the spec (or any design) to `/build`. It runs the entire development lifecycle inside isolated subagents so your main conversation stays clean.
-
-```
-> /build implement the auth system from specs/auth-spec.md
-```
-
-```mermaid
-graph TD
-    A["Stage 1: Explore<br/>Understand codebase"] --> B["Stage 2: Question<br/>Clarify ambiguities"]
-    B --> C["Stage 3: Architect<br/>Design solution"]
-    C --> D["Stage 4: Implement<br/>Write code"]
-    D --> E["Stage 5: Review<br/>Check quality"]
-    E --> F["Stage 6: Ship<br/>Invoke /ship"]
-
-    style A fill:#3498db,color:#fff
-    style B fill:#3498db,color:#fff
-    style C fill:#9b59b6,color:#fff
-    style D fill:#2ecc71,color:#fff
-    style E fill:#e74c3c,color:#fff
-    style F fill:#f39c12,color:#fff
-```
-
-Each stage runs in a subagent with its own context. The primary conversation only receives structured reports.
-
----
-
-### Step 5: `/ship` — Merge via PR
-
-When features are ready, `/ship` handles the entire PR lifecycle.
-
-```
-> /ship
-```
-
-```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant Ship as /ship
-    participant GH as GitHub
-    participant CI as CI Pipeline
-
-    Dev->>Ship: /ship
-    Ship->>Ship: Stage 1: Sync with main
-    Ship->>Ship: Stage 2: Analyze, commit, push
-    Ship->>GH: Create PR
-    Ship->>CI: Stage 3: Monitor checks
-    CI-->>Ship: All checks passed ✅
-    Ship->>GH: Stage 5: Squash merge
-    Ship->>Ship: Sync local main, cleanup branches
-    Ship-->>Dev: Ship complete ✅
-```
-
-If CI fails, `/ship` automatically reads the failure logs, fixes the code, pushes a fix commit, and re-monitors — up to 2 attempts before asking for help.
-
----
-
-### Step 6: `/keel` — Provision Infrastructure
-
-Before deploying, you need infrastructure. `/keel` interviews you about your cloud setup and generates IaC files.
-
-```
-> /keel
-```
-
-The interview covers: cloud provider, IaC tool, components needed, environments, state management, naming conventions, and resource sizing.
-
-**Example output for Azure + Terraform:**
-
-```
-my-webapp/
-├── infra/
-│   ├── main.tf                  # Provider, backend, module calls
-│   ├── variables.tf             # Input variables
-│   ├── outputs.tf               # Registry URL, endpoints, connection strings
-│   ├── versions.tf              # Required providers
-│   ├── bootstrap.sh             # One-time state backend setup
-│   ├── sync-outputs.sh          # Sync TF outputs → CI/CD variables
-│   ├── environments/
-│   │   ├── dev.tfvars
-│   │   ├── staging.tfvars
-│   │   └── prod.tfvars
-│   └── modules/
-│       ├── registry/            # Azure Container Registry
-│       ├── compute/             # Azure Container Apps
-│       ├── database/            # PostgreSQL Flexible Server
-│       ├── networking/          # VNet, subnets
-│       └── monitoring/          # Log Analytics, App Insights
-└── .github/workflows/
-    └── infra.yml                # Plan on PR, apply on merge
-```
-
-**Infrastructure pipeline flow:**
-
-```mermaid
-graph LR
-    subgraph "PR Phase"
-        A["Push infra/ changes"] --> B["terraform plan"]
-        B --> C["Post plan as<br/>PR comment"]
-    end
-
-    subgraph "Merge Phase"
-        D["Merge to main"] --> E["terraform apply<br/>(dev)"]
-        E --> F["Sync outputs to<br/>CI/CD variables"]
-    end
-
-    subgraph "Promotion Phase"
-        G["Manual dispatch"] --> H["terraform apply<br/>(staging)"]
-        H --> I["terraform apply<br/>(prod)"]
-    end
-
-    C --> D
-    F --> G
-
-    style B fill:#3498db,color:#fff
-    style E fill:#2ecc71,color:#fff
-    style H fill:#e67e22,color:#fff
-    style I fill:#e74c3c,color:#fff
-```
-
-After `/keel` applies, the infrastructure outputs (registry URL, compute endpoints, database connection strings) are synced as CI/CD variables for `/dock` to consume.
-
----
-
-### Step 7: `/dock` — Deploy Containers
-
-With infrastructure provisioned, `/dock` creates the release pipeline that builds and deploys your app.
-
-```
-> /dock
-```
-
-The interview covers: container registry, environments, deployment targets per environment, testing gates, secrets, and rollback strategy.
-
-**Example output:**
-
-```
-my-webapp/
-├── Dockerfile                   # Multi-stage: deps → build → test → production
-├── .dockerignore
-├── docker-compose.yml           # Local dev parity
-├── deploy/
-│   └── environments.yml         # Per-environment config matrix
-└── .github/workflows/
-    └── deploy.yml               # Build, push, deploy pipeline
-```
-
-**The build-once-promote-everywhere pipeline:**
-
-```mermaid
-graph TD
-    subgraph "Build Phase (on merge to main)"
-        A["Checkout code"] --> B["Build image<br/>target: test"]
-        B --> C["Run tests<br/>inside container"]
-        C --> D["Build image<br/>target: production"]
-        D --> E["Push to registry<br/>tag: abc1234 + latest"]
-    end
-
-    subgraph "Deploy Dev"
-        E --> F["Deploy abc1234<br/>to dev"]
-        F --> G["Smoke tests ✅"]
-    end
-
-    subgraph "Promote to Staging (on release tag v1.2.3)"
-        G -.-> H["Retag abc1234<br/>as v1.2.3"]
-        H --> I["Deploy v1.2.3<br/>to staging"]
-        I --> J["Integration +<br/>e2e tests ✅"]
-    end
-
-    subgraph "Promote to Production"
-        J --> K["Deploy v1.2.3<br/>to production"]
-        K --> L["Post-deploy<br/>smoke test ✅"]
-    end
-
-    style B fill:#3498db,color:#fff
-    style D fill:#3498db,color:#fff
-    style E fill:#2ecc71,color:#fff
-    style H fill:#e67e22,color:#fff
-    style I fill:#e67e22,color:#fff
-    style K fill:#e74c3c,color:#fff
-
-    linkStyle 6 stroke:#999,stroke-dasharray:5
-```
-
-The critical principle: the release tag step **retags** the existing tested image — it never rebuilds. The exact same bytes that passed tests on `main` are what runs in production.
-
----
-
-### Full Architecture
-
-Here's how all the pipelines connect in the final system:
-
-```mermaid
-graph TB
-    subgraph "Developer Workflow"
-        DEV["Developer"] -->|"/build"| CODE["Code Changes"]
-        CODE -->|"/ship"| PR["Pull Request"]
-    end
-
-    subgraph "CI Pipeline (/rig)"
-        PR --> LINT["Lint + Validate"]
-        LINT --> TEST["Unit Tests"]
-        TEST --> PASS{"Checks<br/>pass?"}
-        PASS -->|Yes| MERGE["Merge to main"]
-        PASS -->|No| FIX["/ship auto-fix"]
-        FIX --> LINT
-    end
-
-    subgraph "Infrastructure Pipeline (/keel)"
-        INFRA_PR["Infra PR"] --> PLAN["terraform plan"]
-        PLAN --> INFRA_MERGE["Merge"]
-        INFRA_MERGE --> APPLY_DEV["Apply to dev"]
-        APPLY_DEV --> SYNC["Sync outputs →<br/>CI/CD vars"]
-    end
-
-    subgraph "Deployment Pipeline (/dock)"
-        MERGE --> BUILD["Build container<br/>image"]
-        BUILD --> PUSH["Push to registry<br/>:sha + :latest"]
-        PUSH --> DEPLOY_DEV["Deploy to dev"]
-        DEPLOY_DEV --> SMOKE["Smoke tests"]
-
-        TAG["Release tag<br/>v1.2.3"] --> RETAG["Retag image<br/>(no rebuild)"]
-        RETAG --> DEPLOY_STG["Deploy staging"]
-        DEPLOY_STG --> E2E["e2e tests"]
-        E2E --> DEPLOY_PROD["Deploy production"]
-        DEPLOY_PROD --> FINAL["Post-deploy smoke"]
-    end
-
-    SYNC -.->|"Registry URL<br/>Endpoints"| BUILD
-
-    style DEV fill:#4a9eff,color:#fff
-    style MERGE fill:#2ecc71,color:#fff
-    style BUILD fill:#3498db,color:#fff
-    style PUSH fill:#3498db,color:#fff
-    style RETAG fill:#e67e22,color:#fff
-    style DEPLOY_PROD fill:#e74c3c,color:#fff
-```
-
----
-
-### Quick Reference: What Each Skill Generates
+### What Each Skill Generates
 
 | Skill | Key artifacts | Consumed by |
 |-------|--------------|-------------|
 | `/brace` | `CLAUDE.md`, project skeleton | All other skills |
-| `/rig` | `.github/workflows/ci.yml`, hooks, templates | `/ship` (CI checks) |
-| `/speccy` | Specification document | `/build` (implementation guide) |
-| `/build` | Feature code, tests | `/ship` (files to commit) |
-| `/ship` | Commits, PRs, merged code | CI pipeline, `/dock` triggers |
-| `/keel` | `infra/` (Terraform/Bicep), `infra.yml` workflow | `/dock` (infrastructure outputs) |
-| `/dock` | `Dockerfile`, `deploy.yml`, `deploy/` config | CI/CD system (runtime) |
-| `/sync` | Clean working tree | Any skill (pre-work) |
-| `/prime` | Domain context in memory | `/build` (informed decisions) |
-| `/distil` | Multiple web design variations | `/build` (chosen design) |
+| `/rig` | `.github/workflows/ci.yml` or `azure-pipelines.yml`, `lefthook.yml`, `.gitmessage`, PR template | `/ship` (CI checks) |
+| `/speccy` | `specs/<feature>.md` + pending-build marker | `/build` |
+| `/build` | Branch, worktree, draft PR, feature code, tests, `LOGBOOK.md` follow-ups | `/ship` |
+| `/ship` | Commits, PR, merged code | CI pipeline, `/dock` triggers |
+| `/keel` | `infra/` (IaC), `infra.yml` workflow | `/dock` (infrastructure outputs) |
+| `/dock` | `Dockerfile`, `deploy.yml`, `deploy/` config | CI/CD system |
 | `/hoist` | Release workflow, publish config | CI/CD (publish) |
+| `/sync` | Clean working tree | Any skill (pre-work) |
+| `/prime` | Domain context in memory | `/build`, `/speccy` |
+| `/distil` | Multiple web design variations | `/build` (chosen design) |
 | `/ferry` | `waybill.md` (session state) | A fresh session (resume) |
 | `/logbook` | `LOGBOOK.md` (follow-ups backlog) | You (review/resolve) |
+| `/wright` | Updated plugin installs | You |
 
----
+## Session Guard
+
+With the plugin installed, a session-guard hook runs at session start and before each prompt. It checks:
+
+- **Git repository** — not a repo, nested-git, or a git root several levels above the working directory that does not look like a monorepo.
+- **CLAUDE.md presence and staleness** — seven weighted signals (file age, directories not mentioned, package and Python dependency drift, config file drift, commits since last update, lock file drift). A score of 3 or more prompts you to refresh it; lower scores are logged silently.
+- **Task list and branch state** — surfaced before your first prompt.
+- **Lifecycle recommendation** — a `🧭 lifecycle-next` hint computed from repo state (for example, "run `/rig`: no hooks or CI detected"). Dismissible and rate-limited; `/logbook` shows the full picture on demand.
+- **Follow-ups** — an open-item count from `LOGBOOK.md`, and a warning if the ledger has uncommitted changes.
+- **Ferry waybill** — after `/clear` or a compaction, a pending `/ferry` waybill is auto-loaded so the new session resumes where the last one stopped.
+
+## Platform Support
+
+Skills detect the hosting platform from the git remote and adapt. Both are first-class:
+
+| Capability | GitHub | Azure DevOps |
+|-----------|--------|--------------|
+| CLI tooling | `gh` | `az devops` (REST API with PAT fallback) |
+| CI templates | GitHub Actions | Azure Pipelines |
+| Container registry | ghcr.io | Azure Container Registry |
+| Secrets | GitHub Secrets | Azure Key Vault |
+| PR workflow | `gh pr create/merge` | `az repos pr` / REST |
+
+Platform-aware skills: `/ship`, `/brace`, `/rig`, `/dock`, `/keel`, `/hoist`. The rest are platform-agnostic.
+
+## Works With Superpowers
+
+MAD Skills is the deterministic ops/infra spine: scaffolding, tooling, CI, IaC, container pipelines, session governance, and dual-platform support. Where it overlaps with [Superpowers](https://github.com/obra/superpowers) on methodology (plan → build → finish), it defers to Superpowers when that plugin is installed and falls back to its own pipeline when it is not:
+
+- `/speccy` uses `superpowers:brainstorming` for requirements exploration but still owns the `specs/` artifact.
+- `/build` routes its plan and implement stages to `superpowers:executing-plans` / `superpowers:subagent-driven-development`.
+- `/ship` hands the final integration to `superpowers:finishing-a-development-branch`.
+
+Superpowers is detected at runtime and never required. Pass `--no-superpowers` to `/speccy`, `/build`, or `/ship` to force the standalone pipeline.
 
 ## Installation
 
-Three methods are available. The table below shows what each delivers:
-
-| | Plugin | npx skills | npm package |
-|---|---|---|---|
-| Skills (slash commands) | ✅ all 14 | ✅ all 14 | — |
-| Bundled scripts (sync, CI, merge) | ✅ | ✅ | — |
-| Session hooks (session-guard) | ✅ | ❌ | — |
-| Cross-agent (Cursor, Cline, etc.) | ❌ Claude Code only | ✅ | — |
-| Selective skill install | ❌ | ✅ | — |
-| Auto-updates | ✅ | ❌ | — |
+| | Plugin | npx skills |
+|---|---|---|
+| Skills (slash commands) | ✅ all 14 | ✅ all 14 |
+| Bundled scripts (sync, CI, merge) | ✅ | ✅ |
+| Session hooks (session-guard, ferry, logbook) | ✅ | ❌ |
+| Cross-agent (Cursor, Cline, etc.) | ❌ Claude Code only | ✅ |
+| Selective skill install | ❌ | ✅ |
+| Auto-updates | ✅ | ❌ |
 
 ### Plugin (recommended)
 
-Installs skills and session hooks from the GitHub repo into
-`~/.claude/plugins/`. Updates automatically. Claude Code only.
+Installs skills and session hooks into `~/.claude/plugins/`. Claude Code only.
 
-**Step 1 — Register the marketplace (one-time):**
-
-From the CLI:
 ```bash
-claude plugin marketplace add slamb2k/mad-skills
+claude plugin marketplace add slamb2k/mad-skills   # one-time
+claude plugin install mad-skills@slamb2k
 ```
 
-Or add manually to `~/.claude/settings.json`:
+Or inside Claude Code: `/plugin install mad-skills@slamb2k`. To register the marketplace by hand instead, add to `~/.claude/settings.json`:
+
 ```json
 "extraKnownMarketplaces": {
   "slamb2k": {
@@ -436,17 +140,7 @@ Or add manually to `~/.claude/settings.json`:
 }
 ```
 
-**Step 2 — Install the plugin:**
-
-From the CLI:
-```bash
-claude plugin install mad-skills@slamb2k
-```
-
-Or inside Claude Code:
-```
-/plugin install mad-skills@slamb2k
-```
+Update later with `/wright mad-skills`.
 
 ### npx skills
 
@@ -455,135 +149,61 @@ npx skills add slamb2k/mad-skills -g -y              # All skills, global
 npx skills add slamb2k/mad-skills --skill ship -g -y  # Specific skill
 ```
 
-Installs skills into `~/.claude/skills/` (and `~/.agents/skills/` for other agents). **Does not install hooks.** This means:
+Installs into `~/.claude/skills/` (and `~/.agents/skills/` for other agents). Hooks are **not** installed, so the session guard, ferry auto-load, and logbook hints are inactive. Use this for cross-agent compatibility or selective installs.
 
-- The session-guard hook (CLAUDE.md staleness detection, git validation) is not active
-
-Use this method when you need cross-agent compatibility (Cursor, Cline, Amp, etc.) or want to install individual skills.
-
-> **Note for dotfiles users:** If `~/.claude/skills/` is symlinked from a dotfiles repo, `npx skills` will create broken relative symlinks. Replace the skills directory symlink with a real directory before installing. See [dotfiles compatibility](#dotfiles-compatibility) below.
+> **Dotfiles users:** if `~/.claude/skills/` is a symlink into a dotfiles repo, `npx skills` creates broken relative symlinks. Make `~/.claude/skills/` a real directory and symlink individual custom skills into it with absolute paths instead. `npx skills` leaves entries it did not create untouched.
 
 ### npm package
 
-The `@slamb2k/mad-skills` npm package is the **release artifact** — it is published on every merge to main and is used internally by the plugin system. It does not provide a CLI and cannot be used to install skills directly.
+`@slamb2k/mad-skills` on npm is the release artifact published on every merge to main. It has no CLI and is not an install method.
 
-### Invoke skills
-
-After installation, invoke skills with `/<skill-name>` (e.g., `/ship`, `/sync`).
-
-### Upgrading from the old CLI (`npx @slamb2k/mad-skills`)
-
-If you previously installed via the v2.0.x CLI, clean up stale artifacts first:
+### Upgrading from the old CLI (`npx @slamb2k/mad-skills`, v2.0.x)
 
 ```bash
-# Remove old command stubs
 rm -f ~/.claude/commands/{brace,build,distil,prime,rig,ship,sync,speccy}.md
-
-# Remove installer manifest and stale skill files
 rm -f ~/.claude/.mad-skills-manifest.json
 rm -f ~/.claude/skills/*/instructions.md
 ```
 
-Then install fresh using plugin or npx skills above.
-
-### Dotfiles compatibility
-
-If you manage `~/.claude` via a dotfiles repo with symlinked subdirectories, `npx skills` creates relative symlinks that break when `~/.claude/skills/` is not physically located at `~/.claude/skills/`.
-
-**Fix:** ensure `~/.claude/skills/` is a real directory (not a symlink), and do not re-symlink it from dotfiles. For custom/local skills you want in dotfiles, use per-skill absolute symlinks in your install script:
-
-```bash
-ln -sfn "$DOTFILES_DIR/skills/my-skill" "$HOME/.claude/skills/my-skill"
-```
-
-`npx skills` will leave entries it did not create untouched.
+Then install with one of the methods above.
 
 ## Repository Structure
 
-```
-mad-skills/
-├── skills/                  # Skill definitions (13 skills)
-│   ├── build/
-│   ├── brace/
-│   ├── distil/
-│   ├── dock/
-│   ├── keel/
-│   ├── prime/
-│   ├── rig/
-│   ├── ship/
-│   ├── speccy/
-│   └── sync/
-├── scripts/                 # Build and CI tooling
-│   ├── validate-skills.js   # Structural validation
-│   ├── lint-skills.js       # SKILL.md linting
-│   ├── run-evals.js         # Eval runner (Anthropic/OpenRouter)
-│   ├── build-manifests.js   # Generate skills/manifest.json
-│   └── package-skills.js    # Package .skill archives
-├── hooks/                   # Session hooks + plugin hook config
-├── agents/                  # Agent definitions (reserved for future use)
-├── tests/results/           # Eval output
-├── archive/                 # Legacy skills (v1.x)
-├── .claude-plugin/          # Plugin metadata
-│   ├── marketplace.json
-│   └── plugin.json
-└── .github/workflows/
-    └── ci.yml               # Unified CI, evals, and release
-```
-
-### Skill Structure
-
-Each skill in `skills/<name>/` follows a standard layout:
-
-```
-skills/<name>/
-├── SKILL.md              # Frontmatter + banner + execution logic (single file)
-├── references/           # Extracted prompts, contracts, guides
-├── assets/               # Static files (templates, components)
-└── tests/
-    └── evals.json        # Eval cases for the skill
-```
+See [CLAUDE.md](CLAUDE.md#project-structure) for the maintained tree. In short: `skills/<name>/` holds each skill (`SKILL.md`, `scripts/`, `references/`, `assets/`, `tests/evals.json`), `hooks/` is the session guard, `scripts/` is build and CI tooling, `references/` holds shared contracts, `specs/` holds feature specs from `/speccy`, and `archive/` holds retired skills.
 
 ## Development
 
+No build step. Scripts run directly with Node.js (>=18).
+
 ```bash
-# Validate all skill structures
-npm run validate
-
-# Lint SKILL.md files
-npm run lint
-
-# Run evals (requires ANTHROPIC_API_KEY or OPENROUTER_API_KEY)
-npm run eval
-npm run eval -- --verbose
-npm run eval:update              # Update eval snapshots
-
-# Build
-npm run build:manifests          # Generate skills/manifest.json
-npm run build:skills             # Package .skill archives
-npm run build                    # Both
-
-# Full test suite
-npm test                         # validate + lint + eval
+npm run validate          # Structural validation of all skills
+npm run lint              # SKILL.md linting
+npm run test:unit         # Unit tests: scripts/lib, hooks/lib, packaging, per-skill scripts
+npm run eval              # Evals (needs ANTHROPIC_API_KEY or OPENROUTER_API_KEY)
+npm run eval:update       # Update eval snapshots
+npm run build             # skills/manifest.json + .skill archives
+npm test                  # validate + lint + test:unit + eval
 ```
 
 ## CI/CD
 
-**Unified pipeline** (`.github/workflows/ci.yml`):
-- **On pull requests:** validate + lint, evals (when API key available), posts eval results as PR comments
-- **On push to main (non-release):** validates, bumps patch version, creates auto-merge PR
-- **On push to main (release):** creates version tag, publishes to npm with provenance, builds `.skill` packages, creates GitHub Release
+One workflow, `.github/workflows/ci.yml`:
+
+- **Pull requests:** validate, lint, and unit tests; evals when enabled, with results posted as a PR comment.
+- **Push to main:** after validation passes, the release job bumps the patch version, publishes to npm with provenance, commits the bump with `[skip ci]`, tags, builds `.skill` packages, and creates a GitHub Release.
 
 ## Archive
 
-The `archive/` folder contains **inactive** skills, agents, hooks, and other assets from previous versions. These are kept for historical reference only — they are **not part of the mad-skills release**, not published to npm, not installed by `npx skills`, and not supported.
+`archive/` holds inactive skills from previous versions, kept for reference only. They are not part of the release, not published, not installed, and not supported.
 
 | Name | Description |
 |------|-------------|
-| play-tight | Browser Automation (v1.x) |
-| pixel-pusher | UI/UX Design (v1.x) |
-| cyberarian | Document Lifecycle Management (v1.x) |
-| start-right | Repository Scaffolding (v1.x) |
-| graphite-skill | Git/Graphite Workflows (v1.x) |
+| launch | OMC pipeline (hard-dependent on oh-my-claudecode) |
+| play-tight | Browser automation (v1.x) |
+| pixel-pusher | UI/UX design (v1.x) |
+| cyberarian | Document lifecycle management (v1.x) |
+| start-right | Repository scaffolding (v1.x) |
+| graphite-skill | Git/Graphite workflows (v1.x) |
 | example-skill | Scaffold template for new skills |
 
 ## License
