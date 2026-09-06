@@ -58,14 +58,10 @@ function supportsUnicode() {
 
 function getBanner() {
   const unicode = supportsUnicode();
-  const lines = unicode ? BANNER_UNICODE : BANNER_ASCII;
+  const lines = (unicode ? BANNER_UNICODE : BANNER_ASCII)
+    .map(l => l.replace(/\u2800/g, ' ').replace(/\s+$/, ''));
   const separator = (unicode ? '─' : '-').repeat(70);
-  return [
-    ...lines,
-    separator,
-    ` Session Guard v${config.version}`,
-    separator,
-  ].join('\n');
+  return [...lines, separator, ` Session Guard v${config.version}`, separator].join('\n');
 }
 
 module.exports = { getBanner, supportsUnicode, BANNER_MARKER: 'Session Guard' };
