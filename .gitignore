@@ -45,3 +45,6 @@ data/
 __pycache__/
 *.pyc
 .venv/
+
+# Atuin AI per-project tool permissions (personal, per-machine)
+.atuin/permissions.*.toml
