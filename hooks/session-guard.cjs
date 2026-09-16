@@ -17,7 +17,7 @@
  */
 
 const { existsSync } = require('fs');
-const { join } = require('path');
+const { join, basename } = require('path');
 const { spawn } = require('child_process');
 
 const config = require('./lib/config.cjs');
@@ -30,9 +30,16 @@ const { checkStaleness } = require('./lib/staleness.cjs');
 const { git } = require('./lib/utils.cjs');
 const lifecycle = require('./lib/lifecycle.cjs');
 const ledger = require('./lib/logbook.cjs');
+const { readHookInput, nonemptyString } = require('./lib/session.cjs');
 
-const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-const CLAUDE_MD = join(PROJECT_DIR, 'CLAUDE.md');
+const command = process.argv[2];
+const hookInput = readHookInput(command);
+const PROJECT_DIR = nonemptyString(hookInput.cwd) || process.env.CLAUDE_PROJECT_DIR || process.cwd();
+const SESSION_ID = nonemptyString(hookInput.session_id)
+  || process.env.MAD_SKILLS_SESSION_ID || process.env.CODEX_THREAD_ID || '';
+const INSTRUCTIONS_MD = existsSync(join(PROJECT_DIR, 'CLAUDE.md'))
+  ? join(PROJECT_DIR, 'CLAUDE.md') : join(PROJECT_DIR, 'AGENTS.md');
+const INSTRUCTIONS_NAME = basename(INSTRUCTIONS_MD);
 
 // ─── check ─────────────────────────────────────────────────────────────
 // Runs at SessionStart. Spawns background worker and exits immediately
@@ -40,13 +47,13 @@ const CLAUDE_MD = join(PROJECT_DIR, 'CLAUDE.md');
 
 function check() {
   // Dedup: skip if recently checked (handles dual global+project registration)
-  if (state.isRecentlyChecked(PROJECT_DIR)) {
+  if (state.isRecentlyChecked(PROJECT_DIR, 5, SESSION_ID)) {
     console.log(JSON.stringify({}));
     return;
   }
 
   // Write in-progress marker immediately (also serves as dedup guard)
-  state.saveInProgress(PROJECT_DIR);
+  state.saveInProgress(PROJECT_DIR, SESSION_ID);
 
   // Emit empty response — SessionStart returns instantly
   console.log(JSON.stringify({}));
@@ -57,7 +64,7 @@ function check() {
     detached: true,
     stdio: 'ignore',
     windowsHide: true,
-    env: { ...process.env, CLAUDE_PROJECT_DIR: PROJECT_DIR },
+    env: { ...process.env, CLAUDE_PROJECT_DIR: PROJECT_DIR, MAD_SKILLS_SESSION_ID: SESSION_ID },
   });
   worker.unref();
 }
@@ -76,15 +83,15 @@ function checkBackground() {
   // 0) Git repository validation
   const { gitRoot } = checkGit(PROJECT_DIR, output);
 
-  // 1) CLAUDE.md existence
-  if (!existsSync(CLAUDE_MD)) {
-    output.add('[SESSION GUARD] \u26A0\uFE0F  No CLAUDE.md found in project root.');
+  // 1) Project instructions existence
+  if (!existsSync(INSTRUCTIONS_MD)) {
+    output.add('[SESSION GUARD] \u26A0\uFE0F  No CLAUDE.md or AGENTS.md found in project root.');
     output.addQuestion(
-      'No CLAUDE.md found. Want me to set up this project for Claude Code?',
+      'No CLAUDE.md or AGENTS.md found. Want me to set up project instructions?',
       'single_select',
       [
         '"Set up with /brace" \u2014 scaffold CLAUDE.md + project structure (specs, tools, context)',
-        '"Basic init" \u2014 run `/init` to scaffold CLAUDE.md only',
+        '"Basic init" \u2014 run `/init` to scaffold project instructions',
         '"Skip" \u2014 continue without one',
       ],
     );
@@ -92,7 +99,7 @@ function checkBackground() {
     return;
   }
 
-  output.add(`[SESSION GUARD] \u2705 CLAUDE.md found in: ${PROJECT_DIR}`);
+  output.add(`[SESSION GUARD] \u2705 ${INSTRUCTIONS_NAME} found in: ${PROJECT_DIR}`);
 
   // 1b) Project scaffold check
   checkBrace(PROJECT_DIR, output);
@@ -104,7 +111,7 @@ function checkBackground() {
   checkTaskList(PROJECT_DIR, gitRoot, output);
 
   // 3) Staleness evaluation
-  checkStaleness(PROJECT_DIR, CLAUDE_MD, gitRoot, output);
+  checkStaleness(PROJECT_DIR, INSTRUCTIONS_MD, gitRoot, output);
 
   // 4) Pending build check
   checkPendingBuild(PROJECT_DIR, output);
@@ -124,17 +131,17 @@ function checkBackground() {
   // 5) Staleness summary
   if (output.score >= config.staleness.threshold) {
     output.blank();
-    output.add(`[SESSION GUARD] \u26A0\uFE0F  CLAUDE.md appears STALE (score: ${output.score}/${config.staleness.threshold})`);
+    output.add(`[SESSION GUARD] \u26A0\uFE0F  ${INSTRUCTIONS_NAME} appears STALE (score: ${output.score}/${config.staleness.threshold})`);
     output.blank();
     output.add('Signals:');
     output.signals.forEach(sig => output.add(`  ${sig}`));
     output.addQuestion(
-      `CLAUDE.md appears out of date (${output.signals.length} signals detected). What would you like to do?`,
+      `${INSTRUCTIONS_NAME} appears out of date (${output.signals.length} signals detected). What would you like to do?`,
       'single_select',
       [
-        '"Update it" \u2014 review project structure, deps, recent changes and update CLAUDE.md (preserve user-written notes)',
+        `"Update it" \u2014 review project structure, deps, recent changes and update ${INSTRUCTIONS_NAME} (preserve user-written notes)`,
         '"Show signals" \u2014 list what\'s drifted before deciding',
-        '"Skip" \u2014 continue with current CLAUDE.md',
+        `"Skip" \u2014 continue with current ${INSTRUCTIONS_NAME}`,
       ],
     );
   } else if (output.signals.length > 0) {
@@ -151,14 +158,14 @@ function checkBackground() {
 
 function remind() {
   // Wait for background check to complete (polls up to 4s at 200ms intervals)
-  const pending = state.waitForReady(PROJECT_DIR);
+  const pending = state.waitForReady(PROJECT_DIR, 4000, 200, SESSION_ID);
 
   if (!pending || !pending.context) {
     console.log(JSON.stringify({}));
     return;
   }
 
-  state.clear(PROJECT_DIR);
+  state.clear(PROJECT_DIR, SESSION_ID);
 
   // Split into banner and SESSION GUARD body
   const lines = pending.context.split('\n');
@@ -172,7 +179,7 @@ function remind() {
   // Always include banner with display directive
   if (banner) {
     parts.push(
-      '[SESSION GUARD] DISPLAY: Render the banner below in a fenced code block before any other response.',
+      '[SESSION GUARD] DISPLAY: In the primary conversation only, render the banner below in a fenced code block before any other response. Side questions (including /btw and /side) and subagents must ignore this inherited banner directive.',
       '',
       banner,
       '',
@@ -183,8 +190,11 @@ function remind() {
   if (hasWarnings) {
     parts.push(
       '[SESSION GUARD \u2014 FIRST PROMPT REMINDER]',
-      'The following was detected at session start. Act on these items NOW using',
-      'AskUserQuestion BEFORE proceeding with the user\'s request.',
+      'These reminders apply only to the primary conversation. Side questions',
+      '(including /btw and /side) and subagents must ignore these inherited reminders',
+      'and answer their own request directly without setup questions or banners.',
+      'In the primary conversation, act on these items using AskUserQuestion',
+      'before proceeding with the user\'s request.',
       '',
       body,
     );
@@ -223,10 +233,10 @@ function checkBrace(projectDir, output) {
   const prefs = state.loadPrefs(projectDir);
   if (prefs.braceDismissed) return; // User said don't ask again
 
-  output.add('[SESSION GUARD] \u2139\uFE0F  CLAUDE.md exists but no project scaffold detected.');
+  output.add(`[SESSION GUARD] \u2139\uFE0F  ${INSTRUCTIONS_NAME} exists but no project scaffold detected.`);
   output.add('[SESSION GUARD] BRACE_DISMISS: If the user selects "Don\'t ask again", run: node <path-to-session-guard.cjs> dismiss-brace');
   output.addQuestion(
-    'This project has a CLAUDE.md but no project scaffold (specs/, context/). Want to set it up?',
+    `This project has ${INSTRUCTIONS_NAME} but no project scaffold (specs/, context/). Want to set it up?`,
     'single_select',
     [
       '"Set up with /brace" \u2014 add project scaffold structure',
@@ -357,12 +367,10 @@ function saveState(output) {
     context: output.parts.join('\n'),
     score: output.score,
     signals: output.signals,
-  });
+  }, SESSION_ID);
 }
 
 // ─── dispatch ──────────────────────────────────────────────────────────
-
-const command = process.argv[2];
 
 switch (command) {
   case 'check':
@@ -377,7 +385,7 @@ switch (command) {
     } catch {
       // Background worker failed — clear in-progress marker so remind()
       // doesn't hang waiting. Graceful degradation: no context this session.
-      state.clear(PROJECT_DIR);
+      state.clear(PROJECT_DIR, SESSION_ID);
     }
     break;
   case 'dismiss-brace': {
@@ -491,7 +499,9 @@ switch (command) {
     // matcher, silent on an empty ledger (REQ-042/043, AC-007/008).
     try {
       const n = ledger.count(PROJECT_DIR);
-      if (n > 0) console.log(`[SESSION GUARD] 📌 ${n} open follow-up${n === 1 ? '' : 's'} — /logbook to review`);
+      const output = new OutputBuilder();
+      if (n > 0) output.add(`[SESSION GUARD] 📌 ${n} open follow-up${n === 1 ? '' : 's'} — /logbook to review`);
+      if (n > 0) console.log(output.toJson('SessionStart'));
     } catch (e) { console.error(`logbook-hint failed: ${e.message}`); }
     break;
   }

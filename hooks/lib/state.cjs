@@ -15,14 +15,15 @@ function projectKey(projectDir) {
   return createHash('md5').update(projectDir).digest('hex');
 }
 
-function statePath(projectDir) {
-  return join(STATE_DIR, `${projectKey(projectDir)}.json`);
+function statePath(projectDir, sessionId) {
+  const suffix = sessionId ? `-${projectKey(sessionId)}` : '';
+  return join(STATE_DIR, `${projectKey(projectDir)}${suffix}.json`);
 }
 
 /** Atomic write: write to .tmp then rename to avoid partial reads. */
-function save(projectDir, data) {
+function save(projectDir, data, sessionId) {
   ensureDir();
-  const target = statePath(projectDir);
+  const target = statePath(projectDir, sessionId);
   const tmp = `${target}.tmp`;
   writeFileSync(tmp, JSON.stringify({
     ...data,
@@ -39,9 +40,9 @@ function save(projectDir, data) {
 }
 
 /** Write an in-progress marker so remind() knows to wait. */
-function saveInProgress(projectDir) {
+function saveInProgress(projectDir, sessionId) {
   ensureDir();
-  const target = statePath(projectDir);
+  const target = statePath(projectDir, sessionId);
   const tmp = `${target}.tmp`;
   writeFileSync(tmp, JSON.stringify({
     status: 'in-progress',
@@ -60,8 +61,8 @@ function saveInProgress(projectDir) {
   }
 }
 
-function load(projectDir) {
-  const path = statePath(projectDir);
+function load(projectDir, sessionId) {
+  const path = statePath(projectDir, sessionId);
   if (!existsSync(path)) return null;
   try {
     return JSON.parse(readFileSync(path, 'utf-8'));
@@ -70,16 +71,16 @@ function load(projectDir) {
   }
 }
 
-function clear(projectDir) {
-  try { unlinkSync(statePath(projectDir)); } catch { /* noop */ }
+function clear(projectDir, sessionId) {
+  try { unlinkSync(statePath(projectDir, sessionId)); } catch { /* noop */ }
 }
 
 /**
  * Dedup: true if check ran (or is running) within the last `seconds`.
  * Also returns true if a background check is in-progress.
  */
-function isRecentlyChecked(projectDir, seconds = 5) {
-  const data = load(projectDir);
+function isRecentlyChecked(projectDir, seconds = 5, sessionId) {
+  const data = load(projectDir, sessionId);
   if (!data) return false;
   if (data.status === 'in-progress') return true;
   return (Date.now() - data.timestamp) < seconds * 1000;
@@ -90,10 +91,10 @@ function isRecentlyChecked(projectDir, seconds = 5) {
  * Polls until state file has actual results (not in-progress), or timeout.
  * Returns loaded data or null on timeout / no data.
  */
-function waitForReady(projectDir, timeoutMs = 4000, intervalMs = 200) {
+function waitForReady(projectDir, timeoutMs = 4000, intervalMs = 200, sessionId) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    const data = load(projectDir);
+    const data = load(projectDir, sessionId);
     if (!data) return null; // No state file at all — nothing pending
     if (data.status === 'in-progress') {
       // Check for stale in-progress marker (background worker crashed)
