@@ -213,6 +213,22 @@ function mkRepo() {
   return dir;
 }
 
+test('computeSignature accepts AGENTS.md as project scaffold instructions', () => {
+  const dir = mkRepo();
+  try {
+    fs.writeFileSync(path.join(dir, 'AGENTS.md'), '# Project instructions\n');
+    fs.mkdirSync(path.join(dir, 'specs'));
+    fs.writeFileSync(path.join(dir, 'index.js'), 'console.log(1)\n');
+
+    const signature = computeSignature(dir);
+    assert.equal(signature.hasScaffold, true);
+    const { all } = selectOffer(base({ signature }));
+    assert.ok(!all.some(offer => offer.id === 'brace'));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 function commitAll(dir) {
   execSync('git add -A && git commit -q -m x', { cwd: dir });
 }

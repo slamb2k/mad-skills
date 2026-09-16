@@ -154,7 +154,8 @@ function _compute(projectDir) {
 
   // scaffold — ponytail: context/ optional — its absence must not re-nag
   // /brace on an obviously scaffolded repo (GUD-001, §10 silence).
-  sig.hasScaffold = existsSync(join(projectDir, 'CLAUDE.md')) && existsSync(join(projectDir, 'specs'));
+  sig.hasScaffold = ['CLAUDE.md', 'AGENTS.md'].some(file => existsSync(join(projectDir, file)))
+    && existsSync(join(projectDir, 'specs'));
 
   // lefthook
   sig.hasLefthook = ['lefthook.yml', 'lefthook.yaml', '.lefthook.yml']
