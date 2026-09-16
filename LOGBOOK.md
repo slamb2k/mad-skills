@@ -24,6 +24,7 @@
 
 ## Open questions
 - [ ] primary-checkout-should-be-worktree lifecycle signal is a low-confidence symptom-based backstop for find-or-create's guard, not a general recommendation — revisit whether it should remain a permanent engine feature once there's real post-release data: if it keeps firing on genuine /build runs the SKILL.md guard isn't holding, if it never fires it's dead weight worth removing — design discussion following build-find-or-create-enforcement (PR #126) (2026-07-24)
+- [ ] Verify a reliable Codex side-session hook marker and replace instruction-only suppression when available — /ship fix/session-guard-side-context (2026-09-16)
 
 ## Risks
 
