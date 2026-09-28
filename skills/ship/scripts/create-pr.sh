@@ -119,6 +119,26 @@ fi
 # ── Azure DevOps ────────────────────────────────────────
 PAT="${AZURE_DEVOPS_EXT_PAT:-${AZDO_PAT:-}}"
 
+# No PAT in env: ask git for the credential it uses to push to this remote
+# (e.g. Git Credential Manager). Never prompts.
+resolve_pat() {
+  [ -n "$PAT" ] && return 0
+  local url
+  url=$(git remote get-url "$REMOTE" 2>/dev/null)
+  [ -z "$url" ] && url="$AZDO_ORG_URL"
+  [ -z "$url" ] && return 1
+  PAT=$(printf 'url=%s\n\n' "$url" \
+    | GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never git credential fill 2>/dev/null \
+    | sed -n 's/^password=//p')
+  [ -n "$PAT" ]
+}
+
+# AzDO caps PR descriptions at 4000 characters — a longer body is a 400.
+AZDO_DESC_MAX=4000
+DESCRIPTION=$(jq -Rrs --argjson max "$AZDO_DESC_MAX" \
+  'if length > $max then .[0:($max - 100)] + "\n\n…(description truncated to fit Azure DevOps 4000-character limit)" else . end' \
+  <"$BODY_FILE")
+
 # ── AzDO CLI mode ──────────────────────────────────────
 if [ "$AZDO_MODE" = "cli" ]; then
   LIST_ERR=$(mktemp)
@@ -147,7 +167,7 @@ if [ "$AZDO_MODE" = "cli" ]; then
   CREATE_ERR=$(mktemp)
   CREATE_JSON=$(az repos pr create \
     --title "$TITLE" \
-    --description "$(cat "$BODY_FILE")" \
+    --description "$DESCRIPTION" \
     --source-branch "$SOURCE_BRANCH" \
     --target-branch "$TARGET_BRANCH" \
     --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
@@ -161,27 +181,39 @@ if [ "$AZDO_MODE" = "cli" ]; then
     STATUS="failed"
     ERRORS="az repos pr create failed: $(tr '\n' ' ' <"$CREATE_ERR" | cut -c1-200)"
   fi
+  # `az repos pr create` can 403 (TF400813) on an auth path git push doesn't
+  # share. Fall back to REST with the same credential git push uses.
+  if [ "$STATUS" = "failed" ] \
+    && grep -qiE 'TF400813|(^|[^[:alnum:]])(401|403)([^[:alnum:]]|$)|unauthori[sz]ed|not authori[sz]ed|forbidden' "$CREATE_ERR" \
+    && resolve_pat; then
+    echo "az repos pr create auth failure — falling back to REST API" >&2
+    STATUS="" ERRORS="none"
+    AZDO_MODE="rest"
+  fi
   rm -f "$CREATE_ERR"
-  emit_report
-  [ "$STATUS" = "success" ] && exit 0 || exit 1
+  if [ "$AZDO_MODE" = "cli" ]; then
+    emit_report
+    [ "$STATUS" = "success" ] && exit 0 || exit 1
+  fi
 fi
 
 # ── AzDO REST mode ─────────────────────────────────────
 if [ "$AZDO_MODE" = "rest" ]; then
+  resolve_pat
   AUTH="Authorization: Basic $(printf ":%s" "$PAT" | base64 | tr -d '\n')"
   REPO_NAME=$(basename -s .git "$(git remote get-url "$REMOTE")")
   PR_API="$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/git/repositories/$REPO_NAME/pullrequests"
 
   LIST_RESPONSE=$(curl -s -H "$AUTH" \
     "$PR_API?searchCriteria.sourceRefName=refs/heads/$SOURCE_BRANCH&searchCriteria.status=active&api-version=7.0" 2>&1)
-  if ! echo "$LIST_RESPONSE" | jq empty 2>/dev/null; then
+  if ! echo "$LIST_RESPONSE" | jq -e 'type=="object" and (.value|type=="array")' >/dev/null 2>&1; then
     STATUS="failed"
-    ERRORS="REST pr list returned non-JSON response"
+    ERRORS="REST pr list failed: $( (echo "$LIST_RESPONSE" | jq -r '.message? // "unexpected response"' 2>/dev/null || echo "non-JSON response") | tr '\n' ' ' | cut -c1-200)"
     emit_report
     exit 1
   fi
 
-  EXISTING_COUNT=$(echo "$LIST_RESPONSE" | jq '.value | length')
+  EXISTING_COUNT=$(echo "$LIST_RESPONSE" | jq '.value // [] | length')
   if [ "${EXISTING_COUNT:-0}" -gt 0 ]; then
     STATUS="success"
     REUSED="true"
@@ -195,7 +227,7 @@ if [ "$AZDO_MODE" = "rest" ]; then
     --arg src "refs/heads/$SOURCE_BRANCH" \
     --arg tgt "refs/heads/$TARGET_BRANCH" \
     --arg title "$TITLE" \
-    --arg desc "$(cat "$BODY_FILE")" \
+    --arg desc "$DESCRIPTION" \
     --argjson draft "$DRAFT_JSON" \
     '{sourceRefName:$src, targetRefName:$tgt, title:$title, description:$desc, isDraft:$draft}')
 
