@@ -98,7 +98,7 @@ passive graphify hint to `prime` — without weakening mad-skills' standalone be
   short bash/node wrapper (no interactive input, no network, no LLM).
 - **REQ-004**: Superpowers SHALL be surfaced as a soft/recommended dependency in:
   (a) `brace`'s recommended-plugins prompt, (b) `brace`'s CLAUDE.md template
-  (`skills/brace/references/claude-md-template.md`), and (c) the pre-flight dependency
+  (`skills/brace/references/agents-md-template.md`), and (c) the pre-flight dependency
   tables of `speccy`, `build`, and `ship` with resolution type `ask`/`fallback` —
   exactly as `claude-mem` is treated today (`skills/brace/SKILL.md:87`).
 - **CON-001**: `.claude-plugin/plugin.json` and `marketplace.json` SHALL NOT declare
@@ -317,7 +317,7 @@ node -e "process.stdout.write(require('$LIB/superpowers.js').detectSuperpowers()
 ## 11. Related Specifications / Further Reading
 
 - `CLAUDE.md` — repository skill-usage guide, lifecycle ordering, platform support.
-- `skills/brace/references/claude-md-template.md` — soft-dependency + Branch Discipline
+- `skills/brace/references/agents-md-template.md` — soft-dependency + Branch Discipline
   template (model for the Superpowers recommendation).
 - `scripts/lib/frontmatter.js` — pattern for the shared detection helper.
 - `hooks/lib/state.cjs` — pending-build marker read/write (speccy handoff contract).
