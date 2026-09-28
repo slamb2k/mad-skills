@@ -20,6 +20,7 @@
 ## Tech debt
 
 ## Archive
+- [x] skills/keel/tests/evals.json has 2 eval cases using invalid inline-flag regex syntax (?i)(...) instead of the separate flags:"i" field every other eval case in this repo uses — JS RegExp does not support (?i), so both cases (skill-ordering, azdo-awareness) error out on every eval run instead of asserting anything — /build unified-autonomous-build verify (2026-07-20) <!-- resolved:2026-07-21 -->
 - [x] CI Run Evals job passes in 3s without executing evals — API-key guard silently skips, so the PR eval gate is illusory; local runs are the only real gate — /build debrief (bundled-approval-handoff) (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] Unlinked-state detection/resolution for bundled approval handoff — when a spec is committed+pushed but its draft PR was never created (bundle step 7 degraded), something should later detect the missing spec-PR link (live branch lookup returns nothing) and resolve it by rerunning the idempotent create-pr.sh; candidates: session-guard ambient check or a /logbook lifecycle step — /speccy bundled-approval-handoff brainstorming (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] Two keel eval cases use invalid JS regex (?i) and always error: skill-ordering, azdo-awareness — convert to flags:"i" — /build debrief (bundled-approval-handoff) (2026-07-21) <!-- resolved:2026-07-21 -->
