@@ -1,6 +1,6 @@
 ---
 name: prime
-description: "Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans CLAUDE.md, README, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding."
+description: "Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans the project instructions file (CLAUDE.md with its @imports resolved, e.g. AGENTS.md), README, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding."
 argument-hint: "[domain hints: comma-separated directory or topic names to focus on]"
 allowed-tools: Read, Glob, Grep, LS, Agent
 ---
@@ -68,7 +68,7 @@ subagent — the primary thread only sees a structured PRIME_REPORT.
 
 Extract domain hints from the request (comma-separated). These are directory
 names or topic keywords to focus the context scan on. If no domain specified,
-load core context only (CLAUDE.md, README, specs/).
+load core context only (project instructions, README, specs/).
 
 ## Step 2: Load Context via Subagent
 
@@ -92,7 +92,10 @@ Limit PRIME_REPORT to 30 lines maximum.
 
 ## Core Files (always load)
 
-1. CLAUDE.md — Project conventions, architecture, instructions
+1. Project instructions — read AGENTS.md if it exists. Then read CLAUDE.md
+   if it exists and holds anything beyond an `@AGENTS.md` line (a legacy
+   CLAUDE.md, or Claude-only notes under the import). If either file has
+   other `@path` lines, read those files too
 2. README.md — Project overview, setup, usage
 3. specs/ — Project specifications and roadmap (scan directory if present)
 4. docs/ — Documentation directory (scan if present)
@@ -162,5 +165,5 @@ graphify-out/ detected — codebase questions can be answered via /graphify
 
 This is a hint only — never execute a graphify query on the user's behalf.
 
-If CLAUDE.md was missing, warn the user and note that only domain context
+If neither AGENTS.md nor CLAUDE.md was found, warn the user and note that only domain context
 was loaded.

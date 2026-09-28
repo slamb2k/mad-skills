@@ -146,7 +146,7 @@ Before starting, check all dependencies in this table:
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | ship | skill | `ls .claude/skills/ship/SKILL.md ~/.claude/skills/ship/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ship/SKILL.md 2>/dev/null` | yes | stop | Install with: npx skills add slamb2k/mad-skills --skill ship |
-| prime | skill | `ls .claude/skills/prime/SKILL.md ~/.claude/skills/prime/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md 2>/dev/null` | no | fallback | Context loading; falls back to manual CLAUDE.md/goals scan |
+| prime | skill | `ls .claude/skills/prime/SKILL.md ~/.claude/skills/prime/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md 2>/dev/null` | no | fallback | Context loading; falls back to manual instructions-file scan |
 | feature-dev | plugin | on-disk glob via scripts/lib/feature-dev.js | no | fallback | Detected on disk → try feature-dev:code-explorer / code-architect / code-reviewer first, general-purpose agent as fallback if the subagent_type isn't actually registered |
 | superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Detected for `--no-superpowers` parity with speccy/ship; Stage 4 never defers to it (model-tiering enforceability, see references/autonomous-pipeline.md's Model tiering section) — see references/superpowers-deferral.md |
 | ferry | skill | `ls .claude/skills/ferry/SKILL.md ~/.claude/skills/ferry/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ferry/SKILL.md 2>/dev/null` | no | fallback | Powers the "hand off to a clean session" execution mode; ships with mad-skills, so normally present |
@@ -169,8 +169,9 @@ For each row, in order:
    node -e "require('$PLUGIN_ROOT/hooks/lib/state.cjs').clearPendingBuild(process.cwd())"
    ```
 3. **Load project context** — invoke `/prime` to load domain-specific context
-   (CLAUDE.md, specs, memory). If /prime is unavailable, fall back to
-   manually scanning CLAUDE.md and specs/ directory.
+   (project instructions, specs, memory). If /prime is unavailable, fall back to
+   reading AGENTS.md, plus CLAUDE.md if it holds anything beyond `@AGENTS.md`,
+   and scanning specs/.
 4. Detect project type using `references/project-detection.md` to populate
    **PROJECT_CONFIG** (language, test_runner, test_setup)
 5. **Create task list** — ALWAYS create tasks upfront for all stages using
@@ -186,7 +187,8 @@ For each row, in order:
 6. **Gather** outstanding items from previous work (do not prompt yet — they are
    presented in the single front-load checkpoint at Stage 2, REQ-007):
    - Query persistent tasks via `TaskList` for incomplete items
-   - Search CLAUDE.md for a "Known Issues" or "Open Questions" section
+   - Search AGENTS.md, and CLAUDE.md if it holds anything beyond `@AGENTS.md`,
+     for a "Known Issues" or "Open Questions" section
    - Search memory (if available) for recent unresolved items
    Hold them as OUTSTANDING_ITEMS for Stage 2.
 ---
