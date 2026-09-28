@@ -187,7 +187,7 @@ their behavior accordingly. Both GitHub and Azure DevOps are first-class:
 | PR workflow | `gh pr create/merge` | `az repos pr create` / REST API |
 
 Skills that are platform-aware: `/ship`, `/brace`, `/rig`, `/dock`, `/keel`, `/hoist`.
-Skills that are platform-agnostic: `/sync`, `/prime`, `/speccy`, `/build`, `/distil`, `/wright`.
+Skills that are platform-agnostic: `/sync`, `/prime`, `/speccy`, `/build`, `/distil`, `/ferry`, `/logbook`, `/wright`.
 
 ### Script-Based Execution
 
@@ -245,23 +245,26 @@ mad-skills/
 │       └── *.test.js        # Unit tests for the above
 ├── hooks/                   # Session guard (Node.js)
 │   ├── hooks.json           # Plugin hook definitions
-│   ├── session-guard.cjs    # Entry point (check/remind subcommands)
+│   ├── session-guard.cjs    # Entry point (check, remind, check-bg, logbook-hint, dismiss-*/lifecycle-* subcommands)
 │   └── lib/                 # Modular components
 │       ├── banner.cjs       # ASCII banner rendering
 │       ├── config.cjs       # Configuration constants
 │       ├── git-checks.cjs   # Git status checks
+│       ├── instructions.cjs # AGENTS.md-first instructions file resolution + pointer detection
 │       ├── lifecycle.cjs    # Lifecycle Recommendation Engine (🧭 lifecycle-next)
 │       ├── logbook.cjs      # Follow-ups ledger (LOGBOOK.md read/write/resolve)
 │       ├── output.cjs       # Output formatting
-│       ├── staleness.cjs    # CLAUDE.md staleness detection
+│       ├── session.cjs      # Hook input parsing + session ID resolution
+│       ├── staleness.cjs    # CLAUDE.md / AGENTS.md staleness detection
 │       ├── state.cjs        # Persistent state (dismissals)
 │       ├── superpowers-core.cjs # Superpowers detection/deferral core
 │       ├── task-checks.cjs  # Task list checks
 │       ├── utils.cjs        # Shared utilities
-│       └── *.test.cjs       # Unit tests (lifecycle, logbook)
-├── tests/                   # Eval test results + packaging test
+│       └── *.test.cjs       # Unit tests (lifecycle, logbook, staleness, instructions)
+├── tests/                   # Eval test results + integration tests
 │   ├── results/             # JSON eval output (latest.json symlink)
-│   └── packaging.test.cjs   # .skill archive packaging test
+│   ├── packaging.test.cjs   # .skill archive packaging test
+│   └── session-guard.test.cjs # Session guard end-to-end hook tests
 ├── archive/                 # Inactive skills (historical reference)
 │   ├── cyberarian/          # Archived skill
 │   ├── example-skill/       # Archived skill
@@ -273,7 +276,7 @@ mad-skills/
 ├── assets/                  # Project-level static assets
 │   └── mad-skills.png       # Logo/branding
 ├── docs/                    # Companion docs (end-to-end walkthrough)
-├── references/              # Shared reference material for skills
+├── references/              # Shared reference material for skills (incl. instructions-file.md: AGENTS.md canonical, CLAUDE.md pointer)
 ├── specs/                   # Feature specifications produced by /speccy
 ├── .claude-plugin/          # Plugin metadata
 │   ├── marketplace.json
@@ -288,8 +291,8 @@ mad-skills/
 npm run validate          # Validate all skill structures
 npm run lint              # Lint SKILL.md files
 npm run test:unit         # Unit tests (node --test): scripts/lib, hooks/lib,
-                           # tests/packaging.test.cjs, and colocated skill
-                           # script tests (skills/*/scripts/*.test.js)
+                           # tests/packaging.test.cjs, tests/session-guard.test.cjs,
+                           # and colocated skill script tests (skills/*/scripts/*.test.js)
 npm run eval              # Run evals (needs API key)
 npm run eval -- --verbose # Verbose eval output
 npm run eval:update       # Update eval snapshots
@@ -351,7 +354,7 @@ Use Explore for codebase scanning and general-purpose for complex logic.
 npm run validate          # Structure checks for all 14 skills
 npm run lint              # SKILL.md format checks
 npm run test:unit         # Unit tests for scripts/lib, hooks/lib, packaging,
-                           # and per-skill script tests
+                           # session guard, and per-skill script tests
 npm run eval              # Eval assertions (requires API key)
 ```
 

@@ -8,9 +8,9 @@ A skill framework for Claude Code. Ships 14 skills covering the full development
 
 | Skill | Description | Flags / arguments |
 |-------|-------------|-------------------|
-| `/brace` | Initialize a project with a standard scaffold: `specs/`, `context/`, a project CLAUDE.md, `.gitignore`, and branch protection. Idempotent. | `--force` |
+| `/brace` | Initialize a project with a standard scaffold: `specs/`, `context/`, a project AGENTS.md (with CLAUDE.md as an `@AGENTS.md` pointer), `.gitignore`, and branch protection. Idempotent. | `--force` |
 | `/rig` | Bootstrap a repo with lefthook hooks (including a secret-scan pre-commit check), a commit message template, a PR template, and a CI workflow. Idempotent. | `--skip-system-check` |
-| `/prime` | Load project context before significant work. Scans CLAUDE.md, README, specs, docs, and source structure. | `[domain hints]` (comma-separated directories or topics) |
+| `/prime` | Load project context before significant work. Scans AGENTS.md (or CLAUDE.md), README, specs, docs, and source structure. | `[domain hints]` (comma-separated directories or topics) |
 | `/speccy` | Interview-driven specification builder. Reviews code and docs, interviews you in rounds, writes a spec to `specs/`. | `<goal or feature description>` |
 | `/build` | Context-isolated feature pipeline. Takes a spec path or plan text and runs explore → architect → implement → review → verify → ship inside subagents. | `<plan or spec path>` `--skip-questions` `--skip-review` `--no-ship` `--parallel-impl` |
 | `/ship` | Full PR lifecycle: sync, branch, semantic commits, push, PR, CI watch with auto-fix, squash merge, cleanup. | `--pr-only` `--no-squash` `--keep-branch` |
@@ -60,7 +60,7 @@ For a step-by-step tour of a Node.js app going from an empty folder to a deploye
 
 | Skill | Key artifacts | Consumed by |
 |-------|--------------|-------------|
-| `/brace` | `CLAUDE.md`, project skeleton | All other skills |
+| `/brace` | `AGENTS.md` (+ `CLAUDE.md` pointer), project skeleton | All other skills |
 | `/rig` | `.github/workflows/ci.yml` or `azure-pipelines.yml`, `lefthook.yml`, `.gitmessage`, PR template | `/ship` (CI checks) |
 | `/speccy` | `specs/<feature>.md` + pending-build marker | `/build` |
 | `/build` | Branch, worktree, draft PR, feature code, tests, `LOGBOOK.md` follow-ups | `/ship` |
@@ -80,7 +80,7 @@ For a step-by-step tour of a Node.js app going from an empty folder to a deploye
 With the plugin installed, a session-guard hook runs at session start and before each prompt. It checks:
 
 - **Git repository** — not a repo, nested-git, or a git root several levels above the working directory that does not look like a monorepo.
-- **CLAUDE.md presence and staleness** — seven weighted signals (file age, directories not mentioned, package and Python dependency drift, config file drift, commits since last update, lock file drift). A score of 3 or more prompts you to refresh it; lower scores are logged silently.
+- **AGENTS.md presence and staleness** — AGENTS.md is canonical; a legacy CLAUDE.md is detected and the guard offers to migrate its content. Seven weighted signals (file age, directories not mentioned, package and Python dependency drift, config file drift, commits since last update, lock file drift). A score of 3 or more prompts you to refresh it; lower scores are logged silently.
 - **Task list and branch state** — surfaced before your first prompt.
 - **Lifecycle recommendation** — a `🧭 lifecycle-next` hint computed from repo state (for example, "run `/rig`: no hooks or CI detected"). Dismissible and rate-limited; `/logbook` shows the full picture on demand.
 - **Follow-ups** — an open-item count from `LOGBOOK.md`, and a warning if the ledger has uncommitted changes.
