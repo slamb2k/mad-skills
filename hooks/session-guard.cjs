@@ -8,7 +8,7 @@
  * single Node.js entry point using subcommand dispatch.
  *
  * Subcommands:
- *   check   — SessionStart: validate git, CLAUDE.md, tasks, staleness
+ *   check   — SessionStart: validate git, AGENTS.md/CLAUDE.md, tasks, staleness
  *   remind  — UserPromptSubmit: re-emit pending context on first prompt
  *
  * Usage:
@@ -31,15 +31,44 @@ const { git } = require('./lib/utils.cjs');
 const lifecycle = require('./lib/lifecycle.cjs');
 const ledger = require('./lib/logbook.cjs');
 const { readHookInput, nonemptyString } = require('./lib/session.cjs');
+const { resolveInstructions } = require('./lib/instructions.cjs');
 
 const command = process.argv[2];
 const hookInput = readHookInput(command);
 const PROJECT_DIR = nonemptyString(hookInput.cwd) || process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const SESSION_ID = nonemptyString(hookInput.session_id)
   || process.env.MAD_SKILLS_SESSION_ID || process.env.CODEX_THREAD_ID || '';
-const INSTRUCTIONS_MD = existsSync(join(PROJECT_DIR, 'CLAUDE.md'))
-  ? join(PROJECT_DIR, 'CLAUDE.md') : join(PROJECT_DIR, 'AGENTS.md');
+// AGENTS.md is canonical; CLAUDE.md is only the primary when AGENTS.md is absent.
+const INSTRUCTIONS = resolveInstructions(PROJECT_DIR);
+const INSTRUCTIONS_MD = INSTRUCTIONS.primary || INSTRUCTIONS.agentsPath;
 const INSTRUCTIONS_NAME = basename(INSTRUCTIONS_MD);
+
+// Staleness prompt options. Updates always target AGENTS.md; when CLAUDE.md
+// carries its own content, offer to move it rather than doing so silently.
+function stalenessOptions(info) {
+  const update = 'review project structure, deps, recent changes';
+  if (!info.hasAgents) {
+    return [
+      `"Migrate to AGENTS.md and update" \u2014 move CLAUDE.md content into a new AGENTS.md, ${update} and update AGENTS.md (preserve user-written notes), then replace CLAUDE.md with \`@AGENTS.md\``,
+      `"Update CLAUDE.md in place" \u2014 ${update} and update CLAUDE.md (preserve user-written notes)`,
+      '"Show signals" \u2014 list what\'s drifted before deciding',
+      '"Skip" \u2014 continue with current CLAUDE.md',
+    ];
+  }
+  if (info.needsMigration) {
+    return [
+      `"Update AGENTS.md and move CLAUDE.md content into it" \u2014 ${update} and update AGENTS.md (preserve user-written notes); merge CLAUDE.md's own sections into AGENTS.md and replace CLAUDE.md with \`@AGENTS.md\``,
+      `"Update AGENTS.md only" \u2014 ${update} and update AGENTS.md (preserve user-written notes); leave CLAUDE.md as is`,
+      '"Show signals" \u2014 list what\'s drifted before deciding',
+      '"Skip" \u2014 continue with current AGENTS.md',
+    ];
+  }
+  return [
+    `"Update it" \u2014 ${update} and update AGENTS.md (preserve user-written notes)${info.needsPointer ? '; write \`@AGENTS.md\` to CLAUDE.md' : ''}`,
+    '"Show signals" \u2014 list what\'s drifted before deciding',
+    '"Skip" \u2014 continue with current AGENTS.md',
+  ];
+}
 
 // ─── check ─────────────────────────────────────────────────────────────
 // Runs at SessionStart. Spawns background worker and exits immediately
@@ -84,14 +113,14 @@ function checkBackground() {
   const { gitRoot } = checkGit(PROJECT_DIR, output);
 
   // 1) Project instructions existence
-  if (!existsSync(INSTRUCTIONS_MD)) {
-    output.add('[SESSION GUARD] \u26A0\uFE0F  No CLAUDE.md or AGENTS.md found in project root.');
+  if (!INSTRUCTIONS.primary) {
+    output.add('[SESSION GUARD] \u26A0\uFE0F  No AGENTS.md or CLAUDE.md found in project root.');
     output.addQuestion(
-      'No CLAUDE.md or AGENTS.md found. Want me to set up project instructions?',
+      'No AGENTS.md or CLAUDE.md found. Want me to set up project instructions?',
       'single_select',
       [
-        '"Set up with /brace" \u2014 scaffold CLAUDE.md + project structure (specs, tools, context)',
-        '"Basic init" \u2014 run `/init` to scaffold project instructions',
+        '"Set up with /brace" \u2014 scaffold AGENTS.md (with a CLAUDE.md pointer) + project structure (specs, tools, context)',
+        '"Basic init" \u2014 run `/init`, then move the result to AGENTS.md and leave CLAUDE.md as `@AGENTS.md`',
         '"Skip" \u2014 continue without one',
       ],
     );
@@ -100,6 +129,13 @@ function checkBackground() {
   }
 
   output.add(`[SESSION GUARD] \u2705 ${INSTRUCTIONS_NAME} found in: ${PROJECT_DIR}`);
+  if (INSTRUCTIONS.hasAgents && INSTRUCTIONS.needsMigration) {
+    output.add('[SESSION GUARD] \u2139\uFE0F  CLAUDE.md also carries its own content \u2014 AGENTS.md is canonical; CLAUDE.md should just be `@AGENTS.md`.');
+  } else if (INSTRUCTIONS.hasAgents && INSTRUCTIONS.needsPointer) {
+    output.add('[SESSION GUARD] \u2139\uFE0F  CLAUDE.md does not reference AGENTS.md \u2014 write `@AGENTS.md` to CLAUDE.md so Claude Code loads it.');
+  } else if (!INSTRUCTIONS.hasAgents) {
+    output.add('[SESSION GUARD] \u2139\uFE0F  No AGENTS.md \u2014 the next update will migrate CLAUDE.md to AGENTS.md and leave CLAUDE.md as `@AGENTS.md`.');
+  }
 
   // 1b) Project scaffold check
   checkBrace(PROJECT_DIR, output);
@@ -138,11 +174,7 @@ function checkBackground() {
     output.addQuestion(
       `${INSTRUCTIONS_NAME} appears out of date (${output.signals.length} signals detected). What would you like to do?`,
       'single_select',
-      [
-        `"Update it" \u2014 review project structure, deps, recent changes and update ${INSTRUCTIONS_NAME} (preserve user-written notes)`,
-        '"Show signals" \u2014 list what\'s drifted before deciding',
-        `"Skip" \u2014 continue with current ${INSTRUCTIONS_NAME}`,
-      ],
+      stalenessOptions(INSTRUCTIONS),
     );
   } else if (output.signals.length > 0) {
     output.blank();

@@ -96,13 +96,53 @@ test('banner-only reminders also exempt inherited side questions', (t) => {
   assert.doesNotMatch(context, /FIRST PROMPT REMINDER/);
 });
 
-test('existing CLAUDE.md takes precedence when both instruction files exist', (t) => {
+test('AGENTS.md takes precedence when both instruction files exist', (t) => {
   const { project, run, script } = fixture(t);
-  writeFileSync(join(project, 'CLAUDE.md'), '# Project\n');
+  writeFileSync(join(project, 'CLAUDE.md'), '@AGENTS.md\n');
   writeFileSync(join(project, 'AGENTS.md'), '# Project\n');
   run('check', { cwd: project, session_id: 'both' });
   const pending = JSON.parse(script("console.log(JSON.stringify(state.waitForReady(project, 10000, 20, 'both')))"));
+  assert.match(pending.context, /AGENTS\.md found/);
+  assert.doesNotMatch(pending.context, /CLAUDE\.md found/);
+  assert.doesNotMatch(pending.context, /CLAUDE\.md also carries its own content/);
+});
+
+test('CLAUDE.md with its own content alongside AGENTS.md is flagged for migration', (t) => {
+  const { project, run, script } = fixture(t);
+  writeFileSync(join(project, 'CLAUDE.md'), '# Project\n\nUse bun for scripts.\n');
+  writeFileSync(join(project, 'AGENTS.md'), '# Project\n');
+  run('check', { cwd: project, session_id: 'migrate' });
+  const pending = JSON.parse(script("console.log(JSON.stringify(state.waitForReady(project, 10000, 20, 'migrate')))"));
+  assert.match(pending.context, /AGENTS\.md found/);
+  assert.match(pending.context, /CLAUDE\.md also carries its own content/);
+});
+
+test('Claude-only notes under an @AGENTS.md import are not flagged for migration', (t) => {
+  const { project, run, script } = fixture(t);
+  writeFileSync(join(project, 'CLAUDE.md'), '@AGENTS.md\n\n## Claude only\n- Use plan mode for refactors.\n');
+  writeFileSync(join(project, 'AGENTS.md'), '# Project\n');
+  run('check', { cwd: project, session_id: 'extras' });
+  const pending = JSON.parse(script("console.log(JSON.stringify(state.waitForReady(project, 10000, 20, 'extras')))"));
+  assert.match(pending.context, /AGENTS\.md found/);
+  assert.doesNotMatch(pending.context, /CLAUDE\.md also carries its own content/);
+  assert.doesNotMatch(pending.context, /does not reference AGENTS\.md/);
+});
+
+test('CLAUDE.md-only projects are told the next update migrates to AGENTS.md', (t) => {
+  const { project, run, script } = fixture(t);
+  writeFileSync(join(project, 'CLAUDE.md'), '# Project\n');
+  run('check', { cwd: project, session_id: 'legacy-only' });
+  const pending = JSON.parse(script("console.log(JSON.stringify(state.waitForReady(project, 10000, 20, 'legacy-only')))"));
   assert.match(pending.context, /CLAUDE\.md found/);
+  assert.match(pending.context, /No AGENTS\.md .* migrate CLAUDE\.md to AGENTS\.md/);
+});
+
+test('missing instructions prompt scaffolds AGENTS.md with a CLAUDE.md pointer', (t) => {
+  const { project, run, script } = fixture(t);
+  run('check', { cwd: project, session_id: 'none' });
+  const pending = JSON.parse(script("console.log(JSON.stringify(state.waitForReady(project, 10000, 20, 'none')))"));
+  assert.match(pending.context, /No AGENTS\.md or CLAUDE\.md found/);
+  assert.match(pending.context, /scaffold AGENTS\.md \(with a CLAUDE\.md pointer\)/);
 });
 
 test('logbook startup hints return structured SessionStart output', (t) => {
