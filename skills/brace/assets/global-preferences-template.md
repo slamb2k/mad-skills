@@ -3,7 +3,7 @@
 Template appended to `~/.claude/CLAUDE.md` by brace when the user
 selects "global" install level. When the user selects "project" level,
 this file is not used — instead, the universal principles are written
-to the project CLAUDE.md (with a redundancy check against global).
+to the project AGENTS.md (with a redundancy check against global).
 The Phase 4 agent inserts this content before the "## Current Skills"
 section.
 
@@ -13,7 +13,7 @@ BEGIN TEMPLATE
 
 ## Global Preferences
 
-These defaults apply to all projects. Override in a project-level CLAUDE.md.
+These defaults apply to all projects. Override in a project-level AGENTS.md.
 
 ### Tooling
 - **Python**: Use `uv` for virtual environments and dependency management

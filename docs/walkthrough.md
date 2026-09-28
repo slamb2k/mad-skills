@@ -9,18 +9,18 @@ This walkthrough follows a Node.js app from an empty folder to a deployed contai
 When you open Claude Code in any project with the mad-skills plugin installed, the **session guard** runs automatically. It validates your development environment before you write a single line of code.
 
 ```
-[SESSION GUARD] ✅ CLAUDE.md found in: /home/me/my-webapp
+[SESSION GUARD] ✅ AGENTS.md found in: /home/me/my-webapp
 
-[SESSION GUARD] ⚠️  CLAUDE.md appears STALE (score: 4/3)
+[SESSION GUARD] ⚠️  AGENTS.md appears STALE (score: 4/3)
 
 Signals:
-  ⚠ 23 commits since CLAUDE.md updated
-  ⚠ Directories not in CLAUDE.md: src/api src/workers
+  ⚠ 23 commits since AGENTS.md updated
+  ⚠ Directories not in AGENTS.md: src/api src/workers
 [SESSION GUARD] 🧭 Lifecycle: the next step (/rig) is available.
 [SESSION GUARD] 📌 3 open follow-ups — /logbook to review
 ```
 
-The session guard checks the git repository (including nested-git and monorepo detection), CLAUDE.md presence and staleness (seven weighted signals such as age, directory drift, dependency drift, and commit volume, flagged at a score of 3), the task list, and branch state. It also prints a lifecycle recommendation, an open-follow-ups count from `LOGBOOK.md`, and auto-loads a `/ferry` waybill after `/clear`. Issues are surfaced before your first prompt.
+The session guard checks the git repository (including nested-git and monorepo detection), AGENTS.md presence and staleness (CLAUDE.md is treated as a legacy fallback and the guard offers to migrate it; seven weighted signals such as age, directory drift, dependency drift, and commit volume, flagged at a score of 3), the task list, and branch state. It also prints a lifecycle recommendation, an open-follow-ups count from `LOGBOOK.md`, and auto-loads a `/ferry` waybill after `/clear`. Issues are surfaced before your first prompt.
 
 ---
 
@@ -36,14 +36,15 @@ Start in an empty folder. `/brace` creates the project scaffold.
 
 ```
 my-webapp/
-├── CLAUDE.md              # AI-readable project instructions
+├── AGENTS.md              # AI-readable project instructions (canonical)
+├── CLAUDE.md              # `@AGENTS.md` pointer for Claude Code
 ├── .gitignore             # Ignores credentials, data, temp files
 ├── specs/                 # Specifications (/speccy → /build)
 ├── context/               # Domain knowledge and references
 └── .tmp/                  # Scratch work (gitignored)
 ```
 
-The CLAUDE.md it creates becomes the foundation — every subsequent skill reads it for project context.
+The AGENTS.md it creates becomes the foundation — every subsequent skill reads it for project context.
 
 ---
 

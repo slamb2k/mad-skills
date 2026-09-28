@@ -111,11 +111,12 @@ function detectMonorepo(gitRoot) {
     if (count > 2) signals.push(`${count} package.json files found`);
   }
 
-  // Count CLAUDE.md files
-  const claudeCount = git('ls-files --cached -- "*/CLAUDE.md" "CLAUDE.md"', gitRoot);
-  if (claudeCount) {
-    const count = claudeCount.split('\n').filter(Boolean).length;
-    if (count > 1) signals.push(`${count} CLAUDE.md files found (per-package setup)`);
+  // Count project instructions files (AGENTS.md canonical, CLAUDE.md legacy)
+  for (const name of ['AGENTS.md', 'CLAUDE.md']) {
+    const found = git(`ls-files --cached -- "*/${name}" "${name}"`, gitRoot);
+    if (!found) continue;
+    const count = found.split('\n').filter(Boolean).length;
+    if (count > 1) signals.push(`${count} ${name} files found (per-package setup)`);
   }
 
   return signals;

@@ -126,10 +126,11 @@ Before asking any questions, build a thorough understanding of the project:
 
 1. **Capture GOAL** — the user's argument describing what needs to be specified
 2. **Load project context** — invoke `/prime` to load domain-specific context
-   (CLAUDE.md, specs, memory). If /prime is unavailable, fall back to
+   (project instructions, specs, memory). If /prime is unavailable, fall back to
    the manual scan below.
 3. **Scan the project** (skip items already loaded by /prime):
-   - Read `CLAUDE.md` if present (project conventions, structure, domain)
+   - Read `AGENTS.md` if present, plus `CLAUDE.md` if it holds anything
+     beyond `@AGENTS.md` (project conventions, structure, domain)
    - Scan `specs/` directory for existing specifications
    - Scan existing design docs for context
    - Read relevant source code that relates to the GOAL

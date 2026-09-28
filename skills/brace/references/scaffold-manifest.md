@@ -7,7 +7,8 @@ creation checklist. Phase 1 uses it to detect existing structure.
 
 | File | Source | Description |
 |------|--------|-------------|
-| `CLAUDE.md` | references/claude-md-template.md | Project operating document |
+| `AGENTS.md` | references/agents-md-template.md | Project operating document (canonical) |
+| `CLAUDE.md` | inline: `@AGENTS.md` | Pointer so Claude Code loads AGENTS.md |
 | `.gitignore` | assets/gitignore-template | Standard ignores |
 | `~/.claude/CLAUDE.md` | assets/global-preferences-template.md | Global preferences (when install_level is "global") |
 
