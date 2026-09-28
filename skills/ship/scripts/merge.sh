@@ -239,6 +239,12 @@ fi
 
 # ── AzDO REST mode ─────────────────────────────────────
 if [ "$AZDO_MODE" = "rest" ]; then
+  # Same credential git push uses (e.g. Git Credential Manager) — see create-pr.sh
+  if [ -z "$PAT" ] && [ -n "$AZDO_ORG_URL" ]; then
+    PAT=$(printf 'url=%s\n\n' "$AZDO_ORG_URL" \
+      | GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never git credential fill 2>/dev/null \
+      | sed -n 's/^password=//p')
+  fi
   AUTH="Authorization: Basic $(printf ":%s" "$PAT" | base64 | tr -d '\n')"
   REPO_NAME=$(basename -s .git "$(git remote get-url origin)")
   PR_API="$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/git/repositories/$REPO_NAME/pullrequests/$PR_NUMBER"
@@ -262,12 +268,22 @@ if [ "$AZDO_MODE" = "rest" ]; then
   for POLICY_ITER in $(seq 1 $POLICY_TIMEOUT); do
     EVALS=$(curl -s -H "$AUTH" \
       "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/$AZDO_PROJECT_URL_SAFE/$PR_NUMBER&api-version=7.0" 2>&1)
-    if ! echo "$EVALS" | jq empty 2>/dev/null; then
-      EVALS='{"value":[]}'
+    # A failed call (HTML/empty 401 body, {"message":...} error object) must
+    # not read as "no policies" and skip straight to merge — same contract as
+    # CLI mode above. Retry, and fail at the timeout.
+    if ! echo "$EVALS" | jq -e 'type=="object" and (.value|type=="array")' >/dev/null 2>&1; then
+      if [ "$POLICY_ITER" -eq "$POLICY_TIMEOUT" ]; then
+        STATUS="failed"
+        ERRORS="policy check failed: $(echo "$EVALS" | jq -r '.message? // empty' 2>/dev/null | tr '\n' ' ' | cut -c1-200)"
+        MERGE_COMMIT=""; BRANCH_DELETED=false
+        emit_report; exit 1
+      fi
+      sleep 15
+      continue
     fi
 
-    REJECTED=$(echo "$EVALS" | jq '[.value[] | select(.status=="rejected")] | length')
-    PENDING=$(echo "$EVALS" | jq '[.value[] | select(.status=="running" or .status=="queued" or .status=="pending")] | length')
+    REJECTED=$(echo "$EVALS" | jq '[.value // [] | .[] | select(.status=="rejected")] | length')
+    PENDING=$(echo "$EVALS" | jq '[.value // [] | .[] | select(.status=="running" or .status=="queued" or .status=="pending")] | length')
 
     if [ "${REJECTED:-0}" -gt 0 ]; then
       STATUS="failed"
@@ -293,11 +309,23 @@ if [ "$AZDO_MODE" = "rest" ]; then
   # Resolve merge strategy
   MERGE_STRATEGY=$( [ "$SQUASH" = true ] && echo "squash" || echo "noFastForward" )
 
+  # Completing via REST requires lastMergeSourceCommit (the az CLI fetches
+  # it the same way before its PATCH).
+  PR_JSON=$(curl -s -H "$AUTH" "$PR_API?api-version=7.0" 2>&1)
+  LAST_SOURCE=$(echo "$PR_JSON" | jq -r '.lastMergeSourceCommit.commitId? // empty' 2>/dev/null)
+  if [ -z "$LAST_SOURCE" ]; then
+    STATUS="failed"
+    ERRORS="REST pr get failed: $( (echo "$PR_JSON" | jq -r '.message? // "unexpected response"' 2>/dev/null || echo "non-JSON response") | tr '\n' ' ' | cut -c1-200)"
+    MERGE_COMMIT=""; BRANCH_DELETED=false
+    emit_report; exit 1
+  fi
+
   # Complete the PR
+  COMPLETE_PAYLOAD=$(jq -cn --arg sha "$LAST_SOURCE" --arg strategy "$MERGE_STRATEGY" --argjson del "$DELETE_FLAG" \
+    '{status:"completed", lastMergeSourceCommit:{commitId:$sha}, completionOptions:{mergeStrategy:$strategy, deleteSourceBranch:$del}}')
   RESPONSE=$(curl -s -X PATCH -H "$AUTH" -H "Content-Type: application/json" \
-    "$PR_API?api-version=7.0" \
-    -d "{\"status\": \"completed\", \"completionOptions\": {\"mergeStrategy\": \"$MERGE_STRATEGY\", \"deleteSourceBranch\": $DELETE_FLAG}}" 2>&1)
-  if ! echo "$RESPONSE" | jq empty 2>/dev/null; then
+    "$PR_API?api-version=7.0" -d "$COMPLETE_PAYLOAD" 2>&1)
+  if ! echo "$RESPONSE" | jq -e 'type=="object"' >/dev/null 2>&1; then
     STATUS="failed"
     ERRORS="REST merge returned non-JSON response"
     MERGE_COMMIT=""; BRANCH_DELETED=false
@@ -305,13 +333,22 @@ if [ "$AZDO_MODE" = "rest" ]; then
   fi
 
   PR_STATUS=$(echo "$RESPONSE" | jq -r '.status // empty')
+  # The merge may complete asynchronously (status stays "active" briefly).
+  if [ "$PR_STATUS" = "active" ]; then
+    MERGE_DEADLINE=$((SECONDS + 30))
+    while [ "$PR_STATUS" = "active" ] && [ $SECONDS -lt $MERGE_DEADLINE ]; do
+      sleep 5
+      RESPONSE=$(curl -s -H "$AUTH" "$PR_API?api-version=7.0" 2>&1)
+      PR_STATUS=$(echo "$RESPONSE" | jq -r '.status // empty' 2>/dev/null)
+    done
+  fi
   if [ "$PR_STATUS" = "completed" ]; then
     STATUS="success"
     MERGE_COMMIT=$(echo "$RESPONSE" | jq -r '.lastMergeCommit.commitId // empty' | head -c 7)
     BRANCH_DELETED=$DELETE_BRANCH
   else
     STATUS="failed"
-    ERRORS="REST merge returned status: ${PR_STATUS:-unknown}"
+    ERRORS="REST merge returned status: ${PR_STATUS:-unknown} $(echo "$RESPONSE" | jq -r '.message? // empty' 2>/dev/null | tr '\n' ' ' | cut -c1-200)"
     MERGE_COMMIT=""; BRANCH_DELETED=false
     emit_report; exit 1
   fi

@@ -120,3 +120,88 @@ test("gh pr merge fails and PR is genuinely not merged: reports failed", () => {
     fs.rmSync(fakeBin, { recursive: true, force: true });
   }
 });
+
+// ── Azure DevOps (no live account: az/curl/sleep are PATH shims) ──────────
+
+const FAKE_AZ_MERGE = `#!/usr/bin/env bash
+echo "az $*" >> "$FAKE_CALL_LOG"
+if [ "$1" = "repos" ] && [ "$2" = "pr" ] && [ "$3" = "policy" ]; then echo '[]'; exit 0; fi
+if [ "$1" = "repos" ] && [ "$2" = "pr" ] && [ "$3" = "update" ]; then
+  for a in "$@"; do [ "$a" = "--project" ] && { echo "unrecognized arguments: --project" >&2; exit 2; }; done
+  exit 0
+fi
+exit 0
+`;
+
+const FAKE_CURL_MERGE = `#!/usr/bin/env bash
+method=GET url="" data=""
+while [ $# -gt 0 ]; do
+  case "$1" in -X) method="$2"; shift ;; -d) data="$2"; shift ;; -H|-o|-w) shift ;; -*) ;; *) url="$1" ;; esac
+  shift
+done
+echo "$method $url $data" >> "$FAKE_CALL_LOG"
+DEFAULT_PATCH='{"status":"completed","lastMergeCommit":{"commitId":"feedbeef99"}}'
+case "$method $url" in
+  *connectiondata*)        echo '{}' ;;
+  *policy/evaluations*)    printf '%s' "\${FAKE_CURL_EVALS-{\\"value\\":[]\\}}" ;;
+  "PATCH "*pullrequests*)  printf '%s' "\${FAKE_CURL_PATCH:-$DEFAULT_PATCH}" ;;
+  "GET "*pullrequests*)    printf '%s' '{"status":"active","lastMergeSourceCommit":{"commitId":"abc123"}}' ;;
+esac
+`;
+
+function runAzdo(mode, extraEnv) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "merge-azdo-"));
+  const log = path.join(dir, "calls.log");
+  fs.writeFileSync(path.join(dir, "az"), FAKE_AZ_MERGE, { mode: 0o755 });
+  fs.writeFileSync(path.join(dir, "curl"), FAKE_CURL_MERGE, { mode: 0o755 });
+  fs.writeFileSync(path.join(dir, "sleep"), "#!/usr/bin/env bash\nexit 0\n", { mode: 0o755 });
+  const repo = path.join(dir, "repo");
+  fs.mkdirSync(repo);
+  execFileSync("git", ["init", "-q"], { cwd: repo });
+  execFileSync("git", ["remote", "add", "origin", "https://dev.azure.com/org/proj/_git/myrepo"], { cwd: repo });
+  const env = { ...process.env, PATH: `${dir}:${process.env.PATH}`, FAKE_CALL_LOG: log, AZDO_PAT: "test-pat", ...extraEnv };
+  delete env.AZURE_DEVOPS_EXT_PAT;
+  let result;
+  try {
+    result = { code: 0, out: execFileSync(SCRIPT, ["azdo", "7", "--squash", "--delete-branch",
+      `--azdo-mode=${mode}`, "--azdo-org-url=https://dev.azure.com/org", "--azdo-project=proj",
+      "--azdo-project-url-safe=proj"], { cwd: repo, env, encoding: "utf-8" }) };
+  } catch (err) {
+    result = { code: err.status, out: err.stdout ?? "" };
+  }
+  result.calls = fs.existsSync(log) ? fs.readFileSync(log, "utf-8") : "";
+  fs.rmSync(dir, { recursive: true, force: true });
+  return result;
+}
+
+test("azdo cli: az repos pr update is called without --project and succeeds", () => {
+  const { code, out, calls } = runAzdo("cli");
+  assert.equal(code, 0, out);
+  assert.equal(parseReport(out).status, "success");
+  const update = calls.split("\n").find((l) => l.startsWith("az repos pr update"));
+  assert.ok(update, calls);
+  assert.doesNotMatch(update, /--project/);
+});
+
+test("azdo rest: completes with lastMergeSourceCommit and reports merge commit", () => {
+  const { code, out, calls } = runAzdo("rest");
+  assert.equal(code, 0, out);
+  const report = parseReport(out);
+  assert.equal(report.status, "success");
+  assert.equal(report.merge_commit, "feedbee");
+  const patch = calls.split("\n").find((l) => l.startsWith("PATCH "));
+  assert.match(patch, /"lastMergeSourceCommit":\{"commitId":"abc123"\}/);
+  assert.match(patch, /"mergeStrategy":"squash"/);
+});
+
+test("regression: azdo rest policy call returning an error object fails, never merges", () => {
+  const { code, out, calls } = runAzdo("rest", {
+    FAKE_CURL_EVALS: JSON.stringify({ message: "TF400813: not authorized" }),
+  });
+  assert.equal(code, 1, out);
+  const report = parseReport(out);
+  assert.equal(report.status, "failed");
+  assert.match(report.errors, /policy check failed: TF400813/);
+  assert.doesNotMatch(out, /Cannot iterate over null/);
+  assert.doesNotMatch(calls, /^PATCH /m);
+});
