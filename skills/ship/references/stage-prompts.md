@@ -196,9 +196,14 @@ FAILING CHECKS: {FAILING_CHECKS}
      gh run view <run-id> --log-failed
 
    **If PLATFORM == azdo AND AZDO_MODE == cli:**
-     RUN_ID=$(az pipelines runs list --branch {BRANCH} --top 1 \
-       --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" \
-       --query "[?result=='failed'].id | [0]" -o tsv)
+     # AzDO runs PR validation on refs/pull/<id>/merge, not the source branch
+     # — query that ref first, then fall back to the branch (CI triggers).
+     for REF in "refs/pull/{PR_NUMBER}/merge" "{BRANCH}"; do
+       RUN_ID=$(az pipelines runs list --branch "$REF" --top 5 \
+         --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" \
+         --query "[?result=='failed'].id | [0]" -o tsv)
+       [ -n "$RUN_ID" ] && break
+     done
      az pipelines runs show --id $RUN_ID \
        --org "{AZDO_ORG_URL}" --project "{AZDO_PROJECT}" --output json
      # `az pipelines` has no `logs download` command (verified against
@@ -216,10 +221,13 @@ FAILING CHECKS: {FAILING_CHECKS}
 
    **If PLATFORM == azdo AND AZDO_MODE == rest:**
      AUTH="Authorization: Basic $(printf ":%s" "{PAT}" | base64 | tr -d '\n')"
-     # Get failed build ID
-     RUN_ID=$(curl -s -H "$AUTH" \
-       "{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/build/builds?branchName=refs/heads/{BRANCH}&resultFilter=failed&\$top=1&api-version=7.0" \
-       | jq -r '.value[0].id')
+     # Get failed build ID — PR validation ref first, then the source branch
+     for REF in "refs/pull/{PR_NUMBER}/merge" "refs/heads/{BRANCH}"; do
+       RUN_ID=$(curl -s -H "$AUTH" \
+         "{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/build/builds?branchName=$REF&resultFilter=failed&\$top=1&api-version=7.0" \
+         | jq -r '.value[0].id? // empty')
+       [ -n "$RUN_ID" ] && break
+     done
      # Get timeline for step-level failures
      TIMELINE=$(curl -s -H "$AUTH" \
        "{AZDO_ORG_URL}/{AZDO_PROJECT_URL_SAFE}/_apis/build/builds/$RUN_ID/timeline?api-version=7.0")
