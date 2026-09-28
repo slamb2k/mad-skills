@@ -18,7 +18,8 @@ Present this summary after verification completes.
 │     {✅|⏭️} .tmp/          Temp directory
 │
 │  📄 Files
-│     {✅|⏭️} CLAUDE.md
+│     {✅|⏭️} AGENTS.md
+│     {✅|⏭️} CLAUDE.md  {pointer / migrated → AGENTS.md / left as is}
 │     {✅|⏭️} ~/.claude/CLAUDE.md  {updated / already present / skipped (project-only)}
 │     {✅|⏭️} .gitignore
 │
@@ -31,7 +32,7 @@ Present this summary after verification completes.
 │     {any warnings or skipped items}
 │
 │  ⚡ Next steps
-│     1. Review CLAUDE.md and customise for your project
+│     1. Review AGENTS.md and customise for your project
 │     2. Add domain knowledge to context/
 │     3. Run /speccy to design your first feature
 │     4. Restart Claude Code to activate plugin changes (if any applied)

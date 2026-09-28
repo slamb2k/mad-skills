@@ -1,6 +1,6 @@
 ---
 name: brace
-description: 'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project CLAUDE.md with development workflow and guardrails, .gitignore, and branch protection. Idempotent — safe to run on existing projects. Triggers: "init project", "setup brace", "brace", "initialize", "bootstrap", "scaffold".'
+description: 'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project AGENTS.md with development workflow and guardrails (plus a CLAUDE.md that just points at it), .gitignore, and branch protection. Idempotent — safe to run on existing projects. Triggers: "init project", "setup brace", "brace", "initialize", "bootstrap", "scaffold".'
 argument-hint: "[--force]"
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ---
@@ -161,7 +161,7 @@ Store result as `upgrade_legacy: true|false` in USER_CONFIG.
 
    Question: "Set up project scaffold?"
    Options:
-   - "Full scaffold (Recommended)" — CLAUDE.md, directories, guardrails
+   - "Full scaffold (Recommended)" — AGENTS.md (+ CLAUDE.md pointer), directories, guardrails
    - "Cancel"
 
 3. If not cancelled, ask for project description (one sentence) via
@@ -172,7 +172,7 @@ Store result as `upgrade_legacy: true|false` in USER_CONFIG.
    Question: "Install universal guidance (preferences, principles) at user level?"
    Options:
    - "Yes, install globally (Recommended)" — applies to all projects via `~/.claude/CLAUDE.md`
-   - "No, project level only" — self-contained in this project's CLAUDE.md
+   - "No, project level only" — self-contained in this project's AGENTS.md
 
 5. Store as USER_CONFIG:
    - project_name: from directory name or user override
@@ -191,12 +191,14 @@ For each item in `references/scaffold-manifest.md`:
 - If component not selected in USER_CONFIG → status: "not selected"
 - If item already exists (from SCAN_REPORT) and no `--force` → status: "skip"
 - If item exists and `--force` → status: "overwrite"
-- If CLAUDE.md exists → status: "merge" (append scaffold sections)
+- If AGENTS.md exists → status: "merge" (append scaffold sections)
+- If only CLAUDE.md exists → status: "migrate" (offer to move its content into a new AGENTS.md; see `references/instructions-file.md`)
+- If AGENTS.md exists and CLAUDE.md is missing or does not reference it → status: "pointer" (write `@AGENTS.md` to CLAUDE.md)
 - If .gitignore exists → status: "merge" (append missing entries)
 - Otherwise → status: "create"
 
 If `upgrade_legacy` is true in USER_CONFIG, set status "upgrade" for:
-- CLAUDE.md (replaces "merge" or "skip" — upgrade takes priority)
+- AGENTS.md / CLAUDE.md (replaces "merge", "migrate" or "skip" — upgrade takes priority)
 
 If `upgrade_legacy` is true AND `has_legacy_gotcha` is true, additionally:
 - `goals/` → status: "remove" (only if contains only manifest.md and build_app.md)
@@ -246,7 +248,7 @@ Before sending the prompt, substitute these variables:
 - `{PROJECT_NAME}` — from USER_CONFIG
 - `{PROJECT_DESCRIPTION}` — from USER_CONFIG
 - `{INSTALL_LEVEL}` — from USER_CONFIG ("global" or "project")
-- `{CLAUDE_MD_TEMPLATE}` — read from `references/claude-md-template.md`
+- `{AGENTS_MD_TEMPLATE}` — read from `references/agents-md-template.md`
   (the section between BEGIN TEMPLATE and END TEMPLATE)
 - `{GITIGNORE_CONTENT}` — read from `assets/gitignore-template`
 - `{GLOBAL_PREFERENCES_CONTENT}` — read from `assets/global-preferences-template.md`
@@ -254,13 +256,36 @@ Before sending the prompt, substitute these variables:
 
 Parse SCAFFOLD_REPORT. If status is "failed", report to user and stop.
 
+### Instructions File Target
+
+All injections below write to `$TARGET`, resolved per
+`references/instructions-file.md` (shared with `/rig` and the session guard):
+
+```bash
+_REF="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}/references/instructions-file.md"
+if   [ -f AGENTS.md ]; then TARGET=AGENTS.md
+elif [ -f CLAUDE.md ];  then TARGET=CLAUDE.md
+else                          TARGET=AGENTS.md
+fi
+```
+
+- `AGENTS.md` is canonical. `CLAUDE.md` should start with `@AGENTS.md`; any
+  Claude-only notes under that import are intentional and left alone.
+- If `CLAUDE.md` has content and does not import AGENTS.md — whether or not
+  AGENTS.md exists — offer the migration from
+  `references/instructions-file.md` via AskUserQuestion before injecting. Accepted → merge into AGENTS.md, replace CLAUDE.md with
+  `@AGENTS.md`, set `TARGET=AGENTS.md`. Declined → keep `TARGET` as resolved
+  and note it in the report.
+- If `AGENTS.md` exists but `CLAUDE.md` is missing, write the pointer without
+  asking.
+
 ### Branch Discipline Injection
 
-When updating an existing project CLAUDE.md (not creating from template):
+When updating an existing instructions file (not creating from template):
 
 1. Check if `## Branch Discipline` already exists:
    ```bash
-   grep -q "## Branch Discipline" CLAUDE.md
+   grep -q "## Branch Discipline" "$TARGET"
    ```
 2. If NOT found, inject the Branch Discipline section before `## Guardrails`:
    - Read the file content
@@ -271,11 +296,11 @@ When updating an existing project CLAUDE.md (not creating from template):
 
 ### Worktree Discipline Injection
 
-When updating an existing project CLAUDE.md (not creating from template):
+When updating an existing instructions file (not creating from template):
 
 1. Check if `## Worktree Discipline` already exists:
    ```bash
-   grep -q "## Worktree Discipline" CLAUDE.md
+   grep -q "## Worktree Discipline" "$TARGET"
    ```
 2. If NOT found, inject the Worktree Discipline section before `## Guardrails`:
    - Read the file content
@@ -286,11 +311,11 @@ When updating an existing project CLAUDE.md (not creating from template):
 
 ### Verification Discipline Injection
 
-When updating an existing project CLAUDE.md (not creating from template):
+When updating an existing instructions file (not creating from template):
 
 1. Check if `## Verification Discipline` already exists:
    ```bash
-   grep -q "## Verification Discipline" CLAUDE.md
+   grep -q "## Verification Discipline" "$TARGET"
    ```
 2. If NOT found, inject the Verification Discipline section before `## Guardrails`:
    - Read the file content
@@ -301,11 +326,11 @@ When updating an existing project CLAUDE.md (not creating from template):
 
 ### Known Gotchas Injection
 
-When updating an existing project CLAUDE.md (not creating from template):
+When updating an existing instructions file (not creating from template):
 
 1. Check if `## Known Gotchas` already exists:
    ```bash
-   grep -q "## Known Gotchas" CLAUDE.md
+   grep -q "## Known Gotchas" "$TARGET"
    ```
 2. If NOT found, inject the Known Gotchas section before `## Guardrails`:
    - Read the file content
@@ -383,7 +408,8 @@ the user via AskUserQuestion as instructed inside the block. If it prints nothin
 ## Idempotency Rules
 
 - **Skip** directories and files that already exist (unless `--force`)
-- **Merge** CLAUDE.md: append scaffold sections if file exists but lacks them
+- **Merge** AGENTS.md: append scaffold sections if file exists but lacks them
+- **Migrate** CLAUDE.md: only with user approval; content moves to AGENTS.md and CLAUDE.md becomes `@AGENTS.md`
 - **Merge** .gitignore: append missing entries only
 - **Never delete** user content
 - **Never overwrite** without `--force` or explicit user approval
@@ -400,5 +426,6 @@ Standard escalation pattern:
 
 Common issues:
 - Permission denied → report, suggest checking directory permissions
-- CLAUDE.md merge conflict → show both versions, let user choose
+- AGENTS.md merge conflict → show both versions, let user choose
+- CLAUDE.md migration declined → update CLAUDE.md in place this run, report that AGENTS.md is still recommended
 - Directory is read-only → abort with clear message

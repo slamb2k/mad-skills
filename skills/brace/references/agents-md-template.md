@@ -1,7 +1,9 @@
-# CLAUDE.md Template
+# AGENTS.md Template
 
-Template for the generated project CLAUDE.md. The Phase 4 agent substitutes
-`{VARIABLE}` placeholders and writes to the project root.
+Template for the generated project AGENTS.md. The Phase 4 agent substitutes
+`{VARIABLE}` placeholders and writes to the project root. A companion
+CLAUDE.md containing only `@AGENTS.md` is written alongside it so Claude Code
+loads this file (see `references/instructions-file.md`).
 
 `{UNIVERSAL_PRINCIPLES}` is populated with universal behavioral rules
 (currently: Question & Assumption Accountability, Communication, Agent
@@ -30,7 +32,8 @@ BEGIN TEMPLATE
 
 ```
 {PROJECT_NAME}/
-├── CLAUDE.md           This file
+├── AGENTS.md           This file (project instructions, all agent tools)
+├── CLAUDE.md           `@AGENTS.md` pointer for Claude Code
 ├── .gitignore          Ignores credentials, data, temp files
 ├── specs/              Specifications (/speccy output, /build input)
 ├── context/            Domain knowledge and references

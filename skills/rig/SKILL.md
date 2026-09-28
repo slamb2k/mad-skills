@@ -295,13 +295,29 @@ If "Let me choose", present individual options as multi-select.
 For each approved item, follow the procedures in
 `references/configuration-steps.md`.
 
-### Branch Discipline in CLAUDE.md
+### Branch Discipline in AGENTS.md
 
-If the project has an existing `CLAUDE.md`:
+Resolve the instructions file per `references/instructions-file.md` (shared
+with `/brace` and the session guard): `AGENTS.md` is canonical, `CLAUDE.md`
+should only contain `@AGENTS.md`.
+
+```bash
+if   [ -f AGENTS.md ]; then TARGET=AGENTS.md
+elif [ -f CLAUDE.md ];  then TARGET=CLAUDE.md
+else                          TARGET=""
+fi
+```
+
+If `TARGET` is empty, skip this step (`/brace` creates the file). If
+`CLAUDE.md` has content and does not import AGENTS.md, offer the migration from
+`references/instructions-file.md` via AskUserQuestion first; on approval merge
+it into AGENTS.md, replace CLAUDE.md with `@AGENTS.md`, and set
+`TARGET=AGENTS.md`. Claude-only notes under an existing `@AGENTS.md` import
+are intentional; leave them alone. Then:
 
 1. Check if `## Branch Discipline` already exists:
    ```bash
-   grep -q "## Branch Discipline" CLAUDE.md
+   grep -q "## Branch Discipline" "$TARGET"
    ```
 2. If NOT found, inject the Branch Discipline section before `## Guardrails`:
    - Read the file content
@@ -311,7 +327,7 @@ If the project has an existing `CLAUDE.md`:
 3. If already present, skip (idempotent)
 
 The Branch Discipline content to inject is the `## Branch Discipline` section
-from `skills/brace/references/claude-md-template.md`. Read that file to get
+from `skills/brace/references/agents-md-template.md`. Read that file to get
 the exact content — this avoids duplication and ensures both /brace and /rig
 inject identical text.
 
