@@ -9,7 +9,6 @@
   },
   "files": [
     "skills/",
-    "agents/",
     "hooks/",
     "scripts/lib/",
     "references/",
