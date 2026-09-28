@@ -38,3 +38,43 @@ for (const instructionsName of ['CLAUDE.md', 'AGENTS.md']) {
     }
   });
 }
+
+test('nested directories listed tree-style under their parent are not reported as missing', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'guard-staleness-tree-'));
+  try {
+    for (const d of ['skills/brace', 'skills/ship', 'skills/sync', 'tests/results', 'archive/old']) {
+      fs.mkdirSync(path.join(dir, d), { recursive: true });
+    }
+    const instructionsPath = path.join(dir, 'AGENTS.md');
+    fs.writeFileSync(instructionsPath, [
+      '# Project', '```', 'project/', '├── skills/', '│   ├── brace/', '│   ├── ship/',
+      '│   └── sync/', '├── tests/', '│   └── results/', '```', '',
+    ].join('\n'));
+
+    const output = new OutputBuilder();
+    checkStaleness(dir, instructionsPath, null, output);
+    const drift = output.signals.find(sig => sig.includes('Directories not in')) || '';
+    assert.doesNotMatch(drift, /skills\/|tests\/results/);
+    assert.match(drift, /archive\/old/, 'unmentioned parent still reports its children');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a nested directory whose leaf is unmentioned is still reported', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'guard-staleness-leaf-'));
+  try {
+    for (const d of ['skills/brace', 'skills/newskill', 'skills/other', 'skills/more', 'src', 'lib']) {
+      fs.mkdirSync(path.join(dir, d), { recursive: true });
+    }
+    const instructionsPath = path.join(dir, 'AGENTS.md');
+    fs.writeFileSync(instructionsPath, '# Project\n├── skills/\n│   └── brace/\n');
+    const output = new OutputBuilder();
+    checkStaleness(dir, instructionsPath, null, output);
+    const drift = output.signals.find(sig => sig.includes('Directories not in')) || '';
+    assert.match(drift, /skills\/newskill/);
+    assert.doesNotMatch(drift, /skills\/brace/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

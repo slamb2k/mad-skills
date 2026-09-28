@@ -43,13 +43,25 @@ function checkDirectoryDrift(projectDir, instructionsPath, instructionsName, out
   if (!instructions) return;
 
   const mdLower = instructions.toLowerCase();
-  const missing = dirs.filter(d => !mdLower.includes(d.toLowerCase()));
+  const missing = dirs.filter(d => !isDirectoryMentioned(d.toLowerCase(), mdLower));
 
   if (missing.length > config.staleness.missingDirs.many) {
     output.addStaleness(`Directories not in ${instructionsName}: ${missing.join(' ')}`, 2);
   } else if (missing.length > config.staleness.missingDirs.few) {
     output.addStaleness(`Directories not in ${instructionsName}: ${missing.join(' ')}`, 1);
   }
+}
+
+// A nested directory counts as mentioned when its full path appears, or when
+// its parent is mentioned and the leaf appears tree-style with a trailing
+// slash (e.g. `skills/` with `├── brace/` beneath it).
+function isDirectoryMentioned(dir, mdLower) {
+  if (mdLower.includes(dir)) return true;
+  const slash = dir.lastIndexOf('/');
+  if (slash < 0) return false;
+  const parent = dir.slice(0, slash);
+  const leaf = dir.slice(slash + 1);
+  return isDirectoryMentioned(parent, mdLower) && mdLower.includes(`${leaf}/`);
 }
 
 function checkPackageJson(projectDir, instructionsPath, instructionsName, mdMtime, output) {
