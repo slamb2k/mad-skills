@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-28T13:50:10.824Z",
+  "generated": "2026-09-28T13:53:40.660Z",
   "count": 14,
   "skills": [
     {
@@ -85,7 +85,7 @@
     {
       "name": "prime",
       "directory": "prime",
-      "description": "\"Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans the project instructions file (CLAUDE.md with its @imports resolved, e.g. AGENTS.md), README, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding.\"",
+      "description": "\"Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans AGENTS.md (plus CLAUDE.md when it holds more than an @AGENTS.md import), README, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding.\"",
       "lines": 170,
       "hasScripts": false,
       "hasReferences": true,
@@ -126,7 +126,7 @@
       "name": "sync",
       "directory": "sync",
       "description": "Sync local repository with origin/main. Use before starting new work, after completing a PR, or when needing latest upstream changes. Safely stashes uncommitted changes, fetches and pulls origin/main, restores stash, and cleans up stale local branches (merged or with deleted remotes). Run from a linked git worktree, it syncs main in the primary checkout instead and removes the worktree once its branch is finished. Invoke when switching contexts or preparing for new feature work.",
-      "lines": 202,
+      "lines": 200,
       "hasScripts": true,
       "hasReferences": false,
       "hasAssets": false,
