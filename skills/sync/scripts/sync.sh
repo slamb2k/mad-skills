@@ -172,15 +172,8 @@ if [ "$WORKTREE_MODE" = true ]; then
 fi
 
 HAS_CHANGES=false
-if [ "$WORKTREE_MODE" = true ]; then
-  # Ignore our own untracked auto-worktree sentinel — it must not count as dirt.
-  if [ -n "$(git status --porcelain 2>/dev/null | grep -v '^?? \.mad-skills-auto$' | head -1)" ]; then
-    HAS_CHANGES=true
-  fi
-else
-  if [ -n "$(git status --porcelain 2>/dev/null | head -1)" ]; then
-    HAS_CHANGES=true
-  fi
+if [ -n "$(git status --porcelain 2>/dev/null | head -1)" ]; then
+  HAS_CHANGES=true
 fi
 
 PRUNED=false
@@ -251,16 +244,6 @@ if [ "$WORKTREE_MODE" = true ]; then
       WORKTREE_REMOVED="skipped (primary unavailable)"
       EXIT_CODE=2
     else
-      # An untracked sentinel blocks plain (non-force) worktree removal — back
-      # it up and remove it first, restoring it if removal fails below.
-      WT_SENTINEL_BACKUP=""
-      WT_SENTINEL_PRESENT=false
-      if [ -f "$WT_PATH/.mad-skills-auto" ]; then
-        WT_SENTINEL_PRESENT=true
-        WT_SENTINEL_BACKUP=$(cat "$WT_PATH/.mad-skills-auto" 2>/dev/null)
-        rm -f "$WT_PATH/.mad-skills-auto"
-      fi
-
       if git worktree remove "$WT_PATH" 2>/dev/null; then
         WORKTREE_REMOVED="$WT_PATH"
       elif [ ! -d "$WT_PATH" ]; then
@@ -269,7 +252,6 @@ if [ "$WORKTREE_MODE" = true ]; then
       else
         WORKTREE_REMOVED="skipped (remove failed)"
         EXIT_CODE=2
-        [ "$WT_SENTINEL_PRESENT" = true ] && printf '%s\n' "$WT_SENTINEL_BACKUP" > "$WT_PATH/.mad-skills-auto"
       fi
 
       if [ "$WORKTREE_REMOVED" = "$WT_PATH" ]; then
@@ -353,27 +335,14 @@ worktree_path_for_branch() {
 prepare_branch_for_delete() {
   local branch="$1" wt
   wt=$(worktree_path_for_branch "$branch") || return 0
-  # Dirty if anything other than our own untracked sentinel is present.
-  if [ -n "$(git -C "$wt" status --porcelain 2>/dev/null | grep -v '^?? \.mad-skills-auto$')" ]; then
+  if [ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ]; then
     SKIPPED+=("$branch: worktree has uncommitted changes")
     return 1
-  fi
-  # Back up and remove our sentinel (if present) so a plain (non-force) worktree
-  # removal succeeds, restoring it if removal fails below. Sentinel-less
-  # worktrees — every /build worktree now that /speccy no longer writes the
-  # sentinel (REQ-012) — take the same plain-removal path.
-  local sentinel_present=false sentinel_backup=""
-  if [ -f "$wt/.mad-skills-auto" ]; then
-    sentinel_present=true
-    sentinel_backup=$(cat "$wt/.mad-skills-auto" 2>/dev/null)
-    rm -f "$wt/.mad-skills-auto"
   fi
   if git worktree remove "$wt" 2>/dev/null; then
     return 0
   fi
-  # Removal failed (lock, race, etc.) — restore the sentinel so this worktree
-  # is still recognized as an auto worktree and retried on the next /sync.
-  [ "$sentinel_present" = true ] && printf '%s\n' "$sentinel_backup" > "$wt/.mad-skills-auto"
+  # Removal failed (lock, race, etc.) — keep the branch so the next /sync retries.
   SKIPPED+=("$branch: worktree removal failed")
   return 1
 }

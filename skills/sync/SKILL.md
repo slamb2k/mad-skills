@@ -146,10 +146,8 @@ Branch cleanup also tears down associated worktrees: a branch is "finished"
 when it's merged, its remote is gone, OR its PR is closed without merging
 (pr-first-autonomous-build.md REQ-014) — checked via a bounded `gh`/`az`
 PR-state lookup, once per live worktree, not once per local branch. A
-finished branch's worktree is removed before the branch is deleted, whether
-or not it carries a `.mad-skills-auto` sentinel — that sentinel is no longer
-written by `/speccy` (see `references/autonomous-worktree-lifecycle.md`,
-repo root), so most `/build`-owned worktrees are sentinel-less by default.
+finished branch's worktree is removed before the branch is deleted (see
+`references/autonomous-worktree-lifecycle.md`, repo root).
 A worktree with uncommitted changes is never force-removed — it and its
 branch are left intact and reported in `worktrees_skipped`.
 
