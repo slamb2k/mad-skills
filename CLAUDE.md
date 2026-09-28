@@ -36,8 +36,8 @@ standalone pipeline. When Superpowers is absent, all skills behave exactly as
 their standalone descriptions below.
 
 > **Implemented:** this deferral behavior is specified in
-> `specs/superpowers-complementary-layer.md`. Detection runs through the on-disk
-> glob helper `scripts/lib/superpowers.js` and the shared contract in
+> `specs/superpowers-complementary-layer.md`. Detection runs through
+> `scripts/lib/superpowers.js` (registered + enabled plugins only) and the shared contract in
 > `references/superpowers-deferral.md`, wired into `/speccy`, `/build`, `/ship`,
 > and the `/prime` graphify hint.
 
@@ -238,7 +238,7 @@ mad-skills/
 │   ├── package-skills.js    # Package .skill archives
 │   └── lib/                 # Shared helpers
 │       ├── frontmatter.js   # YAML frontmatter parser (validate + manifests)
-│       ├── superpowers.js   # Superpowers detection helper (soft-dep, on-disk glob)
+│       ├── superpowers.js   # Superpowers detection helper (soft-dep, registered + enabled)
 │       ├── eval-references.js # Reference resolution for eval test cases
 │       ├── eval-response.js # Eval response parsing/scoring
 │       ├── feature-dev.js   # feature-dev agent selection/fallback helper
@@ -387,7 +387,7 @@ required — every skill degrades gracefully to its standalone behavior.
 
 | Plugin | Role | How MAD Skills uses it | Install |
 |--------|------|------------------------|---------|
-| **superpowers** | Methodology (plan → build → finish) | `/speccy`, `/build`, `/ship` defer their overlapping stages to it (see **Positioning** above). On-disk glob detection via `scripts/lib/superpowers.js`. | `claude plugin install superpowers` |
+| **superpowers** | Methodology (plan → build → finish) | `/speccy`, `/build`, `/ship` defer their overlapping stages to it (see **Positioning** above). Detected via `scripts/lib/superpowers.js` only when registered and enabled. | `claude plugin install superpowers` |
 | **graphify** | Codebase knowledge graph | `/prime` surfaces a passive hint if `graphify-out/` exists (query via `/graphify`). Hint only, no dependency. | — |
 
 ## Memory

@@ -1,12 +1,12 @@
 {
-  "generated": "2026-09-28T13:36:50.075Z",
+  "generated": "2026-09-28T13:50:10.824Z",
   "count": 14,
   "skills": [
     {
       "name": "brace",
       "directory": "brace",
       "description": "'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project AGENTS.md with development workflow and guardrails (plus a CLAUDE.md that just points at it), .gitignore, and branch protection. Idempotent — safe to run on existing projects. Triggers: \"init project\", \"setup brace\", \"brace\", \"initialize\", \"bootstrap\", \"scaffold\".'",
-      "lines": 432,
+      "lines": 433,
       "hasScripts": false,
       "hasReferences": true,
       "hasAssets": true,

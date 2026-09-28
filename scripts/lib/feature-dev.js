@@ -1,6 +1,6 @@
 /**
  * Shared feature-dev plugin detection helper.
- * Soft-dependency, on-disk anchor check — used by build's pre-flight table.
+ * Soft-dependency, registered + enabled anchor check — used by build's pre-flight table.
  *
  * Thin ESM surface over the CommonJS single source of truth
  * (hooks/lib/superpowers-core.cjs) so the CJS session-guard engine can share the
