@@ -30,7 +30,6 @@
  * Usage:
  *   node scripts/run-evals.js                      # Run all evals
  *   node scripts/run-evals.js --skill my-skill     # Run evals for one skill
- *   node scripts/run-evals.js --update-snapshots   # Update snapshot files
  *   node scripts/run-evals.js --concurrency 3      # Parallel test runs
  *   node scripts/run-evals.js --judge-model <id>   # Model for semantic assertions
  *
@@ -54,7 +53,6 @@ const RESULTS_DIR = resolve(__dirname, "..", "tests", "results");
 const { values: args } = parseArgs({
   options: {
     skill: { type: "string", default: "" },
-    "update-snapshots": { type: "boolean", default: false },
     concurrency: { type: "string", default: "2" },
     model: { type: "string", default: "claude-sonnet-4-20250514" },
     "judge-model": { type: "string", default: "claude-sonnet-4-20250514" },

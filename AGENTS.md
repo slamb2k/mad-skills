@@ -296,7 +296,6 @@ npm run test:unit         # Unit tests (node --test): scripts/lib, hooks/lib,
                            # and colocated skill script tests (skills/*/scripts/*.test.js)
 npm run eval              # Run evals (needs API key)
 npm run eval -- --verbose # Verbose eval output
-npm run eval:update       # Update eval snapshots
 npm run build:manifests   # Generate skills/manifest.json
 npm run build:skills      # Package .skill archives
 npm run build             # Both manifests + skills

@@ -18,7 +18,6 @@
     "validate": "node scripts/validate-skills.js",
     "lint": "node scripts/lint-skills.js",
     "eval": "node scripts/run-evals.js",
-    "eval:update": "node scripts/run-evals.js --update-snapshots",
     "build:manifests": "node scripts/build-manifests.js",
     "build:skills": "node scripts/package-skills.js",
     "build": "npm run build:manifests && npm run build:skills",

@@ -180,7 +180,6 @@ npm run validate          # Structural validation of all skills
 npm run lint              # SKILL.md linting
 npm run test:unit         # Unit tests: scripts/lib, hooks/lib, packaging, per-skill scripts
 npm run eval              # Evals (needs ANTHROPIC_API_KEY or OPENROUTER_API_KEY)
-npm run eval:update       # Update eval snapshots
 npm run build             # skills/manifest.json + .skill archives
 npm test                  # validate + lint + test:unit + eval
 ```
