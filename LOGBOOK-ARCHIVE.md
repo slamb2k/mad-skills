@@ -20,6 +20,7 @@
 ## Tech debt
 
 ## Archive
+- [x] Sanctioned -D fallback cannot distinguish squash-merged content from unpushed commits made after remote branch deletion — accepted risk (reflog-recoverable); a git cherry unpushed-check would close it — /build debrief (worktree-aware-sync, PR #120) (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] sync.sh gone-upstream detection pipeline duplicated twice (worktree finished-check + step-6 sweep) — extract only if touched again — /build debrief (worktree-aware-sync, PR #120) (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] sync.sh worktree-mode sentinel restore gated on non-empty backup — zero-byte .mad-skills-auto not restored after failed removal, asymmetric with prepare_branch_for_delete — /build debrief (worktree-aware-sync, PR #120) (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] ship SKILL.md Stage 5b worktree-mode paragraph is dense — reviewer initially misparsed it as removal-conditional; consider a clarity pass — /build debrief (worktree-aware-sync, PR #120) (2026-07-21) <!-- resolved:2026-07-21 -->
