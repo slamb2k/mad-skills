@@ -69,3 +69,29 @@ test("script always exits 0 (advisory only)", () => {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test("verb check: inflected allowed verbs pass", () => {
+  for (const t of ["Adds a --dry-run flag.", "Fixed the ship banner.", "Removing the legacy sentinel.", "Updates sync docs."]) {
+    assert.match(run(t, 1, 1), /✅ verb_present/, t);
+  }
+});
+
+test("verb check: heading, list, ticket-key and Please prefixes are ignored", () => {
+  for (const t of ["# Fix the ship banner", "- Add a flag", "MAD-42: Rename the helper", "Please document the flag."]) {
+    assert.match(run(t, 1, 1), /✅ verb_present/, t);
+  }
+});
+
+test("verb check: a verb far below the opening does not count", () => {
+  const out = run("Context about the ship script.\nIt is slow.\nUsers complain.\nWe could add caching.\nAdd caching.", 1, 1);
+  assert.match(out, /❌ verb_present — failed/);
+});
+
+test("verb check: disallowed verbs still fail", () => {
+  assert.match(run("Refactor the ship script.", 1, 1), /❌ verb_present — failed/);
+});
+
+test("hedge check: hedge words inside code spans or other words are not hedging", () => {
+  assert.match(run("Remove the `maybe()` helper from sync.", 1, 1), /✅ no_hedge_language/);
+  assert.match(run("Rename maybeSync to syncIfDirty.", 1, 1), /✅ no_hedge_language/);
+});

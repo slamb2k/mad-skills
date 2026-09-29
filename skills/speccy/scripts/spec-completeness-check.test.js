@@ -101,3 +101,43 @@ test("script always exits 0 (advisory only)", () => {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test("a fully ticked Definition of Done still counts as a checklist", () => {
+  const out = run(COMPLETE_SPEC.replace("- [ ] thing works", "- [x] thing works\n- [X] other thing"));
+  assert.match(out, /✅ Definition of Done checklist item/);
+});
+
+test("an unchecked box outside the Definition of Done section does not count", () => {
+  const spec = COMPLETE_SPEC.replace("- [ ] thing works", "prose only").replace("next steps here", "- [ ] a roadmap task");
+  const out = run(spec);
+  assert.match(out, /✅ Definition of Done heading/);
+  assert.match(out, /❌ Definition of Done checklist item — missing/);
+});
+
+test("a DoD subsection's checklist counts, a following sibling section's does not", () => {
+  const nested = COMPLETE_SPEC.replace("- [ ] thing works", "### Functional\n- [ ] nested item");
+  assert.match(run(nested), /✅ Definition of Done checklist item/);
+});
+
+test("headings inside fenced code blocks are not structure", () => {
+  const spec = `---
+title: Example
+autonomy_ready: true
+---
+
+\`\`\`md
+## Definition of Done
+- [ ] example only
+## Risks
+\`\`\`
+`;
+  const out = run(spec);
+  assert.match(out, /❌ Definition of Done heading — missing/);
+  assert.match(out, /❌ Risks \/ rationale content — missing/);
+});
+
+test("large specs are checked correctly (no early-exit pipe failures)", () => {
+  const filler = "lorem ipsum dolor sit amet\n".repeat(20000);
+  const out = run(COMPLETE_SPEC.replace("some risk", `some risk\n${filler}`));
+  assert.doesNotMatch(out, /❌/);
+});
