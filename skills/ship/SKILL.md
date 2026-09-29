@@ -338,10 +338,18 @@ Task(
 ```
 
 Substitute `{PR_NUMBER}`, `{BRANCH}`, `{FAILING_CHECKS}`, `{PLATFORM}`,
-`{AZDO_MODE}`, `{AZDO_ORG}`, `{AZDO_ORG_URL}`, `{AZDO_PROJECT}`, `{PAT}` into the prompt.
+`{REMOTE}`, `{DEFAULT_BRANCH}`, `{AZDO_MODE}`, `{AZDO_ORG}`, `{AZDO_ORG_URL}`,
+`{AZDO_PROJECT}`, `{PAT}` into the prompt.
 
-The fix subagent MUST commit and push before returning. Once it returns,
-**immediately loop back to Watch** to re-check CI.
+The subagent classifies the failure before fixing it. When it fixes, it MUST
+commit and push before returning; then **immediately loop back to Watch** to
+re-check CI. When FIX_REPORT says `not_code_fixable` (flake, transient infra,
+external policy such as secret scanning, permissions, or a failure already on
+the default branch), a code change cannot help: do not spend the next attempt —
+display the failure banner with the reason `CI failure is {category}, not
+fixable by a code change: {evidence}` and a concrete next step (re-run the
+failed checks manually, resolve the policy finding, or fix it on
+{DEFAULT_BRANCH} first), then stop.
 
 ### Loop summary
 
@@ -361,7 +369,9 @@ while attempt < 2:
       - "Cancel" → stop /ship and display failure banner
     break (if user chose merge or after re-wait resolves)
   attempt += 1
-  run_fix(CHECKS.failing_checks)
+  FIX = run_fix(CHECKS.failing_checks)
+  if FIX.status == "not_code_fixable":
+    → display failure banner with FIX.category + FIX.evidence and stop
   → loop back to watch
 
 if attempt == 2 and still failing:

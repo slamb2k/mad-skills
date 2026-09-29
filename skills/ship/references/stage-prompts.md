@@ -239,10 +239,33 @@ FAILING CHECKS: {FAILING_CHECKS}
        curl -s -H "$AUTH" "$LOG_URL" | tail -50
      done
 
-2. **Analyze and fix**
+2. **Classify before fixing**
+   Decide what caused each failure before spending this attempt. Read the
+   log beyond its last lines when the first error sits higher up, and compare
+   the failing files/tests with this branch's own changes:
+     git diff --name-only {REMOTE}/{DEFAULT_BRANCH}...HEAD
+
+   Code-fixable — the cause is in this branch and a code change resolves it:
+   - `code_defect` — build/type/runtime error in changed code
+   - `lint_format` — lint, format, or static-analysis finding
+   - `test_regression` — a test fails because of this branch's changes
+
+   NOT code-fixable — do not change any code:
+   - `test_flake` — timing/ordering/network nondeterminism unrelated to the diff
+   - `infra_transient` — runner, registry, rate-limit, or network outage
+   - `external_policy` — secret scanning (e.g. GitGuardian), CLA, license, or
+     required-review gates; a detected secret needs a human (rotate + rewrite)
+   - `permissions` — missing token scopes, protected resources, fork limits
+   - `pre_existing` — the same check fails on {DEFAULT_BRANCH} without this diff
+
+   If every failing check is NOT code-fixable, stop here: make no commit and
+   return `status: not_code_fixable`. Never retry or re-queue CI yourself —
+   the no-manual-trigger rule below still applies.
+
+3. **Analyze and fix**
    Read the relevant source files, understand the failures, fix the code.
 
-3. **Commit and push**
+4. **Commit and push**
    git add <fixed-files>
    git commit -m "$(cat <<'EOF'
    fix: address CI feedback - {specific issue}
@@ -259,7 +282,9 @@ CRITICAL — after pushing, your job is DONE. Return immediately.
 ## Output Format
 
 FIX_REPORT:
-- status: fixed|unable_to_fix
+- status: fixed|not_code_fixable|unable_to_fix
+- category: {classification from step 2, per failing check}
+- evidence: {the log line or diff fact behind the classification}
 - changes_made: {description}
 - files_modified: {list}
 - errors: {if unable to fix, why}

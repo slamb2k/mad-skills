@@ -79,5 +79,13 @@
       { "type": "regex", "value": "(duplicate|reuse|reusing|proceed)", "flags": "i" },
       { "type": "semantic", "value": "create-pr.sh detects the already-open PR on the source branch and returns status=success with reused=true and the existing PR's url/number, rather than erroring or creating a duplicate PR — ship then proceeds through the remaining stages (CI watch, review, merge) using that PR" }
     ]
+  },
+  {
+    "name": "ship-ci-external-policy-stops",
+    "prompt": "Run /ship. After the PR opens, ci-watch.sh reports some_failed: the only failing check is 'GitGuardian Security Checks', which flags a hardcoded API key added in this branch's config/settings.json. Unit tests and lint pass. What does /ship do next?",
+    "assertions": [
+      { "type": "regex", "value": "not_code_fixable|external_policy", "flags": "i" },
+      { "type": "semantic", "value": "Classifies the GitGuardian failure as an external policy / secret-scanning failure that a code-change retry should not handle, does not spend the CI fix attempts trying to patch it or re-trigger CI, and stops with a failure report telling the user to handle the leaked secret (rotate it and remove it from history) rather than merging" }
+    ]
   }
 ]
