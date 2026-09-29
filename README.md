@@ -169,7 +169,7 @@ Then install with one of the methods above.
 
 ## Repository Structure
 
-See [CLAUDE.md](CLAUDE.md#project-structure) for the maintained tree. In short: `skills/<name>/` holds each skill (`SKILL.md`, `scripts/`, `references/`, `assets/`, `tests/evals.json`), `hooks/` is the session guard, `scripts/` is build and CI tooling, `references/` holds shared contracts, `specs/` holds feature specs from `/speccy`, and `archive/` holds retired skills.
+See [AGENTS.md](AGENTS.md#project-structure) for the maintained tree. In short: `skills/<name>/` holds each skill (`SKILL.md`, `scripts/`, `references/`, `assets/`, `tests/evals.json`), `hooks/` is the session guard, `scripts/` is build and CI tooling, `references/` holds shared contracts, `specs/` holds feature specs from `/speccy`, and `archive/` holds retired skills.
 
 ## Development
 

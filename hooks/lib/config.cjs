@@ -22,6 +22,11 @@ module.exports = {
 
   staleness: {
     threshold: 3,
+    // Optional TypeSafe materiality gate (staleness.judgeStaleness): a warning
+    // is suppressed when P(update needed) falls below this. On this repo's
+    // history the 20 real instruction updates scored 0.47–0.95; a known
+    // false alarm scored 0.34.
+    judgedSuppressBelow: 0.4,
     age: { warn: 7, critical: 14 },
     commits: { warn: 20, critical: 50 },
     depDrift: { minor: 0, major: 5 },

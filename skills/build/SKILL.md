@@ -147,8 +147,8 @@ Before starting, check all dependencies in this table:
 |-----------|------|-------|----------|------------|--------|
 | ship | skill | `ls .claude/skills/ship/SKILL.md ~/.claude/skills/ship/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ship/SKILL.md 2>/dev/null` | yes | stop | Install with: npx skills add slamb2k/mad-skills --skill ship |
 | prime | skill | `ls .claude/skills/prime/SKILL.md ~/.claude/skills/prime/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md 2>/dev/null` | no | fallback | Context loading; falls back to manual instructions-file scan |
-| feature-dev | plugin | on-disk glob via scripts/lib/feature-dev.js | no | fallback | Detected on disk → try feature-dev:code-explorer / code-architect / code-reviewer first, general-purpose agent as fallback if the subagent_type isn't actually registered |
-| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Detected for `--no-superpowers` parity with speccy/ship; Stage 4 never defers to it (model-tiering enforceability, see references/autonomous-pipeline.md's Model tiering section) — see references/superpowers-deferral.md |
+| feature-dev | plugin | registered + enabled check via scripts/lib/feature-dev.js | no | fallback | Detected → try feature-dev:code-explorer / code-architect / code-reviewer first, general-purpose agent as fallback if the subagent_type isn't actually registered |
+| superpowers | plugin | registered + enabled check via scripts/lib/superpowers.js | no | fallback | Detected for `--no-superpowers` parity with speccy/ship; Stage 4 never defers to it (model-tiering enforceability, see references/autonomous-pipeline.md's Model tiering section) — see references/superpowers-deferral.md |
 | ferry | skill | `ls .claude/skills/ferry/SKILL.md ~/.claude/skills/ferry/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ferry/SKILL.md 2>/dev/null` | no | fallback | Powers the "hand off to a clean session" execution mode; ships with mad-skills, so normally present |
 
 For each row, in order:

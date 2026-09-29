@@ -2,8 +2,11 @@
 
 const { existsSync } = require('fs');
 const { join, basename } = require('path');
+const { createHash } = require('crypto');
 const config = require('./config.cjs');
-const { fileMtime, git, readJson, readText, getDirectories } = require('./utils.cjs');
+const typesafe = require('./typesafe.cjs');
+const state = require('./state.cjs');
+const { fileMtime, git, gitArgs, readJson, readText, getDirectories } = require('./utils.cjs');
 
 /**
  * Evaluate all staleness signals for the selected project instructions.
@@ -43,13 +46,25 @@ function checkDirectoryDrift(projectDir, instructionsPath, instructionsName, out
   if (!instructions) return;
 
   const mdLower = instructions.toLowerCase();
-  const missing = dirs.filter(d => !mdLower.includes(d.toLowerCase()));
+  const missing = dirs.filter(d => !isDirectoryMentioned(d.toLowerCase(), mdLower));
 
   if (missing.length > config.staleness.missingDirs.many) {
     output.addStaleness(`Directories not in ${instructionsName}: ${missing.join(' ')}`, 2);
   } else if (missing.length > config.staleness.missingDirs.few) {
     output.addStaleness(`Directories not in ${instructionsName}: ${missing.join(' ')}`, 1);
   }
+}
+
+// A nested directory counts as mentioned when its full path appears, or when
+// its parent is mentioned and the leaf appears tree-style with a trailing
+// slash (e.g. `skills/` with `├── brace/` beneath it).
+function isDirectoryMentioned(dir, mdLower) {
+  if (mdLower.includes(dir)) return true;
+  const slash = dir.lastIndexOf('/');
+  if (slash < 0) return false;
+  const parent = dir.slice(0, slash);
+  const leaf = dir.slice(slash + 1);
+  return isDirectoryMentioned(parent, mdLower) && mdLower.includes(`${leaf}/`);
 }
 
 function checkPackageJson(projectDir, instructionsPath, instructionsName, mdMtime, output) {
@@ -152,4 +167,68 @@ function checkLockFiles(projectDir, instructionsName, mdMtime, output) {
   }
 }
 
-module.exports = { checkStaleness };
+// ─── Optional semantic materiality check ──────────────────────────────
+// The weighted signals above are cheap proxies (dates, counts, substring
+// matches) and fire on changes an instructions file already covers. When the
+// TypeSafe judge is enabled, ask whether the actual changes since the file
+// was last committed make it materially out of date. Returns P(update needed)
+// or null (disabled, no committed baseline, or the call failed).
+
+const STALENESS_QUESTION = {
+  type: 'noul',
+  instructions: {
+    task: '`instructions_file` is the project\'s agent instructions file. `changes_since_last_update` is what changed in the repository after that file was last committed; `heuristic_signals` are automated drift warnings, which are often false positives. Decide whether the instructions file now needs updating: something it states has become inaccurate, or a significant new element a contributor would need to know about (a directory, command, dependency, workflow, or component) is missing from it.',
+  },
+  criteria: {
+    true: 'An update is needed — a reader following the file would now be misled or miss something significant.',
+    false: 'No meaningful update needed — the changes are internal, already covered by the file (including by general patterns or globs), or too minor to document.',
+  },
+};
+
+const CHANGE_FILES = ['package.json', ...config.pythonFiles, ...config.configFiles];
+
+function capLines(text, max) {
+  const lines = (text || '').split('\n').filter(Boolean);
+  return lines.length > max ? [...lines.slice(0, max), `… ${lines.length - max} more`] : lines;
+}
+
+/**
+ * What changed since `instructionsName` was last committed, as of `head`
+ * (a commit) or — when `head` is omitted — the working tree.
+ */
+function changeEvidence(projectDir, instructionsName, head, since) {
+  const base = since || gitArgs(['log', '-1', '--format=%H', head || 'HEAD', '--', instructionsName], projectDir);
+  if (!base) return null;
+  const range = head ? [base, head] : [base];
+  const diff = gitArgs(['diff', ...range, '--', ...CHANGE_FILES], projectDir) || '';
+  return {
+    commit_subjects: capLines(gitArgs(['log', '--format=%s', `${base}..${head || 'HEAD'}`], projectDir), 60),
+    changed_files: capLines(gitArgs(['diff', '--name-status', ...range, '--', '.', `:!${instructionsName}`], projectDir), 120),
+    config_diff: diff.length > 6000 ? `${diff.slice(0, 6000)}\n… truncated` : diff,
+  };
+}
+
+function judgeStaleness(projectDir, instructionsPath, signals, opts = {}) {
+  if (!opts.judgeAll && !typesafe.enabled()) return null;
+  const name = basename(instructionsPath);
+  const text = (opts.instructionsText ?? readText(instructionsPath) ?? '').slice(0, 60000);
+  const changes = changeEvidence(projectDir, name, opts.head, opts.since);
+  if (!text || !changes) return null;
+
+  const key = createHash('sha1').update(JSON.stringify([typesafe.MODEL, text, changes, signals])).digest('hex');
+  const prefs = opts.cache === false ? {} : state.loadPrefs(projectDir);
+  if (prefs.stalenessJudgement && prefs.stalenessJudgement.key === key) return prefs.stalenessJudgement.p;
+
+  const judgeAll = opts.judgeAll || typesafe.judgeAllSync;
+  const answers = judgeAll([{
+    state: { instructions_file: text, changes_since_last_update: changes, heuristic_signals: signals },
+    questions: { needs_update: STALENESS_QUESTION },
+  }], { timeoutMs: 2500, retries: 0 });
+  const p = typesafe.noul(answers && answers[0], 'needs_update');
+  if (p !== null && opts.cache !== false) {
+    state.savePrefs(projectDir, { ...state.loadPrefs(projectDir), stalenessJudgement: { key, p } });
+  }
+  return p;
+}
+
+module.exports = { checkStaleness, judgeStaleness, changeEvidence };

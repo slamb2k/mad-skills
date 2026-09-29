@@ -137,6 +137,12 @@ fi
 PAT="${AZURE_DEVOPS_EXT_PAT:-${AZDO_PAT:-}}"
 AUTH=""
 if [ "$AZDO_MODE" = "rest" ]; then
+  # Same credential git push uses (e.g. Git Credential Manager) — see create-pr.sh
+  if [ -z "$PAT" ] && [ -n "$AZDO_ORG_URL" ]; then
+    PAT=$(printf 'url=%s\n\n' "$AZDO_ORG_URL" \
+      | GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never git credential fill 2>/dev/null \
+      | sed -n 's/^password=//p')
+  fi
   if [ -z "$PAT" ]; then
     STATUS="no_checks"; FAILING="none"
     CHECKS="error:no PAT configured"
@@ -220,7 +226,7 @@ if [ "$AZDO_MODE" = "cli" ]; then
 
     IN_PROGRESS=$(az pipelines runs list --branch "$CI_BRANCH" --top 5 \
       --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
-      --query "[?status=='inProgress'] | length(@)" -o tsv 2>/dev/null)
+      --query "[?status!='completed'] | length(@)" -o tsv 2>/dev/null)
     if [ "$IN_PROGRESS" = "0" ] || [ -z "$IN_PROGRESS" ]; then break; fi
     sleep 15
   done
@@ -228,7 +234,11 @@ if [ "$AZDO_MODE" = "cli" ]; then
   # Determine final status
   RUNS_TABLE=$(az pipelines runs list --branch "$CI_BRANCH" --top 5 \
     --org "$AZDO_ORG_URL" --project "$AZDO_PROJECT" \
-    --query "[].{name:definition.name, result:result}" -o json 2>/dev/null || echo "[]")
+    --query "[].{name:definition.name, status:status, result:result}" -o json 2>/dev/null)
+  if ! echo "$RUNS_TABLE" | jq -e 'type=="array"' >/dev/null 2>&1; then
+    STATUS="no_checks"; FAILING="none"; CHECKS="error:az pipelines runs list failed"
+    emit_report; exit 3
+  fi
   CHECKS=$(echo "$RUNS_TABLE" | jq -r '.[] | "\(.name):\(.result // "pending")"' | paste -sd, -)
   FAILING=$(echo "$RUNS_TABLE" | jq -r '.[] | select(.result=="failed") | .name' | paste -sd, -)
 
@@ -246,7 +256,7 @@ if [ "$AZDO_MODE" = "cli" ]; then
   rm -f "$POLICY_ERR2"
 
   FAIL_COUNT=$(echo "$RUNS_TABLE" | jq '[.[] | select(.result=="failed")] | length')
-  STILL_RUNNING=$(echo "$RUNS_TABLE" | jq '[.[] | select(.result==null)] | length')
+  STILL_RUNNING=$(echo "$RUNS_TABLE" | jq '[.[] | select(.result==null or .status!="completed")] | length')
 
   if [ "${FAIL_COUNT:-0}" -gt 0 ] || [ "${REJECTED:-0}" -gt 0 ]; then
     STATUS="some_failed"
@@ -263,6 +273,22 @@ fi
 # ── AzDO REST mode ─────────────────────────────────────
 if [ "$AZDO_MODE" = "rest" ]; then
   BUILDS_BASE="$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/build/builds"
+  POLICY_URL="$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/$AZDO_PROJECT_URL_SAFE/$PR_NUMBER&api-version=7.0"
+
+  # GET a list endpoint into RESPONSE. Anything that isn't {"value":[...]}
+  # (HTML login page, empty 401 body, {"message":"TF400813..."} error object)
+  # is a failed call — never "zero builds", which would read as no_checks or
+  # all_passed.
+  rest_list() {
+    RESPONSE=$(curl -s -H "$AUTH" "$1" 2>&1)
+    if ! echo "$RESPONSE" | jq -e 'type=="object" and (.value|type=="array")' >/dev/null 2>&1; then
+      local msg
+      msg=$(echo "$RESPONSE" | jq -r '.message? // empty' 2>/dev/null | tr '\n' ' ' | cut -c1-200)
+      STATUS="no_checks"; FAILING="none"
+      CHECKS="error:${msg:-non-JSON or unexpected API response}"
+      emit_report; exit 3
+    fi
+  }
 
   # Grace period: wait for CI to start (max 2 min)
   # Try PR merge ref first, then fall back to branch name
@@ -273,23 +299,15 @@ if [ "$AZDO_MODE" = "rest" ]; then
     GRACE_POLLS=$((GRACE_POLLS + 1))
     # Try PR merge ref first (AzDO sets sourceBranch to refs/pull/<N>/merge)
     PR_BUILDS_URL="${BUILDS_BASE}?branchName=refs/pull/$PR_NUMBER/merge&\$top=5&api-version=7.0"
-    RESPONSE=$(curl -s -H "$AUTH" "$PR_BUILDS_URL" 2>&1)
-    if ! echo "$RESPONSE" | jq empty 2>/dev/null; then
-      STATUS="no_checks"; FAILING="none"; CHECKS="error:non-JSON API response"
-      emit_report; exit 3
-    fi
-    RUN_COUNT=$(echo "$RESPONSE" | jq '.value | length')
+    rest_list "$PR_BUILDS_URL"
+    RUN_COUNT=$(echo "$RESPONSE" | jq '.value // [] | length')
     if [ -n "$RUN_COUNT" ] && [ "$RUN_COUNT" != "0" ]; then
       RUNS_FOUND=true; BUILDS_URL="$PR_BUILDS_URL"; break
     fi
     # Fallback: try branch name directly
     BRANCH_BUILDS_URL="${BUILDS_BASE}?branchName=refs/heads/$BRANCH&\$top=5&api-version=7.0"
-    RESPONSE=$(curl -s -H "$AUTH" "$BRANCH_BUILDS_URL" 2>&1)
-    if ! echo "$RESPONSE" | jq empty 2>/dev/null; then
-      STATUS="no_checks"; FAILING="none"; CHECKS="error:non-JSON API response"
-      emit_report; exit 3
-    fi
-    RUN_COUNT=$(echo "$RESPONSE" | jq '.value | length')
+    rest_list "$BRANCH_BUILDS_URL"
+    RUN_COUNT=$(echo "$RESPONSE" | jq '.value // [] | length')
     if [ -n "$RUN_COUNT" ] && [ "$RUN_COUNT" != "0" ]; then
       RUNS_FOUND=true; BUILDS_URL="$BRANCH_BUILDS_URL"; break
     fi
@@ -297,58 +315,54 @@ if [ "$AZDO_MODE" = "rest" ]; then
   done
 
   if [ "$RUNS_FOUND" = false ]; then
-    RESPONSE=$(curl -s -H "$AUTH" \
-      "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/$AZDO_PROJECT_URL_SAFE/$PR_NUMBER&api-version=7.0" 2>&1)
-    if ! echo "$RESPONSE" | jq empty 2>/dev/null; then
-      STATUS="no_checks"; FAILING="none"; CHECKS="error:non-JSON API response"
-      emit_report; exit 3
-    fi
-    EVAL_COUNT=$(echo "$RESPONSE" | jq '.value | length')
+    rest_list "$POLICY_URL"
+    EVAL_COUNT=$(echo "$RESPONSE" | jq '.value // [] | length')
     if [ "$EVAL_COUNT" = "0" ] || [ -z "$EVAL_COUNT" ]; then
       STATUS="no_checks"; CHECKS=""; FAILING="none"
       emit_report; exit 0
     fi
-    # Default BUILDS_URL for subsequent polling if policies exist but no runs yet
-    BUILDS_URL="${BUILDS_BASE}?branchName=refs/pull/$PR_NUMBER/merge&\$top=5&api-version=7.0"
+    # Policies exist but no build ever registered on either ref. Report
+    # policy status directly (mirrors CLI mode) — polling an empty build list
+    # would otherwise fall through to all_passed with nothing run.
+    REJECTED=$(echo "$RESPONSE" | jq '[.value // [] | .[] | select(.status=="rejected")] | length')
+    if [ "${REJECTED:-0}" -gt 0 ]; then
+      STATUS="some_failed"; CHECKS="policy:rejected"; FAILING="branch policy"
+      emit_report; exit 1
+    fi
+    STATUS="pending"; CHECKS="policy:pending"; FAILING="none"
+    emit_report; exit 2
   fi
+
+  # REST builds: status is notStarted|inProgress|cancelling|postponed|none
+  # until "completed"; result is only set once completed. Anything not
+  # completed is still running — never passed.
+  REST_FAILED_FILTER='[.value // [] | .[] | select(.result=="failed" or .result=="canceled")] | length'
+  REST_RUNNING_FILTER='[.value // [] | .[] | select(.status!="completed")] | length'
 
   # Wait for runs with fail-fast (max 30 min)
   for _ in $(seq 1 120); do
-    RESPONSE=$(curl -s -H "$AUTH" "$BUILDS_URL" 2>&1)
-    if ! echo "$RESPONSE" | jq empty 2>/dev/null; then
-      STATUS="no_checks"; FAILING="none"; CHECKS="error:non-JSON API response"
-      emit_report; exit 3
-    fi
+    rest_list "$BUILDS_URL"
     BUILDS_JSON="$RESPONSE"
 
-    FAIL_COUNT=$(echo "$BUILDS_JSON" | jq '[.value[] | select(.result=="failed")] | length')
+    FAIL_COUNT=$(echo "$BUILDS_JSON" | jq "$REST_FAILED_FILTER")
     if [ "${FAIL_COUNT:-0}" -gt 0 ]; then break; fi
 
-    IN_PROGRESS=$(echo "$BUILDS_JSON" | jq '[.value[] | select(.status=="inProgress")] | length')
+    IN_PROGRESS=$(echo "$BUILDS_JSON" | jq "$REST_RUNNING_FILTER")
     if [ "$IN_PROGRESS" = "0" ]; then break; fi
     sleep 15
   done
 
   # Final status
-  RESPONSE=$(curl -s -H "$AUTH" "$BUILDS_URL" 2>&1)
-  if ! echo "$RESPONSE" | jq empty 2>/dev/null; then
-    STATUS="no_checks"; FAILING="none"; CHECKS="error:non-JSON API response"
-    emit_report; exit 3
-  fi
+  rest_list "$BUILDS_URL"
   BUILDS_JSON="$RESPONSE"
-  CHECKS=$(echo "$BUILDS_JSON" | jq -r '.value[] | "\(.definition.name):\(.result // "pending")"' | paste -sd, -)
-  FAILING=$(echo "$BUILDS_JSON" | jq -r '.value[] | select(.result=="failed") | .definition.name' | paste -sd, -)
-  FAIL_COUNT=$(echo "$BUILDS_JSON" | jq '[.value[] | select(.result=="failed")] | length')
-  STILL_RUNNING=$(echo "$BUILDS_JSON" | jq '[.value[] | select(.status=="inProgress")] | length')
+  CHECKS=$(echo "$BUILDS_JSON" | jq -r '.value // [] | .[] | "\(.definition.name):\(if .status=="completed" then (.result // "unknown") else (.status // "pending") end)"' | paste -sd, -)
+  FAILING=$(echo "$BUILDS_JSON" | jq -r '.value // [] | .[] | select(.result=="failed" or .result=="canceled") | .definition.name' | paste -sd, -)
+  FAIL_COUNT=$(echo "$BUILDS_JSON" | jq "$REST_FAILED_FILTER")
+  STILL_RUNNING=$(echo "$BUILDS_JSON" | jq "$REST_RUNNING_FILTER")
 
   # Check policy evaluations
-  RESPONSE=$(curl -s -H "$AUTH" \
-    "$AZDO_ORG_URL/$AZDO_PROJECT_URL_SAFE/_apis/policy/evaluations?artifactId=vstfs:///CodeReview/CodeReviewId/$AZDO_PROJECT_URL_SAFE/$PR_NUMBER&api-version=7.0" 2>&1)
-  if ! echo "$RESPONSE" | jq empty 2>/dev/null; then
-    REJECTED="0"
-  else
-    REJECTED=$(echo "$RESPONSE" | jq '[.value[] | select(.status=="rejected")] | length')
-  fi
+  rest_list "$POLICY_URL"
+  REJECTED=$(echo "$RESPONSE" | jq '[.value // [] | .[] | select(.status=="rejected")] | length')
 
   if [ "${FAIL_COUNT:-0}" -gt 0 ] || [ "${REJECTED:-0}" -gt 0 ]; then
     STATUS="some_failed"

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { parseAnthropicResponse, parseOpenRouterResponse } from "./eval-response.js";
+import { parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./eval-response.js";
 
 test("parseAnthropicResponse joins text blocks and flags stop_reason=max_tokens as truncated", () => {
   const result = parseAnthropicResponse({
@@ -39,4 +39,25 @@ test("parseOpenRouterResponse tolerates a missing choices array", () => {
   const result = parseOpenRouterResponse({});
   assert.equal(result.text, "");
   assert.equal(result.truncated, false);
+});
+
+test("parseJudgement reads a bare JSON verdict", () => {
+  assert.deepEqual(parseJudgement('{"pass": true, "reasoning": "ok"}'), { pass: true, reasoning: "ok" });
+});
+
+test("parseJudgement tolerates code fences and a stray language tag", () => {
+  assert.deepEqual(parseJudgement('```json\n{"pass": false, "reasoning": "no"}\n```'), { pass: false, reasoning: "no" });
+  assert.deepEqual(parseJudgement('json\n{"pass": true, "reasoning": "ok"}'), { pass: true, reasoning: "ok" });
+});
+
+test("parseJudgement recovers the verdict when the reasoning is cut off", () => {
+  assert.deepEqual(parseJudgement('{"pass": true, "reasoning": "The output states that no worktree'), {
+    pass: true,
+    reasoning: "The output states that no worktree",
+  });
+});
+
+test("parseJudgement returns null when there is no boolean verdict", () => {
+  assert.equal(parseJudgement("I think it passes."), null);
+  assert.equal(parseJudgement('{"pass": "yes"}'), null);
 });

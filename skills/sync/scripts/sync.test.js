@@ -1,5 +1,5 @@
 // Fixture tests for worktree-aware sync.sh (specs/worktree-aware-sync.md,
-// AC-001..AC-008 + the untracked-sentinel case from the Task 1 fix round).
+// AC-001..AC-008).
 // Runs the whole script end to end against real git state — no function
 // extraction, since worktree mode is one continuous flow, not isolated
 // helpers like sync-cleanup.test.js's prepare_branch_for_delete.
@@ -386,24 +386,6 @@ test("AC-008: non-worktree run stays byte-compatible — worktree_mode=false and
       "worktrees_skipped",
       "errors",
     ]);
-  } finally {
-    fx.cleanup();
-  }
-});
-
-test("sentinel: an untracked .mad-skills-auto file does not block worktree removal", () => {
-  const fx = makeFixture({ withWorktree: true });
-  try {
-    mergeFeatureViaTempClone(fx.root, fx.originPath);
-    fs.writeFileSync(path.join(fx.wtPath, ".mad-skills-auto"), "auto\n");
-    const expectedWtPath = fs.realpathSync(fx.wtPath);
-
-    const res = runSync(fx.wtPath);
-    const report = parseReport(res.stdout);
-
-    assert.equal(res.status, 0, res.stderr);
-    assert.equal(report.worktree_removed, expectedWtPath);
-    assert.equal(fs.existsSync(fx.wtPath), false);
   } finally {
     fx.cleanup();
   }

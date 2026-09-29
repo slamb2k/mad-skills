@@ -52,7 +52,7 @@ taking on any worktree lifecycle ownership it doesn't already have.
   Stage 4 implementer prompt template (`skills/build/references/stage-prompts.md`)
   and, as advisory-only context, to `references/superpowers-deferral.md`.
 - A new, non-prescriptive `## Worktree Discipline` section in the CLAUDE.md
-  template (`skills/brace/references/claude-md-template.md`) plus a retrofit
+  template (`skills/brace/references/agents-md-template.md`) plus a retrofit
   injection step in `skills/brace/SKILL.md`, mirroring the existing Branch
   Discipline section/injection.
 - New eval cases in `skills/build/tests/evals.json`,
@@ -158,7 +158,7 @@ taking on any worktree lifecycle ownership it doesn't already have.
 
 ### CLAUDE.md template & retrofit
 
-- **REQ-013**: `skills/brace/references/claude-md-template.md` SHALL gain a
+- **REQ-013**: `skills/brace/references/agents-md-template.md` SHALL gain a
   new `## Worktree Discipline` section, positioned near the existing
   `## Branch Discipline` section, containing only non-prescriptive rules:
   relative paths don't follow `cd`; never reuse an existing worktree for an
@@ -407,7 +407,7 @@ Appended to the existing bullet list in
   this spec reuses for `references/location-check.md`.
 - `skills/build/references/pre-stage.md` — existing Pre-Build Branch Check,
   the structural neighbor for the new Pre-Build Location Check.
-- `skills/brace/references/claude-md-template.md` — existing Branch
+- `skills/brace/references/agents-md-template.md` — existing Branch
   Discipline section, the structural model for Worktree Discipline.
 - `skills/brace/SKILL.md` (Branch Discipline Injection step) — the
   structural model for Worktree Discipline Injection.

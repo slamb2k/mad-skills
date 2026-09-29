@@ -32,16 +32,38 @@ if [ "$1" = "repos" ] && [ "$2" = "pr" ] && [ "$3" = "list" ]; then
   exit 0
 fi
 if [ "$1" = "repos" ] && [ "$2" = "pr" ] && [ "$3" = "create" ]; then
+  while [ $# -gt 0 ]; do
+    [ "$1" = "--description" ] && [ -n "\${FAKE_DESC_OUT:-}" ] && printf '%s' "$2" > "$FAKE_DESC_OUT"
+    shift
+  done
+  if [ -n "\${FAKE_AZ_CREATE_ERR:-}" ]; then echo "$FAKE_AZ_CREATE_ERR" >&2; exit 1; fi
   echo "\$FAKE_AZ_CREATE_OUTPUT"
   exit 0
 fi
 exit 1
 `;
 
+// REST shim: list returns no PRs; create echoes back a PR and records the payload.
+const FAKE_CURL = `#!/usr/bin/env bash
+method=GET data="" auth=""
+while [ $# -gt 0 ]; do
+  case "$1" in -X) method="$2"; shift ;; -d) data="$2"; shift ;; -H) case "$2" in Authorization*) auth="$2" ;; esac; shift ;; esac
+  shift
+done
+[ -n "\${FAKE_AUTH_OUT:-}" ] && printf '%s' "$auth" > "$FAKE_AUTH_OUT"
+if [ "$method" = "POST" ]; then
+  [ -n "\${FAKE_PAYLOAD_OUT:-}" ] && printf '%s' "$data" > "$FAKE_PAYLOAD_OUT"
+  echo '{"pullRequestId":99}'
+else
+  echo '{"value":[]}'
+fi
+`;
+
 function makeFakeBinDir() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "create-pr-fakebin-"));
   fs.writeFileSync(path.join(dir, "gh"), FAKE_GH, { mode: 0o755 });
   fs.writeFileSync(path.join(dir, "az"), FAKE_AZ, { mode: 0o755 });
+  fs.writeFileSync(path.join(dir, "curl"), FAKE_CURL, { mode: 0o755 });
   return dir;
 }
 
@@ -194,4 +216,93 @@ test("regression: github create succeeds but URL unparseable from stdout -> fail
   } finally {
     fs.rmSync(fakeBin, { recursive: true, force: true });
   }
+});
+
+// ── Azure DevOps: description cap + CLI auth fallback ─────────────────────
+
+function runAzdo(mode, body, extraEnv) {
+  const fakeBin = makeFakeBinDir();
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), "create-pr-repo-"));
+  execFileSync("git", ["init", "-q"], { cwd: repo });
+  execFileSync("git", ["remote", "add", "origin", "https://dev.azure.com/org/proj/_git/myrepo"], { cwd: repo });
+  const bodyFile = path.join(fakeBin, "body.md");
+  fs.writeFileSync(bodyFile, body);
+  const outFile = (n) => path.join(fakeBin, n);
+  const env = {
+    ...process.env,
+    PATH: `${fakeBin}:${process.env.PATH}`,
+    GIT_CONFIG_NOSYSTEM: "1",
+    GIT_CONFIG_GLOBAL: "/dev/null",
+    FAKE_AZ_LIST: "[]",
+    FAKE_AZ_CREATE_OUTPUT: '{"pullRequestId":42}',
+    FAKE_DESC_OUT: outFile("desc"),
+    FAKE_PAYLOAD_OUT: outFile("payload"),
+    FAKE_AUTH_OUT: outFile("auth"),
+    ...extraEnv,
+  };
+  delete env.AZURE_DEVOPS_EXT_PAT;
+  if (!("AZDO_PAT" in extraEnv)) delete env.AZDO_PAT;
+  const result = run(
+    ["azdo", "My PR", bodyFile, "feature-x", "--target-branch=main", `--azdo-mode=${mode}`,
+      "--azdo-org-url=https://dev.azure.com/org", "--azdo-project=proj", "--azdo-project-url-safe=proj"],
+    { cwd: repo, env }
+  );
+  const read = (n) => (fs.existsSync(outFile(n)) ? fs.readFileSync(outFile(n), "utf-8") : null);
+  result.desc = read("desc");
+  result.payload = read("payload");
+  result.auth = read("auth");
+  fs.rmSync(fakeBin, { recursive: true, force: true });
+  fs.rmSync(repo, { recursive: true, force: true });
+  return result;
+}
+
+const LONG_BODY = "x".repeat(5000);
+const GIT_CRED_HELPER = {
+  GIT_CONFIG_COUNT: "1",
+  GIT_CONFIG_KEY_0: "credential.helper",
+  GIT_CONFIG_VALUE_0: "!f() { echo username=u; echo password=from-git; }; f",
+};
+
+test("azdo cli: description over 4000 chars is truncated with a note", () => {
+  const { code, out, desc } = runAzdo("cli", LONG_BODY, {});
+  assert.equal(code, 0, out);
+  assert.ok(desc.length <= 4000, `description length ${desc.length}`);
+  assert.match(desc, /truncated/);
+});
+
+test("azdo cli: short description passes through unchanged", () => {
+  const { code, desc } = runAzdo("cli", "Short body.\n", {});
+  assert.equal(code, 0);
+  assert.equal(desc, "Short body.");
+});
+
+test("azdo rest: description over 4000 chars is truncated in the payload", () => {
+  const { code, out, payload } = runAzdo("rest", LONG_BODY, { AZDO_PAT: "test-pat" });
+  assert.equal(code, 0, out);
+  const desc = JSON.parse(payload).description;
+  assert.ok(desc.length <= 4000, `description length ${desc.length}`);
+  assert.match(desc, /truncated/);
+});
+
+test("regression: azdo cli create 403 TF400813 falls back to REST with git credential fill", () => {
+  const { code, out, payload, auth } = runAzdo("cli", "Body.\n", {
+    ...GIT_CRED_HELPER,
+    FAKE_AZ_CREATE_ERR: "ERROR: TF400813: The user '' is not authorized to access this resource.",
+  });
+  assert.equal(code, 0, out);
+  const report = parseReport(out);
+  assert.equal(report.status, "success");
+  assert.match(report.pr_url, /\/myrepo\/pullrequest\/99$/);
+  assert.equal(JSON.parse(payload).sourceRefName, "refs/heads/feature-x");
+  assert.equal(auth, `Authorization: Basic ${Buffer.from(":from-git").toString("base64")}`);
+});
+
+test("azdo cli create non-auth failure does not fall back to REST", () => {
+  const { code, out, payload } = runAzdo("cli", "Body.\n", {
+    ...GIT_CRED_HELPER,
+    FAKE_AZ_CREATE_ERR: "ERROR: TF401179: An active pull request for the source and target branch already exists.",
+  });
+  assert.equal(code, 1, out);
+  assert.equal(parseReport(out).status, "failed");
+  assert.equal(payload, null);
 });

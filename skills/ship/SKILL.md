@@ -117,7 +117,7 @@ Before starting, check all dependencies in this table. The table contains
 | git | cli | `git --version` | yes | stop | Install from https://git-scm.com |
 | gh | cli | `gh --version` | yes | url | https://cli.github.com |
 | az devops | cli | `az devops -h 2>/dev/null` | no | fallback | Falls back to REST API with PAT; see AzDO tooling below |
-| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Replaces final merge with superpowers:finishing-a-development-branch when present; see references/superpowers-deferral.md |
+| superpowers | plugin | registered + enabled check via scripts/lib/superpowers.js | no | fallback | Replaces final merge with superpowers:finishing-a-development-branch when present; see references/superpowers-deferral.md |
 
 **Platform-conditional rules:**
 - **`gh`**: Only required when `PLATFORM == github`. Skip for AzDO repos.

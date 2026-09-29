@@ -72,7 +72,7 @@ lifecycle:
 
 ### Change 0: CLAUDE.md Branch Discipline Rules
 
-- **REQ-001**: The brace CLAUDE.md template (`skills/brace/references/claude-md-template.md`)
+- **REQ-001**: The brace CLAUDE.md template (`skills/brace/references/agents-md-template.md`)
   MUST include a `## Branch Discipline` section in the Guardrails area.
 - **REQ-002**: When `/brace` or `/rig` detects an existing CLAUDE.md file in the
   target project, it MUST inject the Branch Discipline section if not already
@@ -106,7 +106,7 @@ of silent conflict resolution.
 
 | File | Change |
 |------|--------|
-| `skills/brace/references/claude-md-template.md` | Add `## Branch Discipline` section before `## Guardrails` (line 54) |
+| `skills/brace/references/agents-md-template.md` | Add `## Branch Discipline` section before `## Guardrails` (line 54) |
 | `skills/brace/SKILL.md` | In Phase 4 (CLAUDE.md generation), add logic to detect existing `## Branch Discipline` and inject if missing |
 | `skills/rig/SKILL.md` | In Phase 4 (lefthook/config), add same injection logic when CLAUDE.md exists |
 
@@ -582,5 +582,5 @@ user missed the /ship failure banner.
 - `skills/ship/scripts/ci-watch.sh` — CI watch script (primary target for
   Change 2a)
 - `skills/ship/scripts/merge.sh` — Merge script (target for Change 2d)
-- `skills/brace/references/claude-md-template.md` — CLAUDE.md template
+- `skills/brace/references/agents-md-template.md` — CLAUDE.md template
   (target for Change 0)

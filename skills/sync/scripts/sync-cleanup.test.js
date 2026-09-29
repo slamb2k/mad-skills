@@ -111,14 +111,12 @@ function makeRepoWithWorktree() {
   fs.writeFileSync(path.join(fakeBin, "gh"), FAKE_GH, { mode: 0o755 });
   fs.writeFileSync(path.join(fakeBin, "az"), FAKE_AZ, { mode: 0o755 });
 
-  // sentinel: write the .mad-skills-auto marker (default true).
   // diverge: add a committed change on the branch so it has unmerged commits
   //          (git branch -d would then refuse), exercising the -D fallback.
-  function addWorktree(branch, { sentinel = true, diverge = false } = {}) {
+  function addWorktree(branch, { diverge = false } = {}) {
     const wtPath = path.join(worktreesRoot, branch);
     git(repo, ["branch", branch]);
     git(repo, ["worktree", "add", wtPath, branch]);
-    if (sentinel) fs.writeFileSync(path.join(wtPath, ".mad-skills-auto"), "auto\n");
     if (diverge) {
       fs.writeFileSync(path.join(wtPath, "work.txt"), "feature work\n");
       git(wtPath, ["add", "work.txt"]);
@@ -161,7 +159,7 @@ test("worktree_path_for_branch finds the worktree checked out for a branch", () 
   }
 });
 
-test("clean case: worktree with only the sentinel is removed and the branch becomes deletable", () => {
+test("clean case: a clean worktree is removed and the branch becomes deletable", () => {
   const ctx = makeRepoWithWorktree();
   try {
     const wtPath = ctx.addWorktree("feature-clean");
@@ -180,7 +178,7 @@ test("clean case: worktree with only the sentinel is removed and the branch beco
   }
 });
 
-test("dirty case: worktree with a real change beyond the sentinel is skipped, not removed", () => {
+test("dirty case: worktree with an uncommitted change is skipped, not removed", () => {
   const ctx = makeRepoWithWorktree();
   try {
     const wtPath = ctx.addWorktree("feature-dirty");
@@ -190,7 +188,6 @@ test("dirty case: worktree with a real change beyond the sentinel is skipped, no
     assert.equal(code, 1);
     assert.match(out, /feature-dirty: worktree has uncommitted changes/);
     assert.ok(fs.existsSync(wtPath), "dirty worktree must not be removed");
-    assert.ok(fs.existsSync(path.join(wtPath, ".mad-skills-auto")), "sentinel must be left in place");
 
     const worktreeList = git(ctx.repo, ["worktree", "list"]);
     assert.match(worktreeList, /feature-dirty/);
@@ -248,26 +245,6 @@ test("pr_state_for_branch (azdo): no abandoned PR (count 0) reports nothing", ()
       FAKE_AZ_ABANDONED_COUNT: "0",
     });
     assert.equal(out.trim(), "");
-  } finally {
-    ctx.cleanup();
-  }
-});
-
-// ── REQ-014: prepare_branch_for_delete removes sentinel-less worktrees too ──
-// Previously it early-returned for any worktree lacking .mad-skills-auto; /build
-// worktrees no longer carry the sentinel, so that path must now remove them.
-test("prepare_branch_for_delete removes a worktree with NO sentinel", () => {
-  const ctx = makeRepoWithWorktree();
-  try {
-    const wtPath = ctx.addWorktree("feature-nosentinel", { sentinel: false });
-    assert.ok(!fs.existsSync(path.join(wtPath, ".mad-skills-auto")), "precondition: no sentinel");
-    const { code, out } = ctx.run("prepare_branch_for_delete", "feature-nosentinel");
-    assert.equal(code, 0, `expected success, got skip report: ${out}`);
-    assert.equal(out.trim(), "", "no skip entries expected");
-    assert.ok(!fs.existsSync(wtPath), "sentinel-less worktree should be removed");
-
-    const worktreeList = git(ctx.repo, ["worktree", "list"]);
-    assert.doesNotMatch(worktreeList, /feature-nosentinel/);
   } finally {
     ctx.cleanup();
   }

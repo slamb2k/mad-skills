@@ -17,3 +17,25 @@ export function parseOpenRouterResponse(data) {
     truncated: data.choices?.[0]?.finish_reason === "length",
   };
 }
+
+/**
+ * Extract the semantic judge's {pass, reasoning} verdict from free text,
+ * whatever it is wrapped in (code fences, a stray language tag, prose).
+ * Returns null when no boolean verdict can be found.
+ */
+export function parseJudgement(text) {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start !== -1 && end > start) {
+    try {
+      const parsed = JSON.parse(text.slice(start, end + 1));
+      if (typeof parsed.pass === "boolean") return { pass: parsed.pass, reasoning: parsed.reasoning ?? "" };
+    } catch {
+      // fall through to the field-level match (e.g. reasoning cut off mid-string)
+    }
+  }
+  const pass = text.match(/"pass"\s*:\s*(true|false)/);
+  if (!pass) return null;
+  const reasoning = text.match(/"reasoning"\s*:\s*"((?:[^"\\]|\\.)*)/);
+  return { pass: pass[1] === "true", reasoning: reasoning ? reasoning[1] : "" };
+}

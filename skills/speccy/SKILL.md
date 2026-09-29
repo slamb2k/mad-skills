@@ -81,7 +81,7 @@ Before starting, check all dependencies in this table:
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
 | prime | skill | `ls .claude/skills/prime/SKILL.md ~/.claude/skills/prime/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/prime/SKILL.md 2>/dev/null` | no | fallback | Context loading; falls back to manual project scan |
-| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | fallback | Defers Stage 2 interview to superpowers:brainstorming when present; see references/superpowers-deferral.md |
+| superpowers | plugin | registered + enabled check via scripts/lib/superpowers.js | no | fallback | Defers Stage 2 interview to superpowers:brainstorming when present; see references/superpowers-deferral.md |
 
 For each row, in order:
 1. Test file existence (check both paths for symlinked skills)

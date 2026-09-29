@@ -1,6 +1,6 @@
 ---
 name: prime
-description: "Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans the project instructions file (CLAUDE.md with its @imports resolved, e.g. AGENTS.md), README, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding."
+description: "Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans AGENTS.md (plus CLAUDE.md when it holds more than an @AGENTS.md import), README, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding."
 argument-hint: "[domain hints: comma-separated directory or topic names to focus on]"
 allowed-tools: Read, Glob, Grep, LS, Agent
 ---

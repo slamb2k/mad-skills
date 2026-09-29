@@ -8,8 +8,14 @@ not — see the Per-skill deferral map below.
 
 ## Detection
 
-Detection is a bounded on-disk anchor check via `scripts/lib/superpowers.js`
-(anchor file: `using-superpowers/SKILL.md`). Run it from a SKILL.md pre-flight
+Detection runs through `scripts/lib/superpowers.js` (anchor file:
+`using-superpowers/SKILL.md`). When Claude Code's plugin registry
+(`~/.claude/plugins/installed_plugins.json`) exists, only registered plugins
+that are enabled in user, project, or project-local settings count, so a
+leftover cache folder or marketplace clone never triggers a deferral. Without
+a registry it falls back to a bounded on-disk walk. Standalone skill folders
+(`~/.claude/skills/superpowers`, the project's `.claude/skills`) are always
+walked on disk. Run it from a SKILL.md pre-flight
 step with an ESM-safe dynamic import. `LIB` resolves to the plugin's
 `scripts/lib` directory using the same `CLAUDE_PLUGIN_ROOT` fallback the other
 skills use, so it works for plugin installs and degrades gracefully otherwise:

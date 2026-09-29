@@ -86,7 +86,7 @@ Before starting, check all dependencies in this table:
 
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
-| superpowers | plugin | on-disk glob via scripts/lib/superpowers.js | no | ask | `claude plugin install superpowers` |
+| superpowers | plugin | registered + enabled check via scripts/lib/superpowers.js | no | ask | `claude plugin install superpowers` |
 
 For each row, in order:
 1. Run the Check command (for cli/npm) or test file existence (for agent/skill)
@@ -99,8 +99,9 @@ For each row, in order:
    - **fallback**: notify user with Detail, continue with degraded behavior
 4. After all checks: summarize what's available and what's degraded
 
-Superpowers is a soft dependency detected via the on-disk glob helper
-`scripts/lib/superpowers.js` (anchor file `using-superpowers/SKILL.md`) —
+Superpowers is a soft dependency detected via `scripts/lib/superpowers.js`,
+which only counts it when Claude Code has it registered and enabled (anchor
+file `using-superpowers/SKILL.md`) —
 see `references/superpowers-deferral.md`.
 
 1. Capture **FLAGS** from the user's request
