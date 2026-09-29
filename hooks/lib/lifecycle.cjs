@@ -37,13 +37,19 @@ const TIER_ORDER = { small: 0, medium: 1, large: 2 };
 const SERVER_DEPS = ['express', 'fastify', 'koa', 'hapi', '@nestjs/core', 'next'];
 // Server-framework markers per language — a match means "this component is a
 // service" (containerizable → /dock), regardless of what language it's in.
+// Rust names are whole crate names: `rocket` must not match `rocket_codegen`. Go's stdlib net/http never appears in go.mod, so a
+// stdlib-only Go service is detected from its sources (GO_SERVE) instead.
 const SERVER_MARKERS = {
   python: /(fastapi|flask|django|uvicorn|gunicorn|starlette|aiohttp|tornado|sanic)/,
-  go: /(gin-gonic|labstack\/echo|gofiber\/fiber|go-chi\/chi|gorilla\/mux|net\/http)/,
+  go: /(gin-gonic|labstack\/echo|gofiber\/fiber|go-chi\/chi|gorilla\/mux)/,
   ruby: /(rails|sinatra|\brack\b|puma)/,
-  rust: /(actix-web|\baxum\b|rocket|warp|tower-http)/,
+  rust: /(?<![\w-])(actix-web|axum|rocket|warp|tower-http)(?![\w-])/,
   dotnet: /(microsoft\.aspnetcore|microsoft\.net\.sdk\.web)/,
 };
+const GO_SERVE = /\bhttp\.(listenandserve(tls)?\(|server\s*\{)/;
+// Canonical environment names, matched against tokens of declared
+// environment/stage/deployment names only (never free text like `npm run dev`).
+const ENV_TOKENS = { dev: 'dev', development: 'dev', staging: 'staging', prod: 'prod', production: 'prod' };
 // Languages whose bare presence (no server, no Dockerfile) is a weak "publish
 // me" signal — a lone Go/Rust/Python/Ruby/dotnet tree is usually a package/CLI.
 const PUBLISHABLE_LANGS = ['python', 'rust', 'ruby', 'dotnet', 'go'];
@@ -188,7 +194,7 @@ function _compute(projectDir) {
 
     if (/npm publish/.test(t)) rel.add('npm');
     if (/pypi|twine/.test(t)) rel.add('pypi');
-    if (/actions\/deploy-pages|\bpages\b/.test(t)) rel.add('pages');
+    if (/actions\/deploy-pages|upload-pages-artifact|actions-gh-pages|\bpages:\s*write\b|\bgh-pages\b|environment:\s*(name:\s*)?['"]?github-pages/.test(t)) rel.add('pages');
     if (/ghcr\.io|docker push/.test(t)) rel.add('ghcr');
     if (/homebrew/.test(t)) rel.add('homebrew');
     if (/vercel/.test(t)) rel.add('vercel');
@@ -201,10 +207,13 @@ function _compute(projectDir) {
     if (/azurewebapp@|azurefunctionapp@|azurewebappcontainer@|azurefunctionappcontainer@|azurermwebappdeployment@|azurecontainerapps@|azurermresourcegroupdeployment@|azurecli@|kubernetesmanifest@|helm@|buildandpush|twineauthenticate|\bnuget push\b|az (webapp|functionapp|containerapp|staticwebapp|deployment) |func azure |\bdeployment:/.test(t)) rel.add('ado-deploy');
 
     let m;
-    const re = /environment:\s*['"]?([a-z0-9_-]+)['"]?/g;
-    while ((m = re.exec(t)) !== null) envs.add(m[1]);
-    for (const name of ['dev', 'staging', 'prod', 'production']) {
-      if (new RegExp(`\\b${name}\\b`).test(t)) envs.add(name === 'production' ? 'prod' : name);
+    // GitHub `environment: prod` or `environment:\n  name: prod`; ADO stage and
+    // deployment-job names (`- stage: Deploy_Prod`). Raw names come only from
+    // `environment:`; every declared name also contributes canonical tokens.
+    const re = /\b(environment|stage|deployment):[ \t]*(?:\n[ \t]*name:[ \t]*)?['"]?([a-z0-9_.-]+)['"]?/g;
+    while ((m = re.exec(t)) !== null) {
+      if (m[1] === 'environment') envs.add(m[2]);
+      for (const tok of m[2].split(/[^a-z0-9]+/)) if (ENV_TOKENS[tok]) envs.add(ENV_TOKENS[tok]);
     }
   }
   sig.ciCoveredLanguages = [...ci].sort();
@@ -236,7 +245,7 @@ function _compute(projectDir) {
     // A private app with a `main` is deployed, not published.
     sig.pkgLib = !!((rootPkg.main || rootPkg.exports) && !rootPkg.private);
   }
-  sig.hasServer = detectServer(projectDir, sig.components);
+  sig.hasServer = detectServer(projectDir, sig.components, files);
   sig.hasCompose = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml']
     .some(f => existsSync(join(projectDir, f)));
   sig.hasStatic = ['index.html', join('public', 'index.html'), join('dist', 'index.html')]
@@ -253,7 +262,7 @@ function extOf(f) {
 
 // ─── server detection (cross-language, for release selection) ──────────
 
-function componentIsServer(projectDir, c) {
+function componentIsServer(projectDir, c, files = []) {
   const p = join(projectDir, c.dir, c.manifest);
   if (c.language === 'node') {
     const pkg = readJson(p);
@@ -268,11 +277,18 @@ function componentIsServer(projectDir, c) {
     const reqs = readText(join(projectDir, c.dir, 'requirements.txt')) || '';
     return re.test(reqs.toLowerCase());
   }
+  if (c.language === 'go') {
+    const prefix = c.dir && c.dir !== '.' ? `${c.dir}/` : '';
+    return files
+      .filter(f => f.startsWith(prefix) && f.endsWith('.go') && !f.endsWith('_test.go'))
+      .slice(0, 200)
+      .some(f => GO_SERVE.test((readText(join(projectDir, f)) || '').toLowerCase()));
+  }
   return false;
 }
 
-function detectServer(projectDir, components) {
-  return components.some(c => safe(() => componentIsServer(projectDir, c)));
+function detectServer(projectDir, components, files) {
+  return components.some(c => safe(() => componentIsServer(projectDir, c, files)));
 }
 
 // ─── release selection (REQ-060) ───────────────────────────────────────

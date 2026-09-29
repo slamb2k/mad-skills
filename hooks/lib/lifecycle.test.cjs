@@ -275,6 +275,70 @@ test('computeSignature: sees an UNTRACKED (not git-added) ci.yml', () => {
   }
 });
 
+function sigFor(files) {
+  const dir = mkRepo();
+  try {
+    for (const [rel, body] of Object.entries(files)) {
+      fs.mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
+      fs.writeFileSync(path.join(dir, rel), body);
+    }
+    commitAll(dir);
+    return computeSignature(dir);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test('envs: bare dev/prod words in commands are not environments', () => {
+  const s = sigFor({ '.github/workflows/ci.yml': 'jobs:\n  b:\n    steps:\n      - run: npm run dev -- --prod\n      - run: echo "deploy to prod later"\n' });
+  assert.deepEqual(s.envs, []);
+});
+
+test('envs: GitHub environment object form yields its name, not "name"', () => {
+  const s = sigFor({ '.github/workflows/deploy.yml': 'jobs:\n  d:\n    environment:\n      name: production\n      url: https://x\n' });
+  assert.ok(s.envs.includes('production'));
+  assert.ok(s.envs.includes('prod'));
+  assert.ok(!s.envs.includes('name'));
+});
+
+test('envs: ADO stage names contribute canonical environments', () => {
+  const s = sigFor({ 'azure-pipelines.yml': 'stages:\n  - stage: Deploy_Staging\n  - stage: Deploy_Prod\n    jobs:\n      - deployment: web\n        environment: prod-web\n' });
+  assert.ok(s.envs.includes('staging'));
+  assert.ok(s.envs.includes('prod'));
+  assert.ok(s.envs.includes('prod-web'));
+});
+
+test('release: the word "pages" in prose is not a Pages deploy', () => {
+  const s = sigFor({ '.github/workflows/ci.yml': '# lint the docs pages\njobs:\n  l:\n    steps:\n      - run: npx markdownlint docs/pages\n' });
+  assert.ok(!s.releaseTargets.includes('pages'));
+});
+
+test('release: actions/deploy-pages is a Pages deploy', () => {
+  const s = sigFor({ '.github/workflows/pages.yml': 'permissions:\n  pages: write\njobs:\n  d:\n    environment:\n      name: github-pages\n    steps:\n      - uses: actions/deploy-pages@v4\n' });
+  assert.ok(s.releaseTargets.includes('pages'));
+});
+
+test('server: a stdlib-only Go service is detected from its sources', () => {
+  const s = sigFor({
+    'go.mod': 'module example.com/svc\n\ngo 1.22\n',
+    'cmd/svc/main.go': 'package main\n\nimport "net/http"\n\nfunc main() { http.ListenAndServe(":8080", nil) }\n',
+  });
+  assert.equal(s.hasServer, true);
+});
+
+test('server: a Go CLI that only makes HTTP requests is not a server', () => {
+  const s = sigFor({
+    'go.mod': 'module example.com/cli\n\ngo 1.22\n',
+    'main.go': 'package main\n\nimport "net/http"\n\nfunc main() { http.Get("https://example.com") }\n',
+  });
+  assert.equal(s.hasServer, false);
+});
+
+test('server: a Rust crate name only matches whole', () => {
+  assert.equal(sigFor({ 'Cargo.toml': '[package]\nname = "x"\n[dependencies]\nrocket_codegen_helpers = "1"\n', 'src/main.rs': 'fn main() {}\n' }).hasServer, false);
+  assert.equal(sigFor({ 'Cargo.toml': '[package]\nname = "x"\n[dependencies]\naxum = "0.7"\n', 'src/main.rs': 'fn main() {}\n' }).hasServer, true);
+});
+
 test('writeMarker/readMarker round-trip', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lc-'));
   try {
