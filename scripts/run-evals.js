@@ -39,7 +39,7 @@ import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { loadReferencedFiles } from "./lib/eval-references.js";
-import { parseAnthropicResponse, parseOpenRouterResponse } from "./lib/eval-response.js";
+import { parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./lib/eval-response.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..");
@@ -188,9 +188,8 @@ Respond with ONLY a JSON object: {"pass": true/false, "reasoning": "brief explan
           judgePrompt,
           "claude-sonnet-4-20250514" // Always use Sonnet for judging (cost efficiency)
         );
-        const parsed = JSON.parse(
-          judgement.replace(/```json\n?|\n?```/g, "").trim()
-        );
+        const parsed = parseJudgement(judgement);
+        if (!parsed) throw new Error(`no verdict in judge reply: ${judgement.slice(0, 80)}`);
         return {
           pass: parsed.pass,
           detail: parsed.reasoning,
