@@ -259,6 +259,7 @@ mad-skills/
 │       ├── state.cjs        # Persistent state (dismissals)
 │       ├── superpowers-core.cjs # Superpowers detection/deferral core
 │       ├── task-checks.cjs  # Task list checks
+│       ├── typesafe.cjs     # Optional TypeSafe semantic judge (opt-in, heuristic fallback)
 │       ├── utils.cjs        # Shared utilities
 │       └── *.test.cjs       # Unit tests (lifecycle, logbook, staleness, instructions)
 ├── tests/                   # Eval test results + integration tests
@@ -389,6 +390,19 @@ required — every skill degrades gracefully to its standalone behavior.
 |--------|------|------------------------|---------|
 | **superpowers** | Methodology (plan → build → finish) | `/speccy`, `/build`, `/ship` defer their overlapping stages to it (see **Positioning** above). Detected via `scripts/lib/superpowers.js` only when registered and enabled. | `claude plugin install superpowers` |
 | **graphify** | Codebase knowledge graph | `/prime` surfaces a passive hint if `graphify-out/` exists (query via `/graphify`). Hint only, no dependency. | — |
+
+### Optional semantic judge (TypeSafe)
+
+`hooks/lib/typesafe.cjs` lets heuristic code paths ask TypeSafe's Jev model a
+typed question (yes/no probability, choice, score) where word-overlap or regex
+matching is fragile. It is **opt-in** because it sends repo content off-machine:
+set both `MAD_SKILLS_JUDGE=typesafe` and `TYPESAFE_API_KEY` (per project via
+`.claude/settings.local.json` `env`). Disabled, timed out, or failing, every
+call returns `null` and the caller keeps its original heuristic. Thresholds are
+calibrated against the pinned model (`jev-1.13.0`); re-check them before bumping it.
+
+Current consumers: logbook capture dedupe and the `/logbook review` "likely
+done" match (`hooks/lib/logbook.cjs`).
 
 ## Memory
 

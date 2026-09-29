@@ -27,8 +27,9 @@
  */
 
 const { existsSync, writeFileSync, unlinkSync } = require('fs');
-const { join } = require('path');
+const { join, basename } = require('path');
 const { git, gitArgs, readText } = require('./utils.cjs');
+const typesafe = require('./typesafe.cjs');
 
 // ─── constants ──────────────────────────────────────────────────────────
 
@@ -51,6 +52,13 @@ const CAP = 40;
 const ARCHIVE_MAX = 30;    // Recent-history window kept in the hot file's own
                             // Archive section; excess relocates (never truncates).
 const DEDUPE_THRESHOLD = 0.6; // REQ-011: token-set Jaccard for "closely matches"
+// Optional semantic judgments (hooks/lib/typesafe.cjs), consulted only when
+// Jaccard finds nothing. Calibrated on this repo's ledger (jev-1.13.0): the
+// two true duplicate pairs scored 0.98 (Jaccard 0.57 / 0.25), the highest of
+// the other 2,209 pairs 0.55; resolving commits scored 0.67–0.98, the highest
+// false match on a still-open item 0.58 (and review is user-confirmed).
+const JUDGED_DUP_PROB = 0.85;
+const JUDGED_DONE_PROB = 0.6;
 const STALE_DAYS = 60;     // REQ-031: free-text items older than this are review candidates
 
 // Ledger categories, in fixed render order, with their markdown headings.
@@ -412,8 +420,12 @@ function orderArchiveOpen(items) {
     .sort((a, b) => (b.relocatedDate || b.date).localeCompare(a.relocatedDate || a.date));
 }
 
-/** Find an existing open item (any location) whose title closely matches (REQ-011/009). */
-function findDuplicate(items, title) {
+/**
+ * Find an existing open item (any location) whose title closely matches
+ * (REQ-011/009): Jaccard first, then — if `judged` is given — the most
+ * probable semantic duplicate at or above JUDGED_DUP_PROB.
+ */
+function findDuplicate(items, title, judged) {
   let best = null;
   let bestScore = 0;
   for (const it of items) {
@@ -421,7 +433,58 @@ function findDuplicate(items, title) {
     const s = similarity(it.title, title);
     if (s > bestScore) { bestScore = s; best = it; }
   }
-  return bestScore >= DEDUPE_THRESHOLD ? best : null;
+  if (bestScore >= DEDUPE_THRESHOLD) return best;
+  if (!judged) return null;
+  let judgedBest = null;
+  let bestP = JUDGED_DUP_PROB;
+  for (const it of items) {
+    if (it.status !== 'open') continue;
+    const p = judged(title, it.title);
+    if (p !== undefined && p >= bestP) { bestP = p; judgedBest = it; }
+  }
+  return judgedBest;
+}
+
+function dupQuestion(existing) {
+  return {
+    type: 'noul',
+    instructions: {
+      task: 'Decide whether `incoming` and `existing` record the same follow-up: the same underlying problem, idea, question, or risk, so that resolving one would resolve the other. Different wording, length, or detail still counts as the same.',
+      existing,
+    },
+    criteria: {
+      true: 'Same follow-up — tracking both would be redundant.',
+      false: 'Different follow-ups, even if they touch the same file, skill, or area.',
+    },
+  };
+}
+
+/**
+ * Judge every incoming title against the open items and the incoming titles
+ * before it, in one batched call. Returns (incoming, other) → P(same) or
+ * undefined; always undefined when the judge is disabled or fails.
+ */
+function judgeDuplicates(items, incoming, judgeAll = typesafe.judgeAllSync) {
+  const titles = incoming.map((raw) => String(raw.title || '').trim()).filter(Boolean);
+  const open = [...new Set(items.filter((it) => it.status === 'open').map((it) => it.title))];
+  const batches = titles.map((t, i) => ({
+    incoming: t,
+    others: [...new Set([...open, ...titles.slice(0, i)])].filter((o) => o !== t),
+  }));
+  const probs = new Map();
+  const answers = batches.some((b) => b.others.length)
+    ? judgeAll(batches.map((b) => ({
+      state: { incoming: b.incoming },
+      questions: Object.fromEntries(b.others.map((o, j) => [String(j), dupQuestion(o)])),
+    })))
+    : null;
+  if (answers) {
+    batches.forEach((b, i) => b.others.forEach((o, j) => {
+      const p = typesafe.noul(answers[i], String(j));
+      if (p !== null) probs.set(`${b.incoming}\u0000${o}`, p);
+    }));
+  }
+  return (a, b) => probs.get(`${a}\u0000${b}`);
 }
 
 // ─── overflow selection (pure, never mutates unless named relocate*) ────
@@ -565,13 +628,14 @@ function count(projectDir) {
  * breach-time preview always picks the same relocation victims the real
  * capture would (REQ-008).
  */
-function applyIncoming(items, incoming, when) {
+function applyIncoming(items, incoming, when, judgeAll) {
   let added = 0;
   const deduped = [];
+  const judged = judgeDuplicates(items, incoming, judgeAll);
   for (const raw of incoming) {
     const title = String(raw.title || '').trim();
     if (!title) continue;
-    const dup = findDuplicate(items, title);
+    const dup = findDuplicate(items, title, judged);
     if (dup) {
       dup.source = raw.source || dup.source;
       dup.date = raw.date || when;
@@ -606,7 +670,7 @@ function capture(projectDir, incoming, opts = {}) {
   return safe(() => {
     const when = opts.today || today();
     const { items } = read(projectDir);
-    const { added, deduped } = applyIncoming(items, incoming, when);
+    const { added, deduped } = applyIncoming(items, incoming, when, opts.judgeAll);
     const relocated = relocateOverflow(items, opts.cap || CAP, when);
     write(projectDir, items);
     return { added, deduped, relocationCandidates: toRelocationSummary(relocated) };
@@ -623,7 +687,7 @@ function previewCapture(projectDir, incoming, opts = {}) {
   return safe(() => {
     const when = opts.today || today();
     const { items } = read(projectDir); // fresh local array — never written
-    const { added, deduped } = applyIncoming(items, incoming, when);
+    const { added, deduped } = applyIncoming(items, incoming, when, opts.judgeAll);
     const candidates = selectRelocationCandidates(items, opts.cap || CAP);
     return { added, deduped, relocationCandidates: toRelocationSummary(candidates) };
   }, { added: 0, deduped: [], relocationCandidates: [] });
@@ -838,12 +902,18 @@ function reviewCandidates(projectDir, opts = {}) {
     const { items } = read(projectDir);
     const recent = recentSubjects(projectDir);
     const out = [];
+    const hot = orderOpen(items);
+    const archived = orderArchiveOpen(items);
+    const done = judgeDone(
+      [...hot, ...archived].filter((it) => !it.link), recent,
+      basename(git('rev-parse --show-toplevel', projectDir) || projectDir), opts.judgeAll,
+    );
 
     const scan = (list, selectorFor, suffix) => {
       list.forEach((it, i) => {
         if (it.link) return; // linked items are the deterministic track
         const selector = selectorFor(i);
-        const match = recent.find((s) => similarity(s, it.title) >= DEDUPE_THRESHOLD);
+        const match = done.get(it) || recent.find((s) => similarity(s, it.title) >= DEDUPE_THRESHOLD);
         if (match) {
           out.push({ item: it, selector, reason: `likely done${suffix} — recent commit: "${match}"` });
           return;
@@ -854,11 +924,41 @@ function reviewCandidates(projectDir, opts = {}) {
       });
     };
 
-    scan(orderOpen(items), (i) => String(i + 1), '');
-    scan(orderArchiveOpen(items), (i) => `a${i + 1}`, ' (relocated)');
+    scan(hot, (i) => String(i + 1), '');
+    scan(archived, (i) => `a${i + 1}`, ' (relocated)');
 
     return out;
   }, []);
+}
+
+/**
+ * Which recent commit, if any, completes each item — one Choice per item over
+ * the commit subjects. Returns Map(item → subject) for matches at or above
+ * JUDGED_DONE_PROB; empty when the judge is disabled or fails.
+ */
+function judgeDone(list, subjects, repository, judgeAll = typesafe.judgeAllSync) {
+  const out = new Map();
+  if (!list.length || !subjects.length) return out;
+  const criteria = { none: 'No listed commit completes this follow-up (unrelated, only related work, or partial progress).' };
+  subjects.forEach((s, k) => { criteria[`c${k}`] = s; });
+  const questions = Object.fromEntries(list.map((it, i) => [String(i), {
+    type: 'choice',
+    instructions: {
+      task: 'Which commit in the recent history, if any, completes `follow_up` — fixes the problem, implements the idea, or answers the question it records? Pick `none` unless a commit clearly does that.',
+      follow_up: it.title,
+    },
+    criteria,
+  }]));
+  const answers = judgeAll([{ state: { repository }, questions }], { chunk: 10 });
+  const a = answers && answers[0];
+  if (!a) return out;
+  list.forEach((it, i) => {
+    const ans = a[String(i)];
+    if (!ans || ans.choice === 'none' || !ans.probabilities) return;
+    const subject = subjects[Number(String(ans.choice).slice(1))];
+    if (subject && ans.probabilities[ans.choice] >= JUDGED_DONE_PROB) out.set(it, subject);
+  });
+  return out;
 }
 
 function recentSubjects(projectDir) {

@@ -9,6 +9,9 @@ const { execSync } = require('child_process');
 
 const fl = require('./logbook.cjs');
 
+// Keep the ledger hermetic even if the developer opted into the semantic judge.
+delete process.env.MAD_SKILLS_JUDGE;
+
 // ─── fixtures / helpers ─────────────────────────────────────────────────
 
 function mkRepo() {
@@ -797,5 +800,121 @@ test('a title containing a hyphen does not out-vote the real separator', () => {
     ].join('\n'));
     fl.capture(dir, [{ title: 'Added', category: 'idea', source: '/build c' }], { today: '2026-08-07' });
     assert.match(fs.readFileSync(path.join(dir, 'LOGBOOK.md'), 'utf8'), /Added — \/build c/);
+  } finally { rm(dir); }
+});
+
+// ─── semantic judge (optional TypeSafe layer, injected fake) ────────────
+
+/** Fake judgeAll: P(same) from a lookup keyed "incoming|existing". */
+function fakeDupJudge(table) {
+  return (batches) => batches.map((b) => Object.fromEntries(
+    Object.entries(b.questions).map(([id, q]) => [
+      id, { type: 'noul', noul: table[`${b.state.incoming}|${q.instructions.existing}`] ?? 0.05 },
+    ]),
+  ));
+}
+
+test('judged dedupe merges a differently-worded duplicate Jaccard misses', () => {
+  const dir = mkRepo();
+  try {
+    const existing = 'sync.sh stash pop can silently drop untracked files on conflict';
+    const incoming = 'Stashed untracked changes lost after /sync hits a merge conflict';
+    fl.capture(dir, [{ title: existing, category: 'fixes' }], { today: '2026-07-10' });
+    const res = fl.capture(dir, [{ title: incoming, category: 'fixes' }], {
+      today: '2026-07-16', judgeAll: fakeDupJudge({ [`${incoming}|${existing}`]: 0.98 }),
+    });
+    assert.equal(res.added, 0);
+    assert.deepEqual(res.deduped, [existing]);
+    assert.equal(fl.openItems(dir).length, 1);
+  } finally { rm(dir); }
+});
+
+test('judged dedupe keeps related-but-different items below the threshold', () => {
+  const dir = mkRepo();
+  try {
+    fl.capture(dir, [{ title: 'ci-watch polls the wrong ref on AzDO', category: 'fixes' }], { today: '2026-07-10' });
+    const res = fl.capture(dir, [{ title: 'merge.sh misreports success on AzDO', category: 'fixes' }], {
+      today: '2026-07-16',
+      judgeAll: fakeDupJudge({ 'merge.sh misreports success on AzDO|ci-watch polls the wrong ref on AzDO': 0.55 }),
+    });
+    assert.equal(res.added, 1);
+    assert.equal(fl.openItems(dir).length, 2);
+  } finally { rm(dir); }
+});
+
+test('judged dedupe also collapses duplicates within one incoming batch', () => {
+  const dir = mkRepo();
+  try {
+    const res = fl.capture(dir, [
+      { title: 'Two keel evals use invalid (?i) regex', category: 'fixes' },
+      { title: 'keel evals.json inline-flag syntax always errors', category: 'fixes' },
+    ], {
+      today: '2026-07-16',
+      judgeAll: fakeDupJudge({ 'keel evals.json inline-flag syntax always errors|Two keel evals use invalid (?i) regex': 0.98 }),
+    });
+    assert.equal(res.added, 1);
+    assert.deepEqual(res.deduped, ['Two keel evals use invalid (?i) regex']);
+  } finally { rm(dir); }
+});
+
+test('previewCapture reports judged dedupes without writing', () => {
+  const dir = mkRepo();
+  try {
+    fl.capture(dir, [{ title: 'old wording', category: 'ideas' }], { today: '2026-07-10' });
+    const res = fl.previewCapture(dir, [{ title: 'new phrasing', category: 'ideas' }], {
+      judgeAll: fakeDupJudge({ 'new phrasing|old wording': 0.9 }),
+    });
+    assert.deepEqual(res.deduped, ['old wording']);
+    assert.equal(fl.openItems(dir).length, 1);
+  } finally { rm(dir); }
+});
+
+test('a failed judge falls back to Jaccard-only dedupe', () => {
+  const dir = mkRepo();
+  try {
+    fl.capture(dir, [{ title: 'old wording', category: 'ideas' }], { today: '2026-07-10' });
+    const res = fl.capture(dir, [{ title: 'new phrasing', category: 'ideas' }], { today: '2026-07-16', judgeAll: () => null });
+    assert.equal(res.added, 1);
+  } finally { rm(dir); }
+});
+
+/** Fake judgeAll for review: pick the commit whose subject is mapped from the follow-up. */
+function fakeDoneJudge(table, p = 0.9) {
+  return (batches) => batches.map((b) => Object.fromEntries(
+    Object.entries(b.questions).map(([id, q]) => {
+      const subject = table[q.instructions.follow_up];
+      const key = Object.keys(q.criteria).find((k) => q.criteria[k] === subject) || 'none';
+      return [id, { type: 'choice', choice: key, probabilities: { [key]: key === 'none' ? 1 : p }, confidence: p }];
+    }),
+  ));
+}
+
+test('review flags an item a judged commit completes despite no word overlap', () => {
+  const dir = mkRepo();
+  try {
+    commit(dir, 'chore(package): drop nonexistent agents/ from published files');
+    const title = 'package.json files array still lists a directory that was removed';
+    fl.write(dir, [item({ title })]);
+    const cands = fl.reviewCandidates(dir, {
+      today: '2026-07-16',
+      judgeAll: fakeDoneJudge({ [title]: 'chore(package): drop nonexistent agents/ from published files' }),
+    });
+    assert.equal(cands.length, 1);
+    assert.match(cands[0].reason, /likely done — recent commit: "chore\(package\)/);
+    assert.equal(fl.openItems(dir).length, 1); // still consent-gated
+  } finally { rm(dir); }
+});
+
+test('review ignores judged matches below the threshold', () => {
+  const dir = mkRepo();
+  try {
+    commit(dir, 'docs(session-guard): narrow primary-checkout signal');
+    const title = 'revisit whether the primary-checkout signal should stay';
+    fl.write(dir, [item({ title, date: '2026-07-10' })]);
+    const cands = fl.reviewCandidates(dir, {
+      today: '2026-07-16',
+      judgeAll: fakeDoneJudge({ [title]: 'docs(session-guard): narrow primary-checkout signal' }, 0.58),
+    });
+    assert.equal(cands.length, 0);
   } finally { rm(dir); }
 });
