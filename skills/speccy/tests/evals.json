@@ -5,7 +5,7 @@
     "assertions": [
       {
         "type": "contains",
-        "value": "██"
+        "value": "/$$/"
       },
       {
         "type": "regex",

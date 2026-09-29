@@ -3,7 +3,7 @@
     "name": "banner-and-tagline",
     "prompt": "Initialize this project with brace",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "regex", "value": "(Bracing the|Reinforcing before|Locking in the|Preparing for heavy|Cross-bracing|Tightening the load|Structural integrity|Brace for impact)" },
       { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
     ]
@@ -12,7 +12,7 @@
     "name": "project-scaffold",
     "prompt": "Initialize a fresh, empty directory with /brace — nothing exists yet, so skip any existing-state detection. What files and directories does it create, and what goes in each?",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "regex", "value": "(specs|context|AGENTS\\.md)", "flags": "i" },
       { "type": "semantic", "value": "Describes creating a project scaffold with specs/, context/, and .tmp/ directories plus AGENTS.md (with CLAUDE.md as an @AGENTS.md pointer) and .gitignore" }
     ]
@@ -21,7 +21,7 @@
     "name": "flag-handling",
     "prompt": "Brace --force this project directory",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "semantic", "value": "Acknowledges the --force flag, indicating it will overwrite existing files without prompting" }
     ]
   },

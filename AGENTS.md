@@ -296,7 +296,6 @@ npm run test:unit         # Unit tests (node --test): scripts/lib, hooks/lib,
                            # and colocated skill script tests (skills/*/scripts/*.test.js)
 npm run eval              # Run evals (needs API key)
 npm run eval -- --verbose # Verbose eval output
-npm run eval:update       # Update eval snapshots
 npm run build:manifests   # Generate skills/manifest.json
 npm run build:skills      # Package .skill archives
 npm run build             # Both manifests + skills
@@ -359,7 +358,10 @@ npm run test:unit         # Unit tests for scripts/lib, hooks/lib, packaging,
 npm run eval              # Eval assertions (requires API key)
 ```
 
-Evals support both `ANTHROPIC_API_KEY` and `OPENROUTER_API_KEY`.
+Evals support both `ANTHROPIC_API_KEY` and `OPENROUTER_API_KEY`. Set
+`ANTHROPIC_BASE_URL` to run against an Anthropic-compatible endpoint (e.g. an
+Azure AI Foundry `/anthropic` URL), and `--judge-model` to choose the model that
+grades semantic assertions (default `claude-sonnet-4-20250514`).
 
 ### Archive
 

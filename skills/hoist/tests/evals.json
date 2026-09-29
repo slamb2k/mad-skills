@@ -3,7 +3,7 @@
     "name": "banner-display",
     "prompt": "/hoist",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "semantic", "value": "Displays an ASCII art banner for the hoist skill before doing anything else" }
     ]
   },

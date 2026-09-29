@@ -30,8 +30,12 @@
  * Usage:
  *   node scripts/run-evals.js                      # Run all evals
  *   node scripts/run-evals.js --skill my-skill     # Run evals for one skill
- *   node scripts/run-evals.js --update-snapshots   # Update snapshot files
  *   node scripts/run-evals.js --concurrency 3      # Parallel test runs
+ *   node scripts/run-evals.js --judge-model <id>   # Model for semantic assertions
+ *
+ * ANTHROPIC_BASE_URL points the Anthropic backend at a compatible endpoint
+ * (e.g. an Azure AI Foundry /anthropic URL); either the base or the full
+ * /v1/messages URL works.
  */
 
 import { readdir, readFile, writeFile, access, mkdir } from "node:fs/promises";
@@ -39,7 +43,7 @@ import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { loadReferencedFiles } from "./lib/eval-references.js";
-import { parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./lib/eval-response.js";
+import { anthropicMessagesUrl, emptyOutputError, parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./lib/eval-response.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..");
@@ -49,13 +53,17 @@ const RESULTS_DIR = resolve(__dirname, "..", "tests", "results");
 const { values: args } = parseArgs({
   options: {
     skill: { type: "string", default: "" },
-    "update-snapshots": { type: "boolean", default: false },
     concurrency: { type: "string", default: "2" },
     model: { type: "string", default: "claude-sonnet-4-20250514" },
+    "judge-model": { type: "string", default: "claude-sonnet-4-20250514" },
     verbose: { type: "boolean", short: "v", default: false },
   },
   strict: true,
 });
+
+// Headroom for extended thinking: models that think by default (e.g. Claude
+// Opus 5.5) spent the whole 16k budget thinking and returned no text.
+const MAX_OUTPUT_TOKENS = 32768;
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -89,7 +97,7 @@ async function callClaude(systemPrompt, userMessage, model = args.model) {
     return callOpenRouter(systemPrompt, userMessage, model);
   }
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  const response = await fetch(anthropicMessagesUrl(process.env.ANTHROPIC_BASE_URL), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -98,7 +106,7 @@ async function callClaude(systemPrompt, userMessage, model = args.model) {
     },
     body: JSON.stringify({
       model,
-      max_tokens: 16384,
+      max_tokens: MAX_OUTPUT_TOKENS,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
     }),
@@ -122,7 +130,7 @@ async function callOpenRouter(systemPrompt, userMessage, model) {
     },
     body: JSON.stringify({
       model: orModel,
-      max_tokens: 16384,
+      max_tokens: MAX_OUTPUT_TOKENS,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
@@ -186,7 +194,7 @@ Respond with ONLY a JSON object: {"pass": true/false, "reasoning": "brief explan
         const { text: judgement } = await callClaude(
           "You are a precise evaluator. Respond only with valid JSON.",
           judgePrompt,
-          "claude-sonnet-4-20250514" // Always use Sonnet for judging (cost efficiency)
+          args["judge-model"]
         );
         const parsed = parseJudgement(judgement);
         if (!parsed) throw new Error(`no verdict in judge reply: ${judgement.slice(0, 80)}`);
@@ -236,6 +244,8 @@ Follow the skill's instructions to complete the user's request. Be thorough and 
 
   try {
     const { text: output, truncated } = await callClaude(systemPrompt, evalCase.prompt);
+    const empty = emptyOutputError(output, truncated);
+    if (empty) throw new Error(empty);
     const duration = Date.now() - startTime;
 
     const assertionResults = [];

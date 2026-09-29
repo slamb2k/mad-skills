@@ -32,11 +32,19 @@ check() {
 # scope: ≤3 plausibly-touched files
 [ "$FILE_COUNT" -le 3 ]; SCOPE=$?
 
-# ticket clarity: allowed action verb at/near the start
-grep -Eiq '^[[:space:]]*(add|fix|remove|rename|update|deprecate|document|extend)\b' "$TICKET"; VERB=$?
+# ticket clarity: an allowed action verb at/near the start — the first three
+# non-blank lines, ignoring markdown heading/list/quote markers, a ticket-key
+# prefix (ABC-12:), and a leading "Please". Inflections name the same action
+# ("Adds", "Fixed", "Removing").
+VERBS='(add(s|ed|ing)?|fix(es|ed|ing)?|remov(e|es|ed|ing)|renam(e|es|ed|ing)|updat(e|es|ed|ing)|deprecat(e|es|ed|ing)|document(s|ed|ing)?|extend(s|ed|ing)?)'
+OPENING=$(grep -v '^[[:space:]]*$' "$TICKET" | head -n 3 \
+  | sed -E 's/^[[:space:]]*([#>*-]+[[:space:]]*)*//; s/^[A-Za-z]+-[0-9]+[:.]?[[:space:]]*//; s/^[Pp]lease[[:space:]]+//')
+grep -Eiq "^${VERBS}\\b" <<<"$OPENING"; VERB=$?
 
-# ticket clarity: no hedge/uncertainty language
-grep -Eiq '(maybe|perhaps|explore options for|not sure|TBD|some kind of)' "$TICKET"; HEDGE_FOUND=$?
+# ticket clarity: no hedge/uncertainty language (whole words, outside code
+# spans — "remove the `maybe()` helper" is not hedging)
+PROSE=$(sed -E 's/`[^`]*`//g' "$TICKET")
+grep -Eiq '(\bmaybe\b|\bperhaps\b|explore options for|not sure|\bTBD\b|some kind of)' <<<"$PROSE"; HEDGE_FOUND=$?
 NO_HEDGE=$([ "$HEDGE_FOUND" -ne 0 ] && echo 0 || echo 1)
 
 # ticket clarity: exploration resolved ≥1 concrete file/symbol match

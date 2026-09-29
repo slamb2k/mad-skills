@@ -3,7 +3,7 @@
     "name": "banner-display",
     "prompt": "/dock",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "regex", "value": "🐳|📦|🚀|⚓|🏗️|🔒|🌊|🎯" },
       { "type": "semantic", "value": "Displays an ASCII art banner for the dock skill before doing anything else" }
     ]

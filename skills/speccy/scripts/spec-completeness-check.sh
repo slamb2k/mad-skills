@@ -30,20 +30,27 @@ grep -Eq '^autonomy_ready:[[:space:]]*(true|false)' "$SPEC"; AR=$?
 # and `## Foo` for these sections, and a level-2-only match silently reported
 # them missing.
 
+# Headings and checkboxes inside fenced code blocks are examples, not structure.
+BODY=$(awk '/^[[:space:]]*(```|~~~)/ { fenced = !fenced; next } !fenced' "$SPEC")
+
 # Definition of Done heading present
-grep -Eq '^#+[[:space:]]+Definition of Done' "$SPEC"; DOD_H=$?
-# ...with at least one checkbox item
-grep -qF -e '- [ ]' "$SPEC"; DOD_ITEM=$?
+grep -Eq '^#+[[:space:]]+Definition of Done' <<<"$BODY"; DOD_H=$?
+# ...with at least one checklist item inside that section (ticked or not)
+DOD=$(awk '
+  /^#+[[:space:]]+Definition of Done/ { match($0, /^#+/); level = RLENGTH; in_dod = 1; next }
+  in_dod && /^#+[[:space:]]/ { match($0, /^#+/); if (RLENGTH <= level) in_dod = 0 }
+  in_dod' <<<"$BODY")
+grep -Eq '^[[:space:]]*[-*][[:space:]]+\[[ xX]\]' <<<"$DOD"; DOD_ITEM=$?
 
 # Assumption Authorization heading present (conditional — see note below)
-grep -Eq '^#+[[:space:]]+Assumption Authorization' "$SPEC"; AA=$?
+grep -Eq '^#+[[:space:]]+Assumption Authorization' <<<"$BODY"; AA=$?
 
 # Roadmap / what's-next context (dedicated heading or Related Specifications)
-grep -Eiq '^#+[[:space:]].*(Roadmap|What.?s Next|Related Specifications)' "$SPEC"; ROAD=$?
+grep -Eiq '^#+[[:space:]].*(Roadmap|What.?s Next|Related Specifications)' <<<"$BODY"; ROAD=$?
 
 # Risks — a Risks heading, or the standard Rationale/Constraints sections that
 # carry risk/tradeoff content in this template
-grep -Eiq '^#+[[:space:]].*(Risk|Rationale|Constraints)' "$SPEC"; RISK=$?
+grep -Eiq '^#+[[:space:]].*(Risk|Rationale|Constraints)' <<<"$BODY"; RISK=$?
 
 echo "── Structural completeness check ─────────────────"
 echo "  $SPEC"
