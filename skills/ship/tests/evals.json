@@ -3,7 +3,7 @@
     "name": "banner-and-tagline",
     "prompt": "Ship my changes",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "regex", "value": "(Special delivery|If it compiles|Anchors aweigh|push and pray|faster than Amazon|Yeet the code|merge queue|LGTM)" },
       { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
     ]
@@ -12,7 +12,7 @@
     "name": "pr-lifecycle",
     "prompt": "Ship the feature I've been working on. Before doing anything else, list every stage /ship will run, in order, from sync through merge.",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "regex", "value": "(commit|push|PR|pull request)", "flags": "i" },
       { "type": "regex", "value": "(CI|check|merge)", "flags": "i" },
       { "type": "semantic", "value": "Describes a multi-stage PR lifecycle that includes syncing, committing, pushing, creating a PR, monitoring CI, and merging" }
@@ -22,7 +22,7 @@
     "name": "script-based-architecture",
     "prompt": "Ship everything to production",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "regex", "value": "(script|sync\\.sh|ci-watch\\.sh|merge\\.sh|general.purpose)", "flags": "i" },
       { "type": "semantic", "value": "Uses deterministic scripts for sync, CI monitoring, and merge stages, with LLM subagents only for commit/PR authoring and CI fix analysis" }
     ]

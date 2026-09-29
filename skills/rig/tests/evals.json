@@ -3,7 +3,7 @@
     "name": "banner-and-tagline",
     "prompt": "Bootstrap this repo with standard tools",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "regex", "value": "(Rigging up|Bolting down|Assembling the|Hoisting the|Locking in|Wiring up|Setting up the drill|blueprint to build)" },
       { "type": "semantic", "value": "The response begins with an ASCII art banner displayed BEFORE any explanation or workflow steps" }
     ]
@@ -12,7 +12,7 @@
     "name": "tooling-awareness",
     "prompt": "Set up hooks and CI for this project",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "regex", "value": "lefthook", "flags": "i" },
       { "type": "regex", "value": "(GitHub Actions|CI|workflow)", "flags": "i" },
       { "type": "semantic", "value": "Describes setting up git hooks (via lefthook), commit templates, PR templates, and GitHub Actions workflows for lint/format/type-check/build" }
@@ -22,7 +22,7 @@
     "name": "secret-scan-precommit",
     "prompt": "Rig this repository — besides lint, format-check, and type-check, does the pre-commit hook check for anything related to accidentally committing secrets or credentials?",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "regex", "value": "secret", "flags": "i" },
       { "type": "semantic", "value": "Describes a secret-scan pre-commit check added alongside lint/format-check/type-check that scans staged diff additions for high-confidence secret patterns such as AWS access key IDs, PEM private-key headers, and SECRET/TOKEN/API_KEY/PASSWORD-style assignments, and blocks the commit when one is found" }
     ]
@@ -31,7 +31,7 @@
     "name": "idempotency-and-confirmation",
     "prompt": "Rig my repository",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "semantic", "value": "Mentions that the process is idempotent (safe to run multiple times) and will prompt the user for confirmation before making changes" }
     ]
   },
@@ -39,7 +39,7 @@
     "name": "azdo-awareness",
     "prompt": "Bootstrap CI for my Azure DevOps repository at https://dev.azure.com/myorg/myproject/_git/myrepo",
     "assertions": [
-      { "type": "contains", "value": "██" },
+      { "type": "contains", "value": "/$$/" },
       { "type": "regex", "value": "(Azure Pipelines|Azure DevOps|azdo)", "flags": "i" },
       { "type": "semantic", "value": "Recognizes the repository is hosted on Azure DevOps and mentions Azure Pipelines as the CI platform instead of or alongside GitHub Actions" }
     ]
