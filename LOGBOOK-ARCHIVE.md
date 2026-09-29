@@ -20,6 +20,7 @@
 ## Tech debt
 
 ## Archive
+- [x] ci-watch.sh declares all_passed while checks are in_progress or not yet registered (saw grace_period_polls=1 pass with GitGuardian in_progress and Validate & Lint unregistered after a branch update) — should treat in_progress as pending and wait for required checks to register — /ship #118 (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] merge.sh should handle mergeStateStatus=BEHIND by running gh pr update-branch and re-watching CI — the release bot moves main after every merge, so every second /ship in a session hits this and fails the first merge attempt — /ship #118 (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] skills/keel/tests/evals.json has 2 eval cases using invalid inline-flag regex syntax (?i)(...) instead of the separate flags:"i" field every other eval case in this repo uses — JS RegExp does not support (?i), so both cases (skill-ordering, azdo-awareness) error out on every eval run instead of asserting anything — /build unified-autonomous-build verify (2026-07-20) <!-- resolved:2026-07-21 -->
 - [x] CI Run Evals job passes in 3s without executing evals — API-key guard silently skips, so the PR eval gate is illusory; local runs are the only real gate — /build debrief (bundled-approval-handoff) (2026-07-21) <!-- resolved:2026-07-21 -->
