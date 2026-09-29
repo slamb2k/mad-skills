@@ -20,6 +20,7 @@
 ## Tech debt
 
 ## Archive
+- [x] Spec validation criterion 2 (live e2e of AC-009 session return in a real /speccy worktree flow) not yet exercised — verify on first real post-ship /sync from a worktree once plugin updates past v2.0.96 — /build debrief (worktree-aware-sync, PR #120) (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] Sanctioned -D fallback cannot distinguish squash-merged content from unpushed commits made after remote branch deletion — accepted risk (reflog-recoverable); a git cherry unpushed-check would close it — /build debrief (worktree-aware-sync, PR #120) (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] sync.sh gone-upstream detection pipeline duplicated twice (worktree finished-check + step-6 sweep) — extract only if touched again — /build debrief (worktree-aware-sync, PR #120) (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] sync.sh worktree-mode sentinel restore gated on non-empty backup — zero-byte .mad-skills-auto not restored after failed removal, asymmetric with prepare_branch_for_delete — /build debrief (worktree-aware-sync, PR #120) (2026-07-21) <!-- resolved:2026-07-21 -->
