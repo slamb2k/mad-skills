@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./eval-response.js";
+import { anthropicMessagesUrl, parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./eval-response.js";
 
 test("parseAnthropicResponse joins text blocks and flags stop_reason=max_tokens as truncated", () => {
   const result = parseAnthropicResponse({
@@ -60,4 +60,13 @@ test("parseJudgement recovers the verdict when the reasoning is cut off", () => 
 test("parseJudgement returns null when there is no boolean verdict", () => {
   assert.equal(parseJudgement("I think it passes."), null);
   assert.equal(parseJudgement('{"pass": "yes"}'), null);
+});
+
+test("anthropicMessagesUrl defaults to the Anthropic API", () => {
+  assert.equal(anthropicMessagesUrl(undefined), "https://api.anthropic.com/v1/messages");
+});
+
+test("anthropicMessagesUrl accepts a base URL or a full messages URL", () => {
+  assert.equal(anthropicMessagesUrl("https://r.services.ai.azure.com/anthropic/"), "https://r.services.ai.azure.com/anthropic/v1/messages");
+  assert.equal(anthropicMessagesUrl("https://r.services.ai.azure.com/anthropic/v1/messages"), "https://r.services.ai.azure.com/anthropic/v1/messages");
 });

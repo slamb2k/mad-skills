@@ -32,6 +32,11 @@
  *   node scripts/run-evals.js --skill my-skill     # Run evals for one skill
  *   node scripts/run-evals.js --update-snapshots   # Update snapshot files
  *   node scripts/run-evals.js --concurrency 3      # Parallel test runs
+ *   node scripts/run-evals.js --judge-model <id>   # Model for semantic assertions
+ *
+ * ANTHROPIC_BASE_URL points the Anthropic backend at a compatible endpoint
+ * (e.g. an Azure AI Foundry /anthropic URL); either the base or the full
+ * /v1/messages URL works.
  */
 
 import { readdir, readFile, writeFile, access, mkdir } from "node:fs/promises";
@@ -39,7 +44,7 @@ import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { loadReferencedFiles } from "./lib/eval-references.js";
-import { parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./lib/eval-response.js";
+import { anthropicMessagesUrl, parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./lib/eval-response.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..");
@@ -52,6 +57,7 @@ const { values: args } = parseArgs({
     "update-snapshots": { type: "boolean", default: false },
     concurrency: { type: "string", default: "2" },
     model: { type: "string", default: "claude-sonnet-4-20250514" },
+    "judge-model": { type: "string", default: "claude-sonnet-4-20250514" },
     verbose: { type: "boolean", short: "v", default: false },
   },
   strict: true,
@@ -89,7 +95,7 @@ async function callClaude(systemPrompt, userMessage, model = args.model) {
     return callOpenRouter(systemPrompt, userMessage, model);
   }
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  const response = await fetch(anthropicMessagesUrl(process.env.ANTHROPIC_BASE_URL), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -186,7 +192,7 @@ Respond with ONLY a JSON object: {"pass": true/false, "reasoning": "brief explan
         const { text: judgement } = await callClaude(
           "You are a precise evaluator. Respond only with valid JSON.",
           judgePrompt,
-          "claude-sonnet-4-20250514" // Always use Sonnet for judging (cost efficiency)
+          args["judge-model"]
         );
         const parsed = parseJudgement(judgement);
         if (!parsed) throw new Error(`no verdict in judge reply: ${judgement.slice(0, 80)}`);

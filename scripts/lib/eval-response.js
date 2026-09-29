@@ -1,8 +1,13 @@
 /**
- * Pure response-shape parsers for the two eval backends, split out from the
- * fetch calls so truncation detection (stop_reason/finish_reason) is
- * unit-testable without mocking network I/O.
+ * Pure request/response-shape helpers for the two eval backends, split out
+ * from the fetch calls so they are unit-testable without mocking network I/O.
  */
+
+/** Messages endpoint for an Anthropic-compatible base URL (base or full URL). */
+export function anthropicMessagesUrl(baseUrl) {
+  const base = (baseUrl || "https://api.anthropic.com").replace(/\/+$/, "").replace(/\/v1\/messages$/, "");
+  return `${base}/v1/messages`;
+}
 
 export function parseAnthropicResponse(data) {
   return {
