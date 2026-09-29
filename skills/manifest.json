@@ -1,11 +1,11 @@
 {
-  "generated": "2026-09-28T13:53:40.660Z",
+  "generated": "2026-09-29T07:11:29.604Z",
   "count": 14,
   "skills": [
     {
       "name": "brace",
       "directory": "brace",
-      "description": "'Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project AGENTS.md with development workflow and guardrails (plus a CLAUDE.md that just points at it), .gitignore, and branch protection. Idempotent — safe to run on existing projects. Triggers: \"init project\", \"setup brace\", \"brace\", \"initialize\", \"bootstrap\", \"scaffold\".'",
+      "description": "Initialize any project directory with a standard scaffold for AI-assisted development. Creates specs/ and context/ directories, a project AGENTS.md with development workflow and guardrails (plus a CLAUDE.md that just points at it), .gitignore, and branch protection. Idempotent — safe to run on existing projects. Triggers: \"init project\", \"setup brace\", \"brace\", \"initialize\", \"bootstrap\", \"scaffold\".",
       "lines": 433,
       "hasScripts": false,
       "hasReferences": true,
@@ -35,7 +35,7 @@
     {
       "name": "dock",
       "directory": "dock",
-      "description": ">- Generate container-based release pipelines that build once and promote immutable artifacts through environments (dev → staging → prod). Detects your stack, interviews for infrastructure choices, then outputs deterministic CI/CD files (Dockerfile, workflows, deployment manifests) that run without an LLM. Use when setting up deployment pipelines, containerizing an app, creating release workflows, or connecting CI to container-friendly infrastructure (Azure Container Apps, AWS Fargate, Google Cloud Run, Kubernetes, Dokku, Coolify, CapRover, etc.).",
+      "description": "Generate container-based release pipelines that build once and promote immutable artifacts through environments (dev → staging → prod). Detects your stack, interviews for infrastructure choices, then outputs deterministic CI/CD files (Dockerfile, workflows, deployment manifests) that run without an LLM. Use when setting up deployment pipelines, containerizing an app, creating release workflows, or connecting CI to container-friendly infrastructure (Azure Container Apps, AWS Fargate, Google Cloud Run, Kubernetes, Dokku, Coolify, CapRover, etc.).",
       "lines": 468,
       "hasScripts": false,
       "hasReferences": true,
@@ -55,7 +55,7 @@
     {
       "name": "hoist",
       "directory": "hoist",
-      "description": ">- Generate secure, low-infrastructure release pipelines that publish artifacts directly — language packages (npm, PyPI, crates, RubyGems, NuGet, Go), GitHub Releases with binaries, static sites/Pages, or serverless functions — without building a container image. OIDC/trusted publishing, provenance, idempotent publish guards, and three trigger models (auto-bump with optional approval, tag, manual). The non-container sibling of /dock. Use when releasing a package or app that doesn't ship as a container.",
+      "description": "Generate secure, low-infrastructure release pipelines that publish artifacts directly — language packages (npm, PyPI, crates, RubyGems, NuGet, Go), GitHub Releases with binaries, static sites/Pages, or serverless functions — without building a container image. OIDC/trusted publishing, provenance, idempotent publish guards, and three trigger models (auto-bump with optional approval, tag, manual). The non-container sibling of /dock. Use when releasing a package or app that doesn't ship as a container.",
       "lines": 101,
       "hasScripts": false,
       "hasReferences": true,
@@ -65,7 +65,7 @@
     {
       "name": "keel",
       "directory": "keel",
-      "description": ">- Generate Infrastructure as Code (IaC) pipelines that provision the cloud and container infrastructure your app deploys to. Interview-driven: detects your stack and cloud provider, then outputs deterministic IaC files (Terraform, Bicep, Pulumi, or CDK) plus CI/CD pipelines that plan on PR and apply on merge. Use when setting up cloud infrastructure, provisioning container registries, databases, networking, DNS, or any infrastructure that containers deploy onto. Designed to run before /dock — /keel lays the infrastructure, /dock deploys to it.",
+      "description": "Generate Infrastructure as Code (IaC) pipelines that provision the cloud and container infrastructure your app deploys to. Interview-driven: detects your stack and cloud provider, then outputs deterministic IaC files (Terraform, Bicep, Pulumi, or CDK) plus CI/CD pipelines that plan on PR and apply on merge. Use when setting up cloud infrastructure, provisioning container registries, databases, networking, DNS, or any infrastructure that containers deploy onto. Designed to run before /dock — /keel lays the infrastructure, /dock deploys to it.",
       "lines": 431,
       "hasScripts": false,
       "hasReferences": true,
@@ -75,7 +75,7 @@
     {
       "name": "logbook",
       "directory": "logbook",
-      "description": ">- The project's single \"what's on deck\" surface — one command, two sections. Shows the best-practice lifecycle stages this project should adopt next (computed from repo state, via the recommendation engine) AND the durable backlog of follow-ups (ideas, deferred fixes, open questions, risks, tech debt) captured at /build and /ship so they survive /clear. Lists both, and resolves, dismisses, adds, or reviews follow-ups. Use when you want to see or act on everything outstanding. Triggers: \"what's next\", \"next steps\", \"/logbook\", \"what's on deck\", \"follow-ups\", \"the backlog\", \"what did we defer\", \"lifecycle steps\", \"what should I do next\".",
+      "description": "The project's single \"what's on deck\" surface — one command, two sections. Shows the best-practice lifecycle stages this project should adopt next (computed from repo state, via the recommendation engine) AND the durable backlog of follow-ups (ideas, deferred fixes, open questions, risks, tech debt) captured at /build and /ship so they survive /clear. Lists both, and resolves, dismisses, adds, or reviews follow-ups. Use when you want to see or act on everything outstanding. Triggers: \"what's next\", \"next steps\", \"/logbook\", \"what's on deck\", \"follow-ups\", \"the backlog\", \"what did we defer\", \"lifecycle steps\", \"what should I do next\".",
       "lines": 291,
       "hasScripts": false,
       "hasReferences": false,
@@ -85,7 +85,7 @@
     {
       "name": "prime",
       "directory": "prime",
-      "description": "\"Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans AGENTS.md (plus CLAUDE.md when it holds more than an @AGENTS.md import), README, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding.\"",
+      "description": "Load project context before implementing features or making architectural decisions. Invoke proactively at the start of significant work on any project. Scans AGENTS.md (plus CLAUDE.md when it holds more than an @AGENTS.md import), README, specs/, docs/, and source structure to build a context summary. Supports optional domain hints to focus on specific areas of the codebase. Use when you need project conventions, architecture understanding, or domain context before coding.",
       "lines": 170,
       "hasScripts": false,
       "hasReferences": true,
@@ -95,7 +95,7 @@
     {
       "name": "rig",
       "directory": "rig",
-      "description": "'Idempotently bootstrap any repository with standard development tools, hooks, and workflows. Use when starting work on a new repo, onboarding to an existing project, or ensuring a repo has proper CI/CD setup. Configures: git hooks (lefthook) including a secret-scan pre-commit check for accidentally staged credentials/API keys, commit message templates, PR templates, and GitHub Actions for lint/format/type-check/build. Prompts for user confirmation before changes. Triggers: \"bootstrap repo\", \"setup hooks\", \"configure CI\", \"rig\", \"standardize repo\", \"scan for secrets\", \"prevent committing credentials\".'",
+      "description": "Idempotently bootstrap any repository with standard development tools, hooks, and workflows. Use when starting work on a new repo, onboarding to an existing project, or ensuring a repo has proper CI/CD setup. Configures: git hooks (lefthook) including a secret-scan pre-commit check for accidentally staged credentials/API keys, commit message templates, PR templates, and GitHub Actions for lint/format/type-check/build. Prompts for user confirmation before changes. Triggers: \"bootstrap repo\", \"setup hooks\", \"configure CI\", \"rig\", \"standardize repo\", \"scan for secrets\", \"prevent committing credentials\".",
       "lines": 390,
       "hasScripts": false,
       "hasReferences": true,
@@ -105,7 +105,7 @@
     {
       "name": "ship",
       "directory": "ship",
-      "description": "\"Ship changes through the full PR lifecycle. Use after completing feature work to commit, push, create PR, wait for checks, and merge. Handles the entire workflow: syncs with main, creates feature branch if needed, groups commits logically with semantic messages, creates detailed PR, monitors CI, fixes issues, squash merges, and cleans up. Invoke when work is ready to ship.\"",
+      "description": "Ship changes through the full PR lifecycle. Use after completing feature work to commit, push, create PR, wait for checks, and merge. Handles the entire workflow: syncs with main, creates feature branch if needed, groups commits logically with semantic messages, creates detailed PR, monitors CI, fixes issues, squash merges, and cleans up. Invoke when work is ready to ship.",
       "lines": 595,
       "hasScripts": true,
       "hasReferences": true,

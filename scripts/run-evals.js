@@ -140,13 +140,15 @@ async function callOpenRouter(systemPrompt, userMessage, model) {
 
 async function checkAssertion(assertion, output) {
   switch (assertion.type) {
-    case "contains":
+    case "contains": {
+      const found = output.includes(assertion.value);
       return {
-        pass: output.includes(assertion.value),
-        detail: assertion.pass
+        pass: found,
+        detail: found
           ? `Contains "${assertion.value}"`
           : `Missing "${assertion.value}"`,
       };
+    }
 
     case "not_contains":
       return {
