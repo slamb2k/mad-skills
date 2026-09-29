@@ -402,7 +402,9 @@ call returns `null` and the caller keeps its original heuristic. Thresholds are
 calibrated against the pinned model (`jev-1.13.0`); re-check them before bumping it.
 
 Current consumers: logbook capture dedupe and the `/logbook review` "likely
-done" match (`hooks/lib/logbook.cjs`).
+done" match (`hooks/lib/logbook.cjs`), and the session-start staleness warning,
+which is suppressed when the actual changes since AGENTS.md was last committed
+are judged immaterial (`hooks/lib/staleness.cjs`, cached per HEAD + content).
 
 ## Memory
 

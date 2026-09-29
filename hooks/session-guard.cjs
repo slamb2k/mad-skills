@@ -26,7 +26,7 @@ const { OutputBuilder } = require('./lib/output.cjs');
 const { getBanner } = require('./lib/banner.cjs');
 const { checkGit } = require('./lib/git-checks.cjs');
 const { checkTaskList } = require('./lib/task-checks.cjs');
-const { checkStaleness } = require('./lib/staleness.cjs');
+const { checkStaleness, judgeStaleness } = require('./lib/staleness.cjs');
 const { git } = require('./lib/utils.cjs');
 const lifecycle = require('./lib/lifecycle.cjs');
 const ledger = require('./lib/logbook.cjs');
@@ -164,13 +164,18 @@ function checkBackground() {
   // to be checked out.
   checkLogbookDirty(gitRoot, output);
 
-  // 5) Staleness summary
-  if (output.score >= config.staleness.threshold) {
+  // 5) Staleness summary — heuristic score, optionally gated by a semantic
+  // "does anything actually need updating?" judgment (null when disabled).
+  const overThreshold = output.score >= config.staleness.threshold;
+  const materialP = overThreshold ? judgeStaleness(PROJECT_DIR, INSTRUCTIONS_MD, output.signals) : null;
+  const judgedFine = materialP !== null && materialP < config.staleness.judgedSuppressBelow;
+  if (overThreshold && !judgedFine) {
     output.blank();
     output.add(`[SESSION GUARD] \u26A0\uFE0F  ${INSTRUCTIONS_NAME} appears STALE (score: ${output.score}/${config.staleness.threshold})`);
     output.blank();
     output.add('Signals:');
     output.signals.forEach(sig => output.add(`  ${sig}`));
+    if (materialP !== null) output.add(`  Semantic check: P(update needed) = ${materialP.toFixed(2)}`);
     output.addQuestion(
       `${INSTRUCTIONS_NAME} appears out of date (${output.signals.length} signals detected). What would you like to do?`,
       'single_select',
@@ -178,7 +183,10 @@ function checkBackground() {
     );
   } else if (output.signals.length > 0) {
     output.blank();
-    output.add(`[SESSION GUARD] \u2139\uFE0F  Minor drift (score: ${output.score}/${config.staleness.threshold}) \u2014 not flagging:`);
+    const why = judgedFine
+      ? `semantic check found nothing material, P(update needed) = ${materialP.toFixed(2)}`
+      : `score: ${output.score}/${config.staleness.threshold}`;
+    output.add(`[SESSION GUARD] \u2139\uFE0F  Minor drift (${why}) \u2014 not flagging:`);
     output.signals.forEach(sig => output.add(`  ${sig}`));
   }
 

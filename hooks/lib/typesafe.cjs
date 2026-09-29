@@ -53,7 +53,8 @@ async function judge(state, questions, opts = {}) {
 async function request(state, questions, opts, env) {
   const body = JSON.stringify({ model: opts.model || MODEL, state, questions });
   const url = `${env.TYPESAFE_BASE_URL || BASE_URL}/v1/systemone`;
-  for (let attempt = 0; attempt < 2; attempt++) {
+  const attempts = 1 + (opts.retries ?? 1);
+  for (let attempt = 0; attempt < attempts; attempt++) {
     try {
       const res = await fetch(url, {
         method: 'POST',
@@ -64,9 +65,9 @@ async function request(state, questions, opts, env) {
       if (res.ok) return (await res.json()).answers || null;
       if (!RETRY_STATUSES.has(res.status)) return null;
     } catch {
-      // network error / timeout — fall through to one retry
+      // network error / timeout — fall through to the next attempt
     }
-    await new Promise((r) => setTimeout(r, 500));
+    if (attempt + 1 < attempts) await new Promise((r) => setTimeout(r, 500));
   }
   return null;
 }
@@ -87,9 +88,9 @@ function judgeAllSync(batches, opts = {}) {
   if (!batches.length) return [];
   try {
     const out = execFileSync(process.execPath, [__filename], {
-      input: JSON.stringify({ batches, opts: { model: opts.model, timeoutMs: opts.timeoutMs, chunk: opts.chunk, force: true } }),
+      input: JSON.stringify({ batches, opts: { model: opts.model, timeoutMs: opts.timeoutMs, chunk: opts.chunk, retries: opts.retries, force: true } }),
       env,
-      timeout: 2 * (opts.timeoutMs || TIMEOUT_MS) + 2000,
+      timeout: (1 + (opts.retries ?? 1)) * ((opts.timeoutMs || TIMEOUT_MS) + 500) + 1000,
       stdio: ['pipe', 'pipe', 'ignore'],
     });
     const parsed = JSON.parse(String(out));
