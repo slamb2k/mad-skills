@@ -20,6 +20,7 @@
 ## Tech debt
 
 ## Archive
+- [x] ship SKILL.md Stage 5b worktree-mode paragraph is dense — reviewer initially misparsed it as removal-conditional; consider a clarity pass — /build debrief (worktree-aware-sync, PR #120) (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] Build worktree-aware /sync (specs/worktree-aware-sync.md): checkout-failure bugfix + worktree mode + session return — queued behind orchestrator-ready build — manual (2026-07-21) <!-- link:spec:specs/worktree-aware-sync.md resolved:2026-07-21 -->
 - [x] ci-watch.sh declares all_passed while checks are in_progress or not yet registered (saw grace_period_polls=1 pass with GitGuardian in_progress and Validate & Lint unregistered after a branch update) — should treat in_progress as pending and wait for required checks to register — /ship #118 (2026-07-21) <!-- resolved:2026-07-21 -->
 - [x] merge.sh should handle mergeStateStatus=BEHIND by running gh pr update-branch and re-watching CI — the release bot moves main after every merge, so every second /ship in a session hits this and fails the first merge attempt — /ship #118 (2026-07-21) <!-- resolved:2026-07-21 -->
