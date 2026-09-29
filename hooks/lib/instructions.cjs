@@ -17,11 +17,11 @@ const AGENTS_NAME = 'AGENTS.md';
 const CLAUDE_NAME = 'CLAUDE.md';
 const POINTER_CONTENT = '@AGENTS.md\n';
 
-// A line "references" AGENTS.md if it is an @import, a markdown link, or
-// prose that names the file. Headings and blank lines are ignored.
-function isReferenceLine(line) {
-  return /AGENTS\.md/.test(line);
-}
+// Claude Code only loads AGENTS.md through an `@AGENTS.md` import, on its own
+// line or inline in prose. A markdown link or a sentence naming the file loads
+// nothing, and imports inside code spans or fenced code blocks are not
+// evaluated — so none of those count as pointing at AGENTS.md.
+const IMPORT = /(^|\s)@(\.\/)?AGENTS\.md(?=$|[\s.,;:)])/;
 
 function isHeadingLine(line) {
   return /^#{1,6}\s/.test(line);
@@ -31,17 +31,38 @@ function stripComments(content) {
   return content.replace(/<!--[\s\S]*?-->/g, '');
 }
 
-// True when CLAUDE.md holds nothing beyond a reference to AGENTS.md.
-function isPointerOnly(content) {
-  const lines = stripComments(content).split('\n').map(l => l.trim()).filter(Boolean);
-  if (!lines.some(isReferenceLine)) return false;
-  return lines.every(l => isReferenceLine(l) || isHeadingLine(l));
+// Non-blank lines (comments stripped), each flagged when it imports AGENTS.md.
+function classifyLines(content) {
+  const out = [];
+  let fence = null;
+  for (const raw of stripComments(content).split('\n')) {
+    const line = raw.trim();
+    const marker = line.match(/^(```|~~~)/);
+    if (marker) {
+      fence = fence === marker[1] ? null : fence || marker[1];
+      out.push({ line, isImport: false });
+      continue;
+    }
+    if (!line) continue;
+    out.push({ line, isImport: !fence && IMPORT.test(line.replace(/`[^`]*`/g, '')) });
+  }
+  return out;
 }
 
-// True when the file has any substantive (non-blank, non-heading, non-reference) content.
+function importsAgents(content) {
+  return classifyLines(content).some(l => l.isImport);
+}
+
+// True when CLAUDE.md holds nothing beyond an @AGENTS.md import (and headings).
+function isPointerOnly(content) {
+  const lines = classifyLines(content);
+  if (!lines.some(l => l.isImport)) return false;
+  return lines.every(l => l.isImport || isHeadingLine(l.line));
+}
+
+// True when the file has any substantive (non-blank, non-heading, non-import) content.
 function hasOwnContent(content) {
-  const lines = stripComments(content).split('\n').map(l => l.trim()).filter(Boolean);
-  return lines.some(l => !isReferenceLine(l) && !isHeadingLine(l));
+  return classifyLines(content).some(l => !l.isImport && !isHeadingLine(l.line));
 }
 
 function resolveInstructions(projectDir) {
@@ -56,7 +77,7 @@ function resolveInstructions(projectDir) {
   }
   const claudeIsPointer = hasClaude && isPointerOnly(claudeContent);
   const claudeHasContent = hasClaude && hasOwnContent(claudeContent);
-  const claudeReferencesAgents = hasClaude && /AGENTS\.md/.test(claudeContent);
+  const claudeImportsAgents = hasClaude && importsAgents(claudeContent);
 
   const primary = hasAgents ? agentsPath : hasClaude ? claudePath : null;
 
@@ -67,14 +88,14 @@ function resolveInstructions(projectDir) {
     hasClaude,
     claudeIsPointer,
     claudeHasContent,
-    claudeReferencesAgents,
+    claudeImportsAgents,
     primary,
     primaryName: primary ? basename(primary) : null,
     // Legacy CLAUDE.md: has content and does not import AGENTS.md. Extra notes
     // under an @AGENTS.md import are intentional Claude-only steering.
-    needsMigration: hasClaude && claudeHasContent && !claudeReferencesAgents,
+    needsMigration: hasClaude && claudeHasContent && !claudeImportsAgents,
     // AGENTS.md exists but CLAUDE.md does not point at it.
-    needsPointer: hasAgents && !claudeReferencesAgents,
+    needsPointer: hasAgents && !claudeImportsAgents,
   };
 }
 
@@ -82,6 +103,7 @@ module.exports = {
   AGENTS_NAME,
   CLAUDE_NAME,
   POINTER_CONTENT,
+  importsAgents,
   isPointerOnly,
   hasOwnContent,
   resolveInstructions,

@@ -41,9 +41,11 @@ Rules:
 4. **Neither exists** → create `AGENTS.md` from the template and write the
    `CLAUDE.md` pointer.
 
-"Has content" means any non-blank line that is not a markdown heading, an
-HTML comment, or a line mentioning `AGENTS.md`. "Imports AGENTS.md" means any
-line mentions `AGENTS.md`, normally `@AGENTS.md`.
+"Imports AGENTS.md" means an `@AGENTS.md` (or `@./AGENTS.md`) import, on its
+own line or inline in prose, outside code spans and fenced code blocks. A
+markdown link or a sentence that only names `AGENTS.md` does not count: Claude
+Code loads nothing from it. "Has content" means any non-blank line that is not
+a markdown heading, an HTML comment, or a line carrying that import.
 
 Claude-only notes belong under the import in `CLAUDE.md`, not in `AGENTS.md`,
 so other tools never see Claude-specific steering.
