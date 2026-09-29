@@ -24,6 +24,17 @@ export function parseOpenRouterResponse(data) {
 }
 
 /**
+ * An eval output with no text can't be graded; report why instead of letting
+ * every assertion fail against an empty string. Returns a message or null.
+ */
+export function emptyOutputError(text, truncated) {
+  if (text.trim()) return null;
+  return truncated
+    ? "No text output: max_tokens was exhausted before any answer (likely by extended thinking)"
+    : "Model returned an empty text output";
+}
+
+/**
  * Extract the semantic judge's {pass, reasoning} verdict from free text,
  * whatever it is wrapped in (code fences, a stray language tag, prose).
  * Returns null when no boolean verdict can be found.

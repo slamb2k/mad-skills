@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { anthropicMessagesUrl, parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./eval-response.js";
+import { anthropicMessagesUrl, emptyOutputError, parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./eval-response.js";
 
 test("parseAnthropicResponse joins text blocks and flags stop_reason=max_tokens as truncated", () => {
   const result = parseAnthropicResponse({
@@ -69,4 +69,19 @@ test("anthropicMessagesUrl defaults to the Anthropic API", () => {
 test("anthropicMessagesUrl accepts a base URL or a full messages URL", () => {
   assert.equal(anthropicMessagesUrl("https://r.services.ai.azure.com/anthropic/"), "https://r.services.ai.azure.com/anthropic/v1/messages");
   assert.equal(anthropicMessagesUrl("https://r.services.ai.azure.com/anthropic/v1/messages"), "https://r.services.ai.azure.com/anthropic/v1/messages");
+});
+
+test("emptyOutputError is null when there is text", () => {
+  assert.equal(emptyOutputError("answer", true), null);
+});
+
+test("emptyOutputError explains a thinking-exhausted budget vs a plain empty reply", () => {
+  assert.match(emptyOutputError("  \n", true), /max_tokens was exhausted/);
+  assert.match(emptyOutputError("", false), /empty text output/);
+});
+
+test("parseAnthropicResponse ignores thinking blocks", () => {
+  const r = parseAnthropicResponse({ content: [{ type: "thinking", thinking: "…" }], stop_reason: "max_tokens" });
+  assert.equal(r.text, "");
+  assert.equal(emptyOutputError(r.text, r.truncated) !== null, true);
 });

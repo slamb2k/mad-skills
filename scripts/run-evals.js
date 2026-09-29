@@ -44,7 +44,7 @@ import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { loadReferencedFiles } from "./lib/eval-references.js";
-import { anthropicMessagesUrl, parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./lib/eval-response.js";
+import { anthropicMessagesUrl, emptyOutputError, parseAnthropicResponse, parseOpenRouterResponse, parseJudgement } from "./lib/eval-response.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..");
@@ -62,6 +62,10 @@ const { values: args } = parseArgs({
   },
   strict: true,
 });
+
+// Headroom for extended thinking: models that think by default (e.g. Claude
+// Opus 5.5) spent the whole 16k budget thinking and returned no text.
+const MAX_OUTPUT_TOKENS = 32768;
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -104,7 +108,7 @@ async function callClaude(systemPrompt, userMessage, model = args.model) {
     },
     body: JSON.stringify({
       model,
-      max_tokens: 16384,
+      max_tokens: MAX_OUTPUT_TOKENS,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
     }),
@@ -128,7 +132,7 @@ async function callOpenRouter(systemPrompt, userMessage, model) {
     },
     body: JSON.stringify({
       model: orModel,
-      max_tokens: 16384,
+      max_tokens: MAX_OUTPUT_TOKENS,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
@@ -242,6 +246,8 @@ Follow the skill's instructions to complete the user's request. Be thorough and 
 
   try {
     const { text: output, truncated } = await callClaude(systemPrompt, evalCase.prompt);
+    const empty = emptyOutputError(output, truncated);
+    if (empty) throw new Error(empty);
     const duration = Date.now() - startTime;
 
     const assertionResults = [];
