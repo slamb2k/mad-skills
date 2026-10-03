@@ -19,7 +19,7 @@ A skill framework for Claude Code. Ships 14 skills covering the full development
 | `/dock` | Generate container release pipelines. Build once, promote immutable images dev → staging → prod. Azure Container Apps, AWS Fargate, Cloud Run, Kubernetes, Dokku, Coolify, CapRover. | `--registry-only` `--skip-interview` `--dry-run` |
 | `/hoist` | Generate low-infrastructure release pipelines that publish directly: npm, PyPI, crates, RubyGems, NuGet, Go, GitHub Releases, static sites, serverless. OIDC/trusted publishing. The non-container sibling of `/dock`. | `--skip-interview` `--dry-run` `--registry <name>` |
 | `/distil` | Generate N unique web design variations in a Vite + React + TypeScript + Tailwind project, served at `/1`, `/2`, `/3`. | `<count>` `--port <port>` `--spec <path>` `--favorites <1,2,3>` |
-| `/ferry` | Hand a session's live state across a context reset. Writes a waybill and signals the next fresh session to resume from it. | `repo` \| `tmp` \| `commit` (target, default `repo`) |
+| `/ferry` | Hand a session's live state across a context reset. Writes a waybill (outside the repo by default) and arms a one-shot handoff so the next fresh session resumes from it; `clean` removes leftover waybills. | `here` \| `commit` \| `clean` (default: out-of-tree waybill) |
 | `/logbook` | "What's on deck": computed best-practice lifecycle steps plus your committed follow-ups backlog in `LOGBOOK.md`. | `review` \| `archive` \| `resolve <n>` \| `dismiss <n>` \| `restore a<n>` \| `add <text>` |
 | `/wright` | Update installed Claude Code marketplace plugins from inside a session, all of them or one by fuzzy name. | `<plugin-name>` `--dry-run` |
 
@@ -62,7 +62,7 @@ For a step-by-step tour of a Node.js app going from an empty folder to a deploye
 |-------|--------------|-------------|
 | `/brace` | `AGENTS.md` (+ `CLAUDE.md` pointer), project skeleton | All other skills |
 | `/rig` | `.github/workflows/ci.yml` or `azure-pipelines.yml`, `lefthook.yml`, `.gitmessage`, PR template | `/ship` (CI checks) |
-| `/speccy` | `specs/<feature>.md` + pending-build marker | `/build` |
+| `/speccy` | `specs/<feature>.md` + build handoff | `/build` |
 | `/build` | Branch, worktree, draft PR, feature code, tests, `LOGBOOK.md` follow-ups | `/ship` |
 | `/ship` | Commits, PR, merged code | CI pipeline, `/dock` triggers |
 | `/keel` | `infra/` (IaC), `infra.yml` workflow | `/dock` (infrastructure outputs) |
@@ -71,7 +71,7 @@ For a step-by-step tour of a Node.js app going from an empty folder to a deploye
 | `/sync` | Clean working tree | Any skill (pre-work) |
 | `/prime` | Domain context in memory | `/build`, `/speccy` |
 | `/distil` | Multiple web design variations | `/build` (chosen design) |
-| `/ferry` | `waybill.md` (session state) | A fresh session (resume) |
+| `/ferry` | waybill (session state, stored under `~/.claude/session-guard/handoff`) | A fresh session (resume) |
 | `/logbook` | `LOGBOOK.md` (follow-ups backlog) | You (review/resolve) |
 | `/wright` | Updated plugin installs | You |
 
@@ -84,7 +84,7 @@ With the plugin installed, a session-guard hook runs at session start and before
 - **Task list and branch state** — surfaced before your first prompt.
 - **Lifecycle recommendation** — a `🧭 lifecycle-next` hint computed from repo state (for example, "run `/rig`: no hooks or CI detected"). Dismissible and rate-limited; `/logbook` shows the full picture on demand.
 - **Follow-ups** — an open-item count from `LOGBOOK.md`, and a warning if the ledger has uncommitted changes.
-- **Ferry waybill** — after `/clear` or a compaction, a pending `/ferry` waybill is auto-loaded so the new session resumes where the last one stopped.
+- **Ferry waybill** — after `/clear` or a compaction, a pending handoff (`/ferry` waybill or `/speccy` build) is injected once so the new session resumes where the last one stopped; waybills ferry created are cleaned up automatically.
 
 ## Platform Support
 

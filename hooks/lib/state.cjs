@@ -130,33 +130,22 @@ function savePrefs(projectDir, prefs) {
   writeFileSync(prefsPath(projectDir), JSON.stringify(prefs, null, 2));
 }
 
-// ─── pending build marker ─────────────────────────────────────────────
-
-function pendingBuildPath(projectDir) {
-  return join(STATE_DIR, `${projectKey(projectDir)}-pending-build.json`);
-}
+// ─── pending build marker (deprecated shims over handoff.cjs) ──────────
+// handoff.cjs is required lazily to keep module load free of cycles.
 
 function savePendingBuild(projectDir, specPath) {
-  ensureDir();
-  writeFileSync(pendingBuildPath(projectDir), JSON.stringify({
-    specPath,
-    projectDir,
-    timestamp: Date.now(),
-  }, null, 2));
+  require('./handoff.cjs').arm({ kind: 'build', spec: specPath, dir: projectDir, source: 'speccy' });
 }
 
 function loadPendingBuild(projectDir) {
-  const path = pendingBuildPath(projectDir);
-  if (!existsSync(path)) return null;
-  try {
-    return JSON.parse(readFileSync(path, 'utf-8'));
-  } catch {
-    return null;
-  }
+  const handoff = require('./handoff.cjs');
+  const slot = handoff.peek(projectDir).build;
+  const spec = slot && handoff.specArtifact(slot);
+  return spec ? { specPath: spec.path, projectDir, timestamp: slot.createdAt } : null;
 }
 
 function clearPendingBuild(projectDir) {
-  try { unlinkSync(pendingBuildPath(projectDir)); } catch { /* noop */ }
+  require('./handoff.cjs').clear({ kind: 'build', dir: projectDir });
 }
 
 module.exports = { save, saveInProgress, load, clear, isRecentlyChecked, waitForReady, loadPrefs, savePrefs, savePendingBuild, loadPendingBuild, clearPendingBuild };

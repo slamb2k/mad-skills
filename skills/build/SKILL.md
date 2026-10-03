@@ -163,10 +163,12 @@ For each row, in order:
 4. After all checks: summarize what's available and what's degraded
 
 1. Capture **PLAN** (the user's argument) and **FLAGS**
-2. **Clear pending-build marker** — if a marker was left by `/speccy`, clear it:
+2. **Clear pending build handoff** — if a build handoff was left by `/speccy`
+   or `/build --handoff`, clear it (keys are repo-wide, so this works from the
+   worktree too):
    ```bash
    PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
-   node -e "require('$PLUGIN_ROOT/hooks/lib/state.cjs').clearPendingBuild(process.cwd())"
+   node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-clear --kind build
    ```
 3. **Load project context** — invoke `/prime` to load domain-specific context
    (project instructions, specs, memory). If /prime is unavailable, fall back to
@@ -395,8 +397,20 @@ Task(
 ## Stage 9: Ship-Readiness Decision
 
 Reached once Stage 7 confirms every `## Definition of Done` item verified.
-Invoke `/ferry` to checkpoint before proceeding (GUD-004,
-`references/autonomous-pipeline.md`).
+Silently checkpoint before proceeding (GUD-004,
+`references/autonomous-pipeline.md`): write a brief checkpoint waybill (status,
+what remains, next action) to the path printed by
+`node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-path --kind checkpoint`
+(distinct from `/ferry`'s path, so a waiting ferry waybill is never overwritten), then arm it with
+`node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-arm --kind waybill --source auto-checkpoint --waybill "<that path>"`.
+Never instruct the user to `/clear` here. If a `/ferry` waybill is already
+waiting, arm prints `kept existing ferry waybill; auto-checkpoint skipped` and
+leaves it alone (exit 0).
+
+Once this stage finishes — `/ship` returned, or the user chose "Finish here" —
+retire the checkpoint so it is not replayed into an unrelated session:
+`node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-clear --kind waybill --source auto-checkpoint`
+(`--source` makes this a no-op for a `/ferry` waybill).
 
 Undraft the PR (mark ready for review) and push final state. Then branch on
 the spec's `completion_mode` frontmatter field (REQ-009, REQ-011):
@@ -587,3 +601,6 @@ If implementation succeeds but later stages fail:
 - Review critical: user decides fix or proceed
 - Ship fails: code is still committed locally; user can manually push
 - Never silently revert completed implementation work
+- Any path above that ends the run (failure, user abort) also runs
+  `handoff-clear --kind waybill --source auto-checkpoint` so a stale
+  auto-checkpoint is not replayed

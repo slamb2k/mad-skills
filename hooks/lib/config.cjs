@@ -58,4 +58,6 @@ module.exports = {
   pythonFiles: ['pyproject.toml', 'requirements.txt', 'setup.py'],
 
   taskList: { minCommits: 20, minFiles: 30 },
+
+  handoff: { expiryDays: 14 },
 };

@@ -256,18 +256,26 @@ exercised now — mark the queue behavior as a designed-for-later hook.
 
 ---
 
-## Checkpointing — automatic `/ferry` (GUD-004)
+## Checkpointing — silent auto-checkpoint (GUD-004)
 
-At major stage boundaries, the orchestrator automatically invokes `/ferry` to
-write a waybill and checkpoint context — always automatic, since `/build` has
-no other mode to offer a conditional prompt in. With no human present to judge
-"is context large enough to warrant this," automatic is the safer default
-(AC-009 (autonomous-execution-mode.md)). Wired at two concrete trigger points:
+At major stage boundaries, the orchestrator silently writes a brief checkpoint
+waybill (to the path from `session-guard.cjs handoff-path --kind checkpoint`) and arms it with
+`handoff-arm --kind waybill --source auto-checkpoint --waybill <path>`. It never
+tells the user to `/clear` — the checkpoint is a safety net for an unexpected
+context reset, not a handoff request. Always automatic, since `/build` has
+no other mode to offer a conditional prompt in (AC-009
+(autonomous-execution-mode.md)). Wired at one trigger point:
 
-- **speccy → build:** `skills/speccy/SKILL.md`'s Output & Handoff section
-  invokes `/ferry` before handing off to `/build`.
-- **build → ship:** `skills/build/SKILL.md`'s Stage 9 invokes `/ferry`
+- **build → ship:** `skills/build/SKILL.md`'s Stage 9 arms the checkpoint
   before dispatching `/ship`.
+
+The checkpoint never displaces a pending `/ferry` waybill (arm keeps it and
+skips), and is retired with `handoff-clear --kind waybill --source auto-checkpoint`
+once Stage 9 completes (ship finished or "Finish here") and on any Rollback path
+that ends the run; `--source` leaves a `/ferry` waybill untouched.
+
+`/speccy` is no longer a trigger point: it arms its own build handoff
+(`handoff-arm --kind build --spec <spec>`) and does not involve `/ferry`.
 
 ---
 

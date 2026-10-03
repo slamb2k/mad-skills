@@ -20,7 +20,7 @@ pipeline **when it is absent**. Superpowers is a **soft/recommended dependency**
 (runtime-detected, like graphify) — never required.
 
 - `/speccy` uses `superpowers:brainstorming` for requirements exploration, but
-  still owns the `specs/*.md` artifact + pending-build marker.
+  still owns the `specs/*.md` artifact + build handoff.
 - `/build` keeps its explore stage, and its review and verify stages now
   dispatch unconditionally to the native `/code-review` + `/security-review`
   + `/verify` pipeline, but the plan/implement core still routes to
@@ -108,8 +108,9 @@ Skills call each other where it makes sense:
 - `/build` offers a hand-off execution mode that invokes `/ferry` — when the
   session is already context-heavy and the plan is self-contained, it writes a
   waybill and lets a clean session re-run the same `/build` (subagents underneath
-  either way). The plugin's SessionStart hook auto-loads the waybill after `/clear`
-- `/speccy` writes only the spec to `specs/` plus a pending-build marker — it
+  either way). It arms a build handoff; the plugin's SessionStart `handoff` hook
+  injects the waybill once after `/clear` and cleans up waybills it created
+- `/speccy` writes only the spec to `specs/` plus a build handoff — it
   creates no git state. `/build` reads the spec via file path detection (e.g.,
   `/build specs/user-auth.md`) and owns **find-or-create**: its first pre-flight
   action creates the branch/worktree/draft-PR for a fresh spec (commit-before-
@@ -245,7 +246,7 @@ mad-skills/
 │       └── *.test.js        # Unit tests for the above
 ├── hooks/                   # Session guard (Node.js)
 │   ├── hooks.json           # Plugin hook definitions
-│   ├── session-guard.cjs    # Entry point (check, remind, check-bg, logbook-hint, dismiss-*/lifecycle-* subcommands)
+│   ├── session-guard.cjs    # Entry point (check, remind, check-bg, logbook-hint, handoff, handoff-arm/clear/clean/path, dismiss-*/lifecycle-* subcommands)
 │   └── lib/                 # Modular components
 │       ├── banner.cjs       # ASCII banner rendering
 │       ├── config.cjs       # Configuration constants
@@ -256,6 +257,7 @@ mad-skills/
 │       ├── output.cjs       # Output formatting
 │       ├── session.cjs      # Hook input parsing + session ID resolution
 │       ├── staleness.cjs    # CLAUDE.md / AGENTS.md staleness detection
+│       ├── handoff.cjs      # Unified session handoff store (build + waybill slots, owned-artifact cleanup)
 │       ├── state.cjs        # Persistent state (dismissals)
 │       ├── superpowers-core.cjs # Superpowers detection/deferral core
 │       ├── task-checks.cjs  # Task list checks

@@ -72,7 +72,7 @@ Spec template and writing guidelines: `references/spec-template.md`
 
 Parse optional flags from the request:
 - `--no-superpowers`: Force the standalone interview even when Superpowers is installed
-- `--auto`: Run autonomously — run the interview and completeness-gated spec write via `references/autonomous-interview.md` in the plain working directory, then write the pending-build marker and stop. No git state is created (that is `/build`'s find-or-create job). Dispatch only; see Stage 1 and Stage 3 below.
+- `--auto`: Run autonomously — run the interview and completeness-gated spec write via `references/autonomous-interview.md` in the plain working directory, then arm the build handoff and stop. No git state is created (that is `/build`'s find-or-create job). Dispatch only; see Stage 1 and Stage 3 below.
 
 ## Pre-flight
 
@@ -93,7 +93,7 @@ For each row, in order:
 
 ## Stage 1: Context Gathering
 
-**No git state — spec + marker only (pr-first-autonomous-build.md REQ-012, superseding bundled-approval-handoff.md's REQ-001/REQ-002):** `/speccy` creates no worktree, branch, commit, or PR at any point, in **both** `--auto` and interactive modes. The interview and inference run in the plain invoking working directory; `/speccy` writes only the spec file and the pending-build marker, then stops. All git state — worktree, branch, commit, draft PR — is now created by `/build`'s find-or-create pre-flight the first time `/build {spec}` runs (see Output & Handoff, and `references/autonomous-worktree-lifecycle.md` repo root).
+**No git state — spec + build handoff only (pr-first-autonomous-build.md REQ-012, superseding bundled-approval-handoff.md's REQ-001/REQ-002):** `/speccy` creates no worktree, branch, commit, or PR at any point, in **both** `--auto` and interactive modes. The interview and inference run in the plain invoking working directory; `/speccy` writes only the spec file and arms the build handoff, then stops. All git state — worktree, branch, commit, draft PR — is now created by `/build`'s find-or-create pre-flight the first time `/build {spec}` runs (see Output & Handoff, and `references/autonomous-worktree-lifecycle.md` repo root).
 
 **If `--auto`:** read `skills/speccy/references/autonomous-interview.md` and follow it for the rest of this skill instead of the interactive flow below.
 
@@ -160,7 +160,7 @@ pre-flight check) and the `--no-superpowers` flag is not set, announce
 `⚡ Superpowers detected — deferring requirements interview to superpowers:brainstorming`
 and use `superpowers:brainstorming` for requirements/gap exploration in place of
 (or ahead of) the multi-round interview below. In ALL cases — deferred or
-standalone — speccy still writes `specs/{slug}.md` and the pending-build marker
+standalone — speccy still writes `specs/{slug}.md` and arms the build handoff
 (see `references/superpowers-deferral.md`). When Superpowers is absent or
 `--no-superpowers` is set, run the standalone interview unchanged.
 
@@ -241,9 +241,9 @@ Once the interview is complete and decisions are confirmed:
 
 ## Output & Handoff
 
-**If `--auto`:** invoke `/ferry` to checkpoint before handing off to `/build`
-(GUD-004) — see `skills/build/references/autonomous-pipeline.md`'s
-Checkpointing section.
+**If `--auto`:** arm the build handoff (below) only — do NOT invoke `/ferry` and
+do NOT tell the user to `/clear`. The handoff itself surfaces `/build {spec}` at
+the next session start.
 
 After the spec is created, report to the user:
 
@@ -272,10 +272,10 @@ After the spec is created, report to the user:
 └─────────────────────────────────────────────────
 ```
 
-**Handoff — spec + marker only (pr-first-autonomous-build.md REQ-012):** `/speccy`
+**Handoff — spec + build handoff only (pr-first-autonomous-build.md REQ-012):** `/speccy`
 creates **no git state** — no worktree, branch, commit, or PR. In **both**
 `--auto` and interactive modes it writes only the spec file (above) and the
-pending-build marker below, then stops. Worktree/branch/draft-PR creation is now
+build handoff below, then stops. Worktree/branch/draft-PR creation is now
 `/build`'s job, done as its find-or-create pre-flight the first time
 `/build {spec}` runs (see `references/autonomous-worktree-lifecycle.md`, repo
 root, "Creation — find-or-create" section). To pre-decide the ship-readiness
@@ -285,17 +285,17 @@ does not set it automatically.
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
-node -e "require('$PLUGIN_ROOT/hooks/lib/state.cjs').savePendingBuild(process.cwd(), '{spec file path}')"
+node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-arm --kind build --spec "{spec file path}"
 ```
 
-This marker is picked up by the session-guard hook on the next session start
-(including after `/clear`), which surfaces the build command automatically.
+The next session start (including after `/clear`) shows the pending build
+command, and `/logbook` lists it as the first "on deck" item.
 
 Then display the build command:
 
 ```
 ⚡ To implement, run: /build {spec file path}
-   (You can /clear first — the spec is saved and the next session will remind you)
+   (You can /clear first — the spec is saved; the next session start shows this command, and /logbook lists it)
 ```
 
 The spec file persists on disk, so the user can `/clear` the conversation

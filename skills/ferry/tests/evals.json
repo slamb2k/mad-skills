@@ -6,9 +6,9 @@
       "prompt": "/ferry",
       "expect_skill": "ferry",
       "assertions": [
-        "Writes a waybill document to waybill.md in the repo root by default",
-        "Arms the one-shot signal via scripts/ferry.sh signal with an absolute path",
-        "Tells the user to type /clear to start the fresh session themselves"
+        "Obtains the waybill path from `session-guard.cjs handoff-path` and writes the waybill there, outside the repo, rather than into the repo root",
+        "Arms the handoff via `session-guard.cjs handoff-arm --kind waybill --waybill <absolute path>` using an absolute path, and does not hand-write a provenance stamp",
+        "Prints the absolute waybill path and tells the user to type /clear to start the fresh session themselves"
       ]
     },
     {
@@ -26,9 +26,30 @@
       "prompt": "/ferry commit",
       "expect_skill": "ferry",
       "assertions": [
-        "Writes to docs/ferry/waybill-<timestamp>.md instead of the ignored repo-root file",
+        "Writes to docs/ferry/waybill-<timestamp>.md instead of the out-of-tree default location",
         "Does not add the file to .git/info/exclude",
+        "Arms the handoff with `--owned false` so the committed checkpoint is never auto-deleted",
         "Notes the user will want to commit the checkpoint"
+      ]
+    },
+    {
+      "name": "here variant",
+      "prompt": "/ferry here",
+      "expect_skill": "ferry",
+      "assertions": [
+        "Writes waybill.md in the repo root",
+        "Appends the line `waybill.md # mad-skills:ferry` to .git/info/exclude so cleanup can later remove exactly that line",
+        "Arms the handoff via `handoff-arm --kind waybill --waybill <absolute path>`"
+      ]
+    },
+    {
+      "name": "clean mode dry run first",
+      "prompt": "/ferry clean",
+      "expect_skill": "ferry",
+      "assertions": [
+        "Runs `session-guard.cjs handoff-clean` without --yes first (dry run) and shows the listed owned waybills to the user",
+        "Asks the user before re-running with --yes to delete",
+        "Does not use --legacy unless the user asks or confirms"
       ]
     }
   ]
