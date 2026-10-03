@@ -111,9 +111,16 @@ python3 "$SKILL_ROOT/skills/wright/scripts/update-plugins.py" [<query>] [--dry-r
 1. **Update (default).** Runs `claude plugin marketplace update` (every
    marketplace, or just the one marketplace for a single fuzzy-matched
    target), then `claude plugin update <id>` per target, and reports a
-   `PLUGIN / BEFORE / AFTER` table by diffing `claude plugin list` before and
-   after. The final line is
-   `WRIGHT_RESULT applied=true updated=<n> names=<comma-separated>`.
+   `PLUGIN / BEFORE / AFTER / STATUS` table by diffing `claude plugin list`
+   before and after. The final line is
+   `WRIGHT_RESULT applied=true updated=<n> names=<…> failed=<n> failed_names=<…> marketplaces_failed=<…>`.
+   **One failure never stops the run:**
+   - If the bulk refresh fails, each needed marketplace is refreshed on its own.
+   - Plugins whose marketplace still can't be refreshed are **skipped**.
+   - A plugin whose `claude plugin update` fails is recorded as **failed**.
+   - Every other plugin is still updated. The script exits `0` when everything
+     succeeded and `2` when the run was partial, and prints each failure with
+     its reason plus a retry hint for each unreachable marketplace.
 2. **Preview (`--dry-run`).** Resolves and lists the targets and their
    current versions without touching anything, ending with
    `WRIGHT_RESULT applied=false targets=<n>`.
@@ -151,29 +158,41 @@ changed from the `names=` list.
   refreshes the GCS-backed manifest their marketplace lives in.
 - Fuzzy match is exact-base → unique-substring → closest; an ambiguous or
   absent query stops with a clear message rather than guessing wrong.
-- No script-level unit tests: the engine's only real logic (the `pick()`
-  fuzzy matcher) is a thin wrapper over `difflib`, and everything else shells
-  out to the live `claude` CLI — mocking that subprocess boundary is a
-  bigger lift than the script itself. `tests/evals.json` covers the
-  skill-level behavior instead.
+- `scripts/update-plugins.test.js` runs the engine against a fake `claude`
+  CLI on `PATH` to cover the partial-failure paths (bad marketplace, failed
+  plugin update, bulk-only refresh failure, single target);
+  `tests/evals.json` covers the skill-level behavior.
 
 ## Report to User
 
 ```
 ┌─ Wright · Report ──────────────────────────────
 │
-│  ✅ Update complete
+│  ✅ Update complete            (⚠️ Partial update — exit 2)
 │
 │  🔧 Target:   {plugin name or "all installed"}
 │
-│  📊 Plugin                 Before        After
-│     {name}                 {version}     {arrow} {version}
+│  📊 Plugin            Before      After       Status
+│     {name}            {version}   {version}   ↑ updated
+│     {name}            {version}   {version}   = current
+│     {name}            {version}   {version}   ⏭ skipped
+│     {name}            {version}   {version}   ✗ failed
+│
+│  ❌ Not updated                (only when failed > 0)
+│     • {name}: {reason}
+│     • hint: {retry hint for each failed marketplace}
 │
 │  ⚡ {n} updated — restart your session to apply {names}
 │     (or: "All already current. Nothing to restart.")
 │
 └─────────────────────────────────────────────────
 ```
+
+Status is always shown as symbol **and** word — never colour alone. On a
+partial run, keep the list of updated plugins, and put the failures with their
+reasons in the report; don't retry them unasked. If a marketplace fails with a
+git error, the hint's `git -C ~/.claude/plugins/marketplaces/<m> pull --ff-only`
+is a safe fix to offer — it only fast-forwards that marketplace's clone.
 
 If `--dry-run`, replace the report with the script's target list and note
 that nothing was executed — no report box needed for a preview.
