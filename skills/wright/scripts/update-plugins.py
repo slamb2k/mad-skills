@@ -14,6 +14,12 @@ No dry-run exists in the CLI, so a preview can't predict the new version — it
 only resolves the targets. Default runs the updates and reports before -> after
 by diffing `plugin list`; --dry-run resolves targets and prints what would run,
 without touching anything.
+
+One bad marketplace never blocks the rest: if the bulk refresh fails, each
+needed marketplace is refreshed on its own, plugins from a marketplace that
+still fails are skipped, a failed plugin update is recorded and the run goes
+on, and the report lists every failure with its reason. Exit code is 0 when
+everything succeeded, 2 when the run was partial.
 """
 from __future__ import annotations
 
@@ -24,6 +30,7 @@ import subprocess
 import sys
 
 RESULT_MARKER = "WRIGHT_RESULT"
+PARTIAL = 2
 
 
 def claude(*args: str) -> tuple[int, str]:
@@ -49,6 +56,37 @@ def installed() -> dict[str, str]:
             ids[current] = v.group(1)
             current = None
     return ids
+
+
+def last_line(out: str) -> str:
+    lines = [l.strip() for l in out.strip().splitlines() if l.strip()]
+    return lines[-1] if lines else ""
+
+
+def reason(out: str) -> str:
+    """The most informative error line from CLI output (git's 'fatal:' wins)."""
+    lines = [l.strip() for l in out.strip().splitlines() if l.strip()]
+    for l in lines:
+        if l.lower().startswith(("fatal:", "error:")):
+            return l
+    return lines[-1] if lines else "unknown error"
+
+
+def refresh(marketplaces: list[str]) -> dict[str, str]:
+    """Refresh marketplace sources; return {marketplace: error} for failures.
+
+    Tries one bulk call first; if that fails, refreshes each needed marketplace
+    on its own so a single unreachable source only affects its own plugins.
+    """
+    rc, _ = claude("marketplace", "update", *(marketplaces if len(marketplaces) == 1 else []))
+    if rc == 0:
+        return {}
+    failed: dict[str, str] = {}
+    for m in marketplaces:
+        rc, out = claude("marketplace", "update", m)
+        if rc != 0:
+            failed[m] = reason(out)
+    return failed
 
 
 def pick(ids: list[str], query: str) -> str | None:
@@ -92,13 +130,12 @@ def main() -> int:
             print(f"no installed plugin matches '{args.query}' — installed: {names}", file=sys.stderr)
             return 1
         targets = [target]
-        marketplaces = [target.split("@", 1)[1]]
     else:
         targets = sorted(before)
-        marketplaces = []  # empty => refresh every marketplace in one call
+    marketplaces = sorted({t.split("@", 1)[1] for t in targets})
 
     if args.dry_run:
-        print(f"Would refresh {'marketplace ' + marketplaces[0] if marketplaces else 'all marketplaces'} "
+        print(f"Would refresh {'marketplace ' + marketplaces[0] if args.query else 'all marketplaces'} "
               f"and update {len(targets)} plugin(s):")
         for t in targets:
             print(f"  {t.split('@')[0]:<22} {before[t]}  → (latest)")
@@ -108,31 +145,61 @@ def main() -> int:
 
     # Refresh sources first so "latest" is actually latest.
     print("Refreshing marketplace sources…")
-    rc, out = claude("marketplace", "update", *marketplaces)
-    if rc != 0:
-        print(out, file=sys.stderr)
-        print("marketplace refresh failed — not updating plugins", file=sys.stderr)
-        return 1
+    mp_failed = refresh(marketplaces)
+    for m, why in mp_failed.items():
+        print(f"  ✗ marketplace {m}: {why}")
 
+    skipped: dict[str, str] = {}
+    failed: dict[str, str] = {}
     for t in targets:
+        base, mp = t.split("@", 1)
+        if mp in mp_failed:
+            skipped[t] = f"marketplace {mp} could not be refreshed"
+            print(f"  {base:<22} skipped — {skipped[t]}")
+            continue
         rc, out = claude("update", t)
-        tail = out.strip().splitlines()[-1] if out.strip() else ""
-        print(f"  {t.split('@')[0]:<22} {tail[:80]}")
+        if rc != 0:
+            failed[t] = reason(out)
+            print(f"  {base:<22} FAILED — {failed[t][:80]}")
+        else:
+            print(f"  {base:<22} {last_line(out)[:80]}")
 
     after = installed()
-    changed = [(t, before[t], after.get(t, "?")) for t in targets if before.get(t) != after.get(t)]
+    changed = [t for t in targets if t not in skipped and t not in failed and before.get(t) != after.get(t)]
 
-    print(f"\n{'PLUGIN':<24}{'BEFORE':<14}AFTER")
-    print("-" * 52)
+    w = max([24, *(len(t.split("@")[0]) + 2 for t in targets)])
+    print(f"\n{'PLUGIN':<{w}}{'BEFORE':<14}{'AFTER':<14}STATUS")
+    print("-" * (w + 42))
     for t in targets:
         b, a = before[t], after.get(t, "?")
-        mark = "↑" if b != a else "="
-        print(f"{t.split('@')[0]:<24}{b:<14}{mark} {a}")
-    print(f"\n{len(changed)} updated. Restart to apply."
-          if changed else "\nAll already current. Nothing to restart.")
-    print(f"{RESULT_MARKER} applied=true updated={len(changed)} "
-          f"names={','.join(sorted(t.split('@')[0] for t, _, _ in changed))}")
-    return 0
+        if t in skipped:
+            status = "⏭ skipped"
+        elif t in failed:
+            status = "✗ failed"
+        elif t in changed:
+            status = "↑ updated"
+        else:
+            status = "= current"
+        print(f"{t.split('@')[0]:<{w}}{b:<14}{a:<14}{status}")
+
+    problems = {**skipped, **failed}
+    if problems:
+        print(f"\n{len(problems)} not updated:")
+        for t, why in problems.items():
+            print(f"  {t.split('@')[0]}: {why}")
+        for m in mp_failed:
+            print(f"  hint: retry with `claude plugin marketplace update {m}`; if git cannot reach the "
+                  f"remote, `git -C ~/.claude/plugins/marketplaces/{m} pull --ff-only` then re-run")
+    if changed:
+        print(f"\n{len(changed)} updated. Restart to apply.")
+    else:
+        print("\nNothing updated. Nothing to restart." if problems
+              else "\nAll already current. Nothing to restart.")
+    names = lambda ts: ",".join(sorted(t.split("@")[0] for t in ts))
+    print(f"{RESULT_MARKER} applied=true updated={len(changed)} names={names(changed)} "
+          f"failed={len(problems)} failed_names={names(problems)} "
+          f"marketplaces_failed={','.join(sorted(mp_failed))}")
+    return PARTIAL if problems else 0
 
 
 if __name__ == "__main__":

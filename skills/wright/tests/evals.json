@@ -42,5 +42,13 @@
       { "type": "regex", "value": "restart", "flags": "i" },
       { "type": "semantic", "value": "Mentions that the running session keeps the old plugin code until it is restarted, so a restart is needed to apply the update" }
     ]
+  },
+  {
+    "name": "partial-failure-continues",
+    "prompt": "Update all my plugins. The chrome-devtools-plugins marketplace can't be reached (git: Could not read from remote repository) but every other marketplace is fine.",
+    "assertions": [
+      { "type": "regex", "value": "(skipped|failed|partial)", "flags": "i" },
+      { "type": "semantic", "value": "Explains that the unreachable marketplace does not stop the run: the other plugins are still updated, plugins from chrome-devtools-plugins are reported as skipped with the reason, and a retry hint is given (re-run the marketplace update, or fast-forward its git clone), with a restart needed only for plugins that actually updated" }
+    ]
   }
 ]
