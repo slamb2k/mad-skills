@@ -189,10 +189,12 @@ left behind one minute after its signal was consumed.
   carries the matching `id`, (c) its current SHA-256 equals the recorded hash
   (unedited since written). If (b) or (c) fails, the file is left alone and the
   record is dropped with a one-line notice ("waybill.md was edited — kept").
-- **REQ-019 (when)**: A sweep runs inside the SessionStart `handoff` subcommand,
-  for the **current project's record only**, and deletes an owned waybill when:
-  - it has been injected **and** a later session has started (i.e. the session
-    after the resuming one) — the resuming session can still re-read it; or
+- **REQ-019 (when)**: An owned waybill is deleted when:
+  - the session it was injected into **ends** — the SessionEnd `handoff-end` hook
+    matches the `session_id` recorded at injection (`injectedSession`); a parallel
+    session opening in the same tree never triggers it; or
+  - a later SessionStart finds it injected more than 24h ago, or injected with no
+    session id (fallback for crashes or harnesses without SessionEnd); or
   - a newer handoff of the same kind replaces it (re-`/ferry`); or
   - the record expires (REQ-009).
 - **REQ-020 (exclude line)**: `ferry` writes its `.git/info/exclude` entry as

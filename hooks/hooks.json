@@ -16,6 +16,9 @@
         { "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; node \"$_R/hooks/session-guard.cjs\" logbook-hint", "timeout": 10 }
       ]
     }],
+    "SessionEnd": [{
+      "hooks": [{ "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; node \"$_R/hooks/session-guard.cjs\" handoff-end", "timeout": 10 }]
+    }],
     "UserPromptSubmit": [{
       "hooks": [{ "type": "command", "command": "_R=\"${CLAUDE_PLUGIN_ROOT}\"; [ -z \"$_R\" ] && _R=\"$HOME/.claude/plugins/marketplaces/slamb2k\"; node \"$_R/hooks/session-guard.cjs\" remind", "timeout": 10 }]
     }]

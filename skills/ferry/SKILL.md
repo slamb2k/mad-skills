@@ -189,8 +189,10 @@ only ever deleted with an explicit `--yes --legacy`.
   `~/.claude/session-guard/handoff`, keyed to the repo. The waybill is injected once,
   at the next session start in that working tree; a stale file is never re-injected.
 - **Owned waybills clean themselves up.** A waybill created via default, `tmp` or `here`
-  is deleted automatically on the session *after* the one that resumed from it, only if
-  it is unedited (provenance id and hash still match). Edited waybills are kept.
+  is deleted automatically when the session that resumed from it ends (SessionEnd —
+  exit or `/clear`), only if it is unedited (provenance id and hash still match). A
+  parallel session in the same tree never triggers it; if SessionEnd never fires, a
+  later session sweeps it after 24h. Edited waybills are kept.
   The matching `.git/info/exclude` line is removed with it.
 - **`commit` mode is never swept.** It is recorded as not owned and stays in history
   until the user removes it.
