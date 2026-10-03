@@ -16,14 +16,17 @@
 ## Deferred fixes
 - [ ] Cap eviction must never run where its output is unreviewed. Capturing ONE item on real-talk relocated FOUR existing entries to LOGBOOK-ARCHIVE.md — a two-file restructure, not an append. That ran post-merge against a clean main, so it landed with no diff, no review, and no commit. Now partly mitigated by moving capture to Stage 1b (eviction lands in the PR), but the invariant should be explicit in session-guard rather than implied by stage placement: relocation is only legal when a commit is going to carry it. — /ship real-talk #47 ledger-timing discussion (2026-08-01)
 - [ ] keel eval skill-ordering fails on Claude Opus 5.5: the output never describes running /keel before /dock (semantic + regex both miss). Check whether keel SKILL.md still states the /keel → /dock ordering prominently enough, or whether the eval asks for something the skill no longer says. — /ship chore/logbook-autofix-2 (2026-09-29)
+- [ ] Run npm run eval for ferry/speccy eval changes from PR #149 (needs API key) — /build debrief (2026-10-03)
 
 ## Open questions
 - [ ] primary-checkout-should-be-worktree lifecycle signal is a low-confidence symptom-based backstop for find-or-create's guard, not a general recommendation — revisit whether it should remain a permanent engine feature once there's real post-release data: if it keeps firing on genuine /build runs the SKILL.md guard isn't holding, if it never fires it's dead weight worth removing — design discussion following build-find-or-create-enforcement (PR #126) (2026-07-24)
 - [ ] Verify a reliable Codex side-session hook marker and replace instruction-only suppression when available — /ship fix/session-guard-side-context (2026-09-16)
 - [ ] Verify the AzDO /ship fixes (REST fail-safe polling, CLI-auth REST fallback via git credential fill, 3900-char description cap, lastMergeSourceCommit on REST completion) against a live Azure DevOps org; all were verified only with faked az/curl — /loop logbook-autofix (2026-09-28)
 - [ ] Should /ship re-run failed checks itself when Stage 4 classifies a failure as test_flake or infra_transient? It now stops with not_code_fixable because the stage prompt forbids manually triggering or re-queuing CI (gh run rerun, az pipelines run). Allowing a single rerun for those two categories would need that rule relaxed — a policy decision. — /loop logbook-autofix-2 (2026-09-29)
+- [ ] Waybill sweep counts any startup/clear in the same toplevel, including a parallel terminal session — /build debrief (2026-10-03)
 
 ## Risks
+- [ ] Harden or drop legacy /tmp/claude-ferry signal migration: only accept uid-owned, non-world-writable signal dir/file — /build debrief (2026-10-03)
 
 ## Tech debt
 - [ ] Skill edits cannot be dogfooded in the session that makes them: the installed plugin at ~/.claude/plugins/marketplaces/slamb2k is a separate clone of this repo, not a symlink to the working copy, so an edited SKILL.md does not take effect until the plugin is updated. Shipping the Stage 1b move required applying the new ordering by hand while the loaded skill still described the old one. A dev-mode symlink (or a documented opt-in) would make skill changes testable in place. — /ship ship-stage1b-ledger (2026-08-01)
