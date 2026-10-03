@@ -84,7 +84,7 @@ very last output, using the format, bands, and rules in
 
 - Title it `🙋  N E E D S   Y O U  ·  top {k}` and cap it at **5**.
 - Candidates are the **Needs you** items plus lifecycle steps (and, if `/ship`
-  failed, that failure as 🔴 item 1).
+  failed, that failure as item 1, 🚨 NOW).
 - For each, the `▶` line names what the user must provide or decide (e.g.
   "decide: allow one CI re-run for flakes?", "set ANTHROPIC_API_KEY then
   `npm run eval`"), not just a command.

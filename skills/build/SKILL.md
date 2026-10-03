@@ -599,7 +599,7 @@ ranked **Next Up** report is rendered here instead — after the Pipeline
 Summary, as the very last output of the run (including a stopped or failed
 build, where item 1 is resolving that). Follow
 `skills/ship/references/next-up.md` (plugin root) for its sources, ranking,
-and colour-banded format; the debrief items captured in Stage 10 are among its
+and importance-banded format; the debrief items captured in Stage 10 are among its
 inputs. Nothing may be printed after it.
 
 ---
