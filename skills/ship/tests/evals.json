@@ -93,7 +93,7 @@
     "prompt": "Run /ship. The PR merges cleanly. The logbook has 14 open follow-ups, TaskList has 2 pending tasks, and earlier in this conversation the user said they want to add rate limiting next. How does /ship end?",
     "assertions": [
       { "type": "regex", "value": "Next Up|N E X T", "flags": "i" },
-      { "type": "regex", "value": "🔴|🟠|🟡|🟢" },
+      { "type": "regex", "value": "(🚨|⏩|🕐|💤)\\s*(NOW|NEXT|SOON|LATER)" },
       { "type": "semantic", "value": "Ends with a ranked Next Up report of at most 10 items, most important first, drawn from multiple sources (the conversation's stated plan, TaskList, the logbook, AGENTS.md/CLAUDE.md, memory) with each item tagged by source, and states that this report is the very last output with nothing printed after it" }
     ]
   },

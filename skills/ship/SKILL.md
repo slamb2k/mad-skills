@@ -404,7 +404,7 @@ verification fails), display the failure banner and STOP:
 - Do NOT invoke `/sync` or any other skill
 - Do NOT use language like "will be auto-merged" or "PR is pending"
 - The only thing that may follow the failure banner is the **Next Up** report
-  (see below), whose item 1 is always 🔴 resolving this failure — no other
+  (see below), whose item 1 is always 🚨 NOW: resolving this failure — no other
   suggestions, summaries, or sign-off text
 
 ---
@@ -589,7 +589,7 @@ on a failed run. It ranks up to 10 items, most important first, gathered from
 this run, the conversation, AGENTS.md/CLAUDE.md, auto-memory (`MEMORY.md`),
 `TaskList`, the `/logbook` ledger and lifecycle steps, and your other open
 PRs/issues. Follow `references/next-up.md` exactly for sources, ranking, and the
-colour-banded format. Nothing may be printed after it.
+importance-banded format (shape icons + band words, never colour alone). Nothing may be printed after it.
 
 Skip it only when `--next-up-by-caller` is set; the calling skill then renders
 it as its own final output.

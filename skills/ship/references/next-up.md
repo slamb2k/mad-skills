@@ -35,47 +35,51 @@ errors is skipped silently — never block the report on one.
 
 | Band | Meaning | Examples |
 |------|---------|----------|
-| 🔴 **Now** | Broken, blocking, or unsafe | This ship failed; CI red on main; security risk; data-loss risk; a merged change that needs a restart/update to take effect |
-| 🟠 **Next** | Unblocks other work or was explicitly promised | Pending `/build <spec>`; another open PR waiting on you; something the user said they want next; deferred fixes |
-| 🟡 **Soon** | Real but not urgent | Open questions needing a decision; unverified work (evals not run); lifecycle steps |
-| 🟢 **Later** | Nice to have | Ideas, tech debt, cleanups |
+| 🚨 **NOW** | Broken, blocking, or unsafe | This ship failed; CI red on main; security risk; data-loss risk; a merged change that needs a restart/update to take effect |
+| ⏩ **NEXT** | Unblocks other work or was explicitly promised | Pending `/build <spec>`; another open PR waiting on you; something the user said they want next; deferred fixes |
+| 🕐 **SOON** | Real but not urgent | Open questions needing a decision; unverified work (evals not run); lifecycle steps |
+| 💤 **LATER** | Nice to have | Ideas, tech debt, cleanups |
 
 4. **Cap at 10.** Fewer is fine. **Never fabricate** an item to fill the list,
    and never include vague filler ("keep improving tests").
 
-## 3. Render — last output, colourful, hard to miss
+## 3. Render — last output, hard to miss, never colour-dependent
 
-Each item: band emoji, rank, a short imperative title, one line of *why*, the
-source tag(s), and — when there is one — the exact command to run.
+Each item: band icon **and** band word, rank, a short imperative title, one
+line of *why*, the source tag(s), and — when there is one — the exact command
+to run. Importance must never be conveyed by colour alone: the four icons
+differ in shape (🚨 ⏩ 🕐 💤) and every item repeats its band in words, so the
+report reads the same for colour-blind users and in monochrome terminals.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   🧭  N E X T   U P  ·  ranked, most important first
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  🔴  1. {title}
-         {why it matters}  ·  {source tags}
-         ▶ {command}
+  🚨 NOW    1. {title}
+              {why it matters}  ·  {source tags}
+              ▶ {command}
 
-  🟠  2. {title}
-         {why}  ·  {source tags}
-         ▶ {command}
+  ⏩ NEXT   2. {title}
+              {why}  ·  {source tags}
+              ▶ {command}
 
-  🟡  3. …
-  🟢  4. …
+  🕐 SOON   3. …
+  💤 LATER  4. …
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🔴 now · 🟠 next · 🟡 soon · 🟢 later      {k} of {total found}
+  🚨 NOW · ⏩ NEXT · 🕐 SOON · 💤 LATER      {k} of {total found}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 - Print it as plain response text (not inside a code fence) so the emoji
-  render in colour; keep the heavy `━` rules so it stands out in scrollback.
+  render; keep the heavy `━` rules so it stands out in scrollback.
+- Never use colour-only markers (🔴🟠🟡🟢, coloured text) to signal importance.
 - Omit the `▶` line when there is no concrete command.
 - `{total found}` counts deduped candidates before the cap, so the user can
   tell when more exist (`/logbook` shows the rest).
 - **Empty** — still render the frame (the report is always last) with a single
   line: `  ✅  Nothing queued — all sources are clear.`
-- **After a failure** — item 1 is always 🔴 resolving that failure (the
+- **After a failure** — item 1 is always 🚨 NOW: resolving that failure (the
   failure reason and the recovery command, e.g. `/sync` or re-running `/ship`).
   Do not imply the PR will merge on its own.
