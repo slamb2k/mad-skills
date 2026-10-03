@@ -10,14 +10,17 @@
  * Subcommands:
  *   check   — SessionStart: validate git, AGENTS.md/CLAUDE.md, tasks, staleness
  *   remind  — UserPromptSubmit: re-emit pending context on first prompt
+ *   handoff — SessionStart: inject the armed build/waybill handoff slots
+ *   handoff-arm | handoff-clear | handoff-clean | handoff-path — manage handoff slots
  *
  * Usage:
  *   node session-guard.js check
  *   node session-guard.js remind
+ *   node session-guard.js handoff-arm --kind build --spec specs/x.md
  */
 
-const { existsSync } = require('fs');
-const { join, basename } = require('path');
+const { existsSync, mkdirSync } = require('fs');
+const { join, basename, dirname } = require('path');
 const { spawn } = require('child_process');
 
 const config = require('./lib/config.cjs');
@@ -29,6 +32,7 @@ const { checkTaskList } = require('./lib/task-checks.cjs');
 const { checkStaleness, judgeStaleness } = require('./lib/staleness.cjs');
 const { git } = require('./lib/utils.cjs');
 const lifecycle = require('./lib/lifecycle.cjs');
+const handoff = require('./lib/handoff.cjs');
 const ledger = require('./lib/logbook.cjs');
 const { readHookInput, nonemptyString } = require('./lib/session.cjs');
 const { resolveInstructions } = require('./lib/instructions.cjs');
@@ -149,10 +153,7 @@ function checkBackground() {
   // 3) Staleness evaluation
   checkStaleness(PROJECT_DIR, INSTRUCTIONS_MD, gitRoot, output);
 
-  // 4) Pending build check
-  checkPendingBuild(PROJECT_DIR, output);
-
-  // 4b) Lifecycle recommendation (ambient drift surface). SessionStart = one
+  // 4) Lifecycle recommendation Lifecycle recommendation (ambient drift surface). SessionStart = one
   // session — bump the counter once so cooldowns advance.
   lifecycle.bumpSession(PROJECT_DIR);
   checkLifecycle(PROJECT_DIR, output);
@@ -333,26 +334,6 @@ function checkRig(projectDir, output) {
   );
 }
 
-// ─── pending build check ──────────────────────────────────────────────
-
-function checkPendingBuild(projectDir, output) {
-  const pending = state.loadPendingBuild(projectDir);
-  if (!pending) return;
-
-  const specPath = pending.specPath;
-  const specExists = existsSync(join(projectDir, specPath));
-
-  if (!specExists) {
-    // Spec file was deleted — clean up stale marker
-    state.clearPendingBuild(projectDir);
-    return;
-  }
-
-  output.blank();
-  output.add(`[SESSION GUARD] 📋 Pending spec ready for build: ${specPath}`);
-  output.add(`[SESSION GUARD] → Run: /build ${specPath}`);
-}
-
 // ─── lifecycle recommendation check ───────────────────────────────────
 
 function checkLifecycle(projectDir, output) {
@@ -521,8 +502,14 @@ switch (command) {
     // bypassing anti-nag suppression. Read-only.
     try {
       const { all } = lifecycle.next(PROJECT_DIR);
+      const pending = handoff.peek(PROJECT_DIR).build;
       console.log('LIFECYCLE_NEXT_BEGIN');
-      if (!all.length) {
+      if (pending) {
+        const spec = handoff.specArtifact(pending);
+        const since = new Date(pending.createdAt).toISOString().slice(0, 10);
+        console.log(`${pending.resume || `/build ${spec ? spec.path : ''}`} — spec ready since ${since}`);
+      }
+      if (!all.length && !pending) {
         console.log('none — no lifecycle steps are applicable right now.');
       } else {
         for (const r of all) {
@@ -532,6 +519,50 @@ switch (command) {
       }
       console.log('LIFECYCLE_NEXT_END');
     } catch (e) { console.error(`lifecycle-next failed: ${e.message}`); }
+    break;
+  }
+  case 'handoff': {
+    // SessionStart: inject armed build/waybill slots (one-shot, then swept).
+    let text = '';
+    try { text = handoff.consume(PROJECT_DIR); } catch { /* never block session start */ }
+    if (text) {
+      const output = new OutputBuilder();
+      output.add(text);
+      console.log(output.toJson('SessionStart'));
+    } else {
+      console.log(JSON.stringify({}));
+    }
+    break;
+  }
+  case 'handoff-arm':
+  case 'handoff-clear':
+  case 'handoff-clean':
+  case 'handoff-path': {
+    const flags = handoff.parseFlags(process.argv.slice(3));
+    const dir = typeof flags.dir === 'string' ? flags.dir : process.cwd();
+    try {
+      if (command === 'handoff-arm') {
+        const r = handoff.arm({ ...flags, dir });
+        const id = r.waybill && r.waybill.id ? ` (waybill id=${r.waybill.id.slice(0, 8)})` : '';
+        console.log(`handoff: armed ${flags.kind} for ${r.repo.repoRoot}${id}`);
+      } else if (command === 'handoff-clear') {
+        handoff.clear({ kind: flags.kind, dir });
+        console.log(`handoff: cleared ${flags.kind}`);
+      } else if (command === 'handoff-clean') {
+        for (const line of handoff.clean({ yes: flags.yes === true, legacy: flags.legacy === true, dir })) console.log(line);
+      } else {
+        const file = handoff.defaultWaybillPath(handoff.resolveRepo(dir));
+        mkdirSync(dirname(file), { recursive: true });
+        console.log(file);
+      }
+    } catch (e) {
+      console.error(`${command} failed: ${e.message}`);
+      console.error('Usage: handoff-arm --kind build|waybill [--spec P] [--waybill P] [--resume CMD] [--source S] [--owned true|false] [--dir D]');
+      console.error('       handoff-clear --kind build|waybill|all [--dir D]');
+      console.error('       handoff-clean [--yes] [--legacy] [--dir D]');
+      console.error('       handoff-path [--dir D]');
+      process.exit(1);
+    }
     break;
   }
   case 'logbook-hint': {
@@ -663,6 +694,6 @@ switch (command) {
   }
   default:
     console.error(`Session Guard v${config.version}`);
-    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint|lifecycle-next|logbook-hint|logbook-list|logbook-capture|logbook-capture-preview|logbook-resolve|logbook-dismiss|logbook-add|logbook-review|logbook-archive|logbook-restore>');
+    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint|lifecycle-next|handoff|handoff-arm|handoff-clear|handoff-clean|handoff-path|logbook-hint|logbook-list|logbook-capture|logbook-capture-preview|logbook-resolve|logbook-dismiss|logbook-add|logbook-review|logbook-archive|logbook-restore>');
     process.exit(1);
 }

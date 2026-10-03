@@ -5,7 +5,7 @@
 > own find-or-create pre-flight. This doc now describes only the **find-or-create
 > contract** (who creates or resumes a worktree, and how) and **teardown** — it no
 > longer describes `/speccy`'s handoff bundle, which no longer exists. `/speccy`
-> now only writes the spec file and the pending-build marker.
+> now only writes the spec file and the build handoff.
 
 Shared worktree-lifecycle rule for `build`, `ship`, and `sync`. `/build` owns
 find-or-create (creation on a fresh spec, resumption on an interrupted one);

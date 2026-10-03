@@ -141,7 +141,7 @@
     "assertions": [
       {
         "type": "semantic",
-        "value": "No worktree, branch, commit, or PR is ever created — /speccy --auto runs entirely in the plain working directory and, once the spec is written, writes only the spec file and the pending-build marker, then stops. It writes no .mad-skills-auto sentinel. All git state (worktree, branch, commit, draft PR) is created later by /build's find-or-create pre-flight, not by /speccy."
+        "value": "No worktree, branch, commit, or PR is ever created — /speccy --auto runs entirely in the plain working directory and, once the spec is written, writes only the spec file and arms the build handoff (session-guard.cjs handoff-arm --kind build --spec), then stops. It does not invoke /ferry. It writes no .mad-skills-auto sentinel. All git state (worktree, branch, commit, draft PR) is created later by /build's find-or-create pre-flight, not by /speccy."
       }
     ]
   },
@@ -151,7 +151,7 @@
     "assertions": [
       {
         "type": "semantic",
-        "value": "Interactive (non---auto) /speccy creates no git state at all — no worktree, branch, commit, or PR, in either mode. It writes only the spec file and the pending-build marker, then stops. Worktree/branch/draft-PR creation is now /build's find-or-create job, not /speccy's."
+        "value": "Interactive (non---auto) /speccy creates no git state at all — no worktree, branch, commit, or PR, in either mode. It writes only the spec file and arms the build handoff, then stops. Worktree/branch/draft-PR creation is now /build's find-or-create job, not /speccy's."
       }
     ]
   },
@@ -161,21 +161,21 @@
     "assertions": [
       {
         "type": "semantic",
-        "value": "No worktree, no branch, no commit, and no PR exist — and none will be created by /speccy at any later point either. /speccy creates zero git state in both modes; everything runs in the plain invoking working directory, and it only ever writes the spec file and the pending-build marker. Git state is /build's find-or-create responsibility."
+        "value": "No worktree, no branch, no commit, and no PR exist — and none will be created by /speccy at any later point either. /speccy creates zero git state in both modes; everything runs in the plain invoking working directory, and it only ever writes the spec file and arms the build handoff. Git state is /build's find-or-create responsibility."
       }
     ]
   },
   {
-    "name": "speccy-writes-marker-after-spec",
+    "name": "speccy-arms-handoff-after-spec",
     "prompt": "A /speccy run has just finished writing the spec file to specs/. What does it do next, and what git state (worktree/branch/commit/PR) has it created?",
     "assertions": [
       {
         "type": "semantic",
-        "value": "After writing the spec file, /speccy writes the pending-build marker (via state.cjs savePendingBuild) and stops. It has created no git state — no worktree, branch, commit, or PR — in either --auto or interactive mode. The marker is what the session-guard hook picks up on the next session start to surface the /build command; /build's find-or-create then creates all git state on first run."
+        "value": "After writing the spec file, /speccy arms the build handoff (via `session-guard.cjs handoff-arm --kind build --spec <spec>`) and stops. With --auto it does not invoke /ferry and does not instruct the user to /clear. It has created no git state — no worktree, branch, commit, or PR — in either --auto or interactive mode. The build handoff is what the session-guard hook shows at the next session start to surface the /build command (and /logbook lists it); /build's find-or-create then creates all git state on first run."
       },
       {
         "type": "regex",
-        "value": "(marker|pending)",
+        "value": "(handoff-arm|build handoff)",
         "flags": "i"
       }
     ]

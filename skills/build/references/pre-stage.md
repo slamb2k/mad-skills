@@ -71,9 +71,8 @@ So there is exactly one execution-mode decision, and subagents are always on
 underneath either choice:
 
 - **Run here now** — orchestrate the build in this session, stages in subagents.
-- **Hand off to a clean session** — ferry the state across (write a waybill),
-  arm the resume signal, and let a fresh session run the *same* `/build` with its
-  own subagents.
+- **Hand off to a clean session** — write a waybill, arm a build handoff, and
+  let a fresh session run the *same* `/build` with its own subagents.
 
 These are mutually exclusive — one stops here, one continues here. Do **not**
 offer a "clear? yes/no" toggle on top of run-now; the hand-off mode *replaces*
@@ -109,12 +108,22 @@ the run-now decision.
    If either condition fails, don't ask — run here now.
 
 **If handing off:** capture the resolved PLAN and any Stage-2 clarifications
-gathered so far, then invoke the `ferry` skill. The waybill's
-"next steps" MUST be a single resume action: re-run this exact build in the
-fresh session, e.g. `/build {original PLAN argument}` (plus any active flags,
-minus `--handoff`). Include the resolved plan content and PROJECT_CONFIG so the
-fresh session doesn't re-derive them. The `ferry` skill arms the one-shot
-signal and tells the user to `/clear`. **Stop here** — do not run Stage 1; the
-fresh session does.
+gathered so far, then:
+
+1. Get the waybill path: `node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-path`
+   and write the waybill there. Its "next steps" MUST be a single resume action:
+   re-run this exact build in the fresh session, e.g. `/build {original PLAN
+   argument}` (plus any active flags, minus `--handoff`). Include the resolved
+   plan content and PROJECT_CONFIG so the fresh session doesn't re-derive them.
+2. Arm it (the CLI stamps provenance; don't edit the waybill afterwards):
+   ```bash
+   node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-arm --kind build \
+     --spec "<spec path>" --waybill "<path from step 1>" \
+     --resume "/build <original args minus --handoff>"
+   ```
+3. Tell the user to type `/clear` (interactive, so the instruction is fine here).
+   **Stop here** — do not run Stage 1; the fresh session does. (`--kind build`
+   requires a spec file; if PLAN is an inline plan with no spec, arm
+   `--kind waybill --waybill <path> --resume "/build ..."` instead.)
 
 **If running here now:** continue to Stage 1 unchanged.

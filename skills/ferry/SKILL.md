@@ -1,7 +1,7 @@
 ---
 name: ferry
-description: Ferry a session's live state across a context reset — persist a waybill document and signal the next fresh session to resume from it. Use when the user types /ferry, says they want to hand off, checkpoint, wrap up, clear context, or start fresh while preserving state, or asks to carry work into a new session with clean optimised context. Captures everything a brand-new session needs — task, status, next steps, key files, decisions, gotchas, git state — writes it to disk as waybill.md, arms a one-shot signal, and tells the user to /clear so the next session auto-loads it.
-argument-hint: repo, tmp, commit (optional target; default repo)
+description: Ferry a session's live state across a context reset — persist a waybill document and arm a one-shot handoff so the next fresh session resumes from it. Use when the user types /ferry, says they want to hand off, checkpoint, wrap up, clear context, or start fresh while preserving state, or asks to carry work into a new session with clean optimised context. Captures task, status, next steps, key files, decisions, gotchas and repo state, writes a waybill (outside the repo by default), arms the handoff, and tells the user to /clear. "/ferry clean" lists and removes leftover waybills this skill created.
+argument-hint: here, commit, clean [--yes] [--legacy] (optional; default writes outside the repo)
 allowed-tools: Bash, Read, Write
 ---
 
@@ -39,27 +39,31 @@ Taglines:
 ## What this does
 
 Ferry the live state of this session across a context reset: capture it into a
-**waybill document** (`waybill.md`), arm a one-shot signal, and hand the user off to
-a clean session that will automatically resume from the waybill. The point is to
-**reset the context window without losing the thread** — the next session starts
-lean but fully briefed.
+**waybill document**, arm a one-shot handoff, and hand the user off to a clean
+session that will automatically resume from it. The point is to **reset the
+context window without losing the thread** — the next session starts lean but
+fully briefed.
 
 Long sessions accumulate noise: dead ends, superseded plans, stale file reads. A
 fresh session is faster and sharper, but naively starting over loses hard-won
 context. `/ferry` distills only what the *next* session needs, persists it, and
-signals that session to pick it up — once. It will not re-read old waybill on
-unrelated future sessions, because the signal is consumed on first read.
+arms the handoff — once. The handoff store (`hooks/lib/handoff.cjs`, driven by
+`hooks/session-guard.cjs`) injects the waybill at the next session start and
+later cleans up the waybill it created.
 
 ## Usage
 
 ```
-/ferry            # default: waybill.md in repo root, kept OUT of git
-/ferry repo       # same as default (explicit)
-/ferry tmp        # write under /tmp — never touches the repo at all
-/ferry commit     # write docs/ferry/waybill-<timestamp>.md, meant to be committed
+/ferry                 # default: waybill written OUTSIDE the repo (nothing litters the tree)
+/ferry tmp             # accepted alias for the default
+/ferry here            # waybill.md in the repo root, kept out of version control locally
+/ferry commit          # docs/ferry/waybill-<timestamp>.md, durable, meant to be committed
+/ferry clean           # list waybills ferry created (dry run); then confirm to delete
+/ferry clean --yes     # delete them
+/ferry clean --legacy  # also report/delete pre-provenance root waybill.md files
 ```
 
-Read the argument from what the user typed. If none given, use `repo`.
+Read the argument from what the user typed. If none given, use the default.
 
 ## Pre-flight
 
@@ -67,18 +71,20 @@ Before starting, check dependencies:
 
 | Dependency | Type | Check | Required | Resolution | Detail |
 |-----------|------|-------|----------|------------|--------|
-| git | cli | `git rev-parse --show-toplevel` | no | fallback | Not in a git repo → use cwd for `repo` mode; skip `.git/info/exclude` step |
-| jq | cli | `command -v jq` | no | fallback | Signal loader falls back to sed + raw-stdout injection; no behavior change |
+| node | cli | `command -v node` | yes | stop | Runs the `hooks/session-guard.cjs` handoff subcommands |
+| git | cli | `git rev-parse --show-toplevel` | no | fallback | Not in a git repo → use cwd for `here` mode; skip the `.git/info/exclude` step |
 
-Resolve the plugin root once for the signal command:
+Resolve the plugin root once and reuse it:
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
+GUARD="$PLUGIN_ROOT/hooks/session-guard.cjs"
 ```
 
 ## What to do
 
-Work through these steps in order. Don't skip the verification at the end.
+If the argument is `clean`, jump to **Clean mode** below. Otherwise work through
+these steps in order. Don't skip the verification at the end.
 
 ### 1. Resolve the target path
 
@@ -89,20 +95,16 @@ git rev-parse --show-toplevel 2>/dev/null   # repo root, or empty if not a git r
 date +%Y-%m-%d-%H%M
 ```
 
-Then pick the path based on the argument:
-
-- **`repo`** (default): `<repo_root>/waybill.md`. If not inside a git repo, use the
-  current working directory instead. After writing, keep it out of version control
-  by appending `waybill.md` to `<repo_root>/.git/info/exclude` if it's a git repo
-  and not already listed there. This is a *local* ignore — it never modifies the
-  tracked `.gitignore`, so it won't show up in anyone else's checkout or your diffs.
-- **`tmp`**: `/tmp/claude-ferry/<key>/waybill.md` where `<key>` is
-  `printf '%s' "$(pwd)" | cksum | cut -d' ' -f1`. Create the directory first.
-  Nothing is written inside the repo.
-- **`commit`**: `<repo_root>/docs/ferry/waybill-<timestamp>.md`. Create the
-  `docs/ferry/` directory if needed. Do **not** ignore it — this variant exists
-  precisely so the waybill lands in git history as a durable checkpoint. Mention to
-  the user that they'll want to commit it.
+- **default** (also `tmp`): run `node "$GUARD" handoff-path` — it prints the absolute
+  path (under `~/.claude/session-guard/handoff/`) and creates the parent directory.
+  Write the waybill there. Nothing is written inside the repo.
+- **`here`**: `<repo_root>/waybill.md` (cwd if not a git repo). After writing, append
+  the line `waybill.md # mad-skills:ferry` to `<repo_root>/.git/info/exclude` if it is
+  a git repo and that line is not already present. The tag lets cleanup remove
+  exactly this line later. This is a *local* ignore — it never touches `.gitignore`.
+- **`commit`**: `<repo_root>/docs/ferry/waybill-<timestamp>.md`. Create `docs/ferry/`
+  if needed. Do **not** ignore it — this variant exists so the waybill lands in git
+  history as a durable checkpoint. Tell the user they will want to commit it.
 
 ### 2. Write the waybill document
 
@@ -115,7 +117,10 @@ Be concrete: real file paths, real function names, real commands, real decisions
 Write for a competent engineer who has *zero* memory of this session — every
 assumption in your head right now is invisible to them unless you write it down.
 
-Gather git state to embed in the document:
+Do **not** hand-write any provenance stamp (`<!-- mad-skills:waybill ... -->`); the
+CLI adds it when arming.
+
+Gather repo state to embed in the document:
 
 ```bash
 git -C <repo_root> branch --show-current
@@ -127,42 +132,69 @@ Optimise for *their* context budget: include what unblocks action, link to files
 rather than pasting large code, and cut the narrative of how you got here unless a
 dead end is a genuine landmine worth a warning.
 
-### 3. Arm the one-shot signal
+### 3. Arm the handoff
 
-After the document is written, run (using the `PLUGIN_ROOT` resolved in pre-flight):
+After the document is written, arm it with the **absolute** path. If the waybill's
+first next step is a slash command, pass it as `--resume`:
 
 ```bash
-bash "$PLUGIN_ROOT/skills/ferry/scripts/ferry.sh" signal "<absolute_path_to_waybill>"
+# default and `here`
+node "$GUARD" handoff-arm --kind waybill --waybill "<absolute_path>" [--resume "<first next step, if a slash command>"]
+
+# commit: durable, never auto-deleted
+node "$GUARD" handoff-arm --kind waybill --waybill "<absolute_path>" --owned false [--resume "..."]
 ```
 
-This drops a signal keyed to the current project directory. The next session's
-`SessionStart` hook — shipped with this plugin in `hooks/hooks.json` — detects it,
-injects the waybill as context, and deletes the signal so it fires exactly once.
-Use the **absolute** path.
+The CLI stamps the provenance line and records a content hash. Do **not** edit the
+waybill after arming: an edited waybill is kept rather than auto-cleaned (safe, but
+it will linger until you remove it or run `/ferry clean`). If you must change it,
+edit first and re-run the arm command.
 
 ### 4. Hand off to a fresh session
 
 Tell the user plainly that the waybill is ready and they should start the fresh
 session themselves. You **cannot** trigger `/clear` programmatically — it is a
-user-only command — so the final step is theirs. Say something like:
+user-only command — so the final step is theirs. Print the absolute waybill path and
+say something like:
 
-> Waybill written to `<path>` and the next session is armed. Type **`/clear`**
-> (or **`/new`**) now — the fresh session will automatically load this waybill and
-> pick up where we left off. Nothing else gets auto-loaded; the signal is consumed
-> on first read.
+> Waybill written to `<absolute path>` and the next session is armed. Type **`/clear`**
+> (or **`/new`**) now — the fresh session will automatically load it and pick up
+> where we left off.
 
 Keep this final message short. The work is done; don't bury the one action they
 need to take.
+
+## Clean mode
+
+`/ferry clean [--yes] [--legacy]` removes waybills this skill created.
+
+1. Dry run first, always:
+   ```bash
+   node "$GUARD" handoff-clean [--legacy]
+   ```
+   Output lines: `owned <path>`, `legacy <path>`, `deleted <path>`, `kept <path> (edited)`.
+2. Show the list to the user. If there is nothing, say so and stop.
+3. Ask before deleting. Only after the user agrees (or typed `--yes`), re-run with
+   `--yes` (plus `--legacy` only if they asked for it or confirm the legacy files).
+4. Report what was deleted and what was kept (edited waybills are never deleted).
+
+Legacy files are root `waybill.md` files from before provenance stamping; they are
+only ever deleted with an explicit `--yes --legacy`.
 
 ## Important constraints
 
 - **`/clear` is the user's to type.** No skill, hook, or command can clear the
   context window automatically. Always end by asking them to do it.
-- **The signal is one-shot and project-scoped.** It's keyed to the working
-  directory and deleted on first read, so waybill never leaks into unrelated
-  sessions. A `waybill.md` left sitting in a repo is inert unless re-armed.
-- **Don't pollute git by default.** Only the `commit` variant is meant to be
-  tracked. `repo` mode relies on `.git/info/exclude`; `tmp` mode stays entirely
-  outside the repo.
-- **If `/ferry` is run again later**, overwrite the existing document and
-  re-arm the signal — the latest state wins.
+- **The handoff is one-shot injection and project-scoped.** The arming record lives in
+  `~/.claude/session-guard/handoff`, keyed to the repo. The waybill is injected once,
+  at the next session start in that working tree; a stale file is never re-injected.
+- **Owned waybills clean themselves up.** A waybill created via default, `tmp` or `here`
+  is deleted automatically on the session *after* the one that resumed from it, only if
+  it is unedited (provenance id and hash still match). Edited waybills are kept.
+  The matching `.git/info/exclude` line is removed with it.
+- **`commit` mode is never swept.** It is recorded as not owned and stays in history
+  until the user removes it.
+- **Don't pollute the repo by default.** The default mode writes outside the repo;
+  `here` relies on `.git/info/exclude`; only `commit` is meant to be tracked.
+- **If `/ferry` is run again later**, the new waybill replaces the previously armed
+  one (an unedited old owned waybill is deleted) — the latest state wins.

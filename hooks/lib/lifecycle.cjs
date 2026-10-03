@@ -564,7 +564,7 @@ function bumpSession(projectDir) {
 
 function isActiveCycle(projectDir) {
   try {
-    if (state.loadPendingBuild(projectDir)) return true;
+    if (require('./handoff.cjs').peek(projectDir).build) return true;
     const branch = git('rev-parse --abbrev-ref HEAD', projectDir);
     const dirty = (git('status --porcelain', projectDir) || '') !== '';
     return dirty && !['main', 'master'].includes(branch);

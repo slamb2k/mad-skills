@@ -20,7 +20,7 @@ Signals:
 [SESSION GUARD] 📌 3 open follow-ups — /logbook to review
 ```
 
-The session guard checks the git repository (including nested-git and monorepo detection), AGENTS.md presence and staleness (CLAUDE.md is treated as a legacy fallback and the guard offers to migrate it; seven weighted signals such as age, directory drift, dependency drift, and commit volume, flagged at a score of 3), the task list, and branch state. It also prints a lifecycle recommendation, an open-follow-ups count from `LOGBOOK.md`, and auto-loads a `/ferry` waybill after `/clear`. Issues are surfaced before your first prompt.
+The session guard checks the git repository (including nested-git and monorepo detection), AGENTS.md presence and staleness (CLAUDE.md is treated as a legacy fallback and the guard offers to migrate it; seven weighted signals such as age, directory drift, dependency drift, and commit volume, flagged at a score of 3), the task list, and branch state. It also prints a lifecycle recommendation, an open-follow-ups count from `LOGBOOK.md`, and injects any pending handoff (a `/ferry` waybill or a `/speccy` build) once after `/clear`. Issues are surfaced before your first prompt.
 
 ---
 

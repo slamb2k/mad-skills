@@ -53,7 +53,7 @@ No announcement is printed — the deferral logic is purely additive.
 
 | Skill / stage | Defers to (when present) | Retained by mad-skills |
 |---|---|---|
-| `speccy` requirements interview | `superpowers:brainstorming` | writes `specs/*.md` + pending-build marker |
+| `speccy` requirements interview | `superpowers:brainstorming` | writes `specs/*.md` + build handoff |
 | `build` plan/implement core | *never — see Exception below* | explore, 3× code-review, verify, ship gate, **and Stage 4 implementation itself** |
 | `ship` final integration | `superpowers:finishing-a-development-branch` | sync, branch, commit, PR, CI-poll, auto-fix |
 | `prime` graphify awareness | — (hint only) | context summary |

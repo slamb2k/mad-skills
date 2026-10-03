@@ -28,7 +28,7 @@ pre-flight the first time `/build {spec}` runs, not by `/speccy` at any stage.
 The **approval moment** for `--auto` is when zero-interview inference completes
 and passes its checks (Stage A), or when the fallback interview's Decision
 Summary is confirmed (Stage 3). At that moment `/speccy` writes the spec file
-and the pending-build marker, then stops — see **Output & Handoff** below.
+and arms the build handoff, then stops — see **Output & Handoff** below.
 
 ---
 
@@ -250,14 +250,14 @@ path ran — zero-interview inference (Stage A) or fallback interview (Stage
 items failed and note that `/build --auto` will refuse this spec (REQ-011)
 while interactive `/build` will not.
 
-Save the pending-build marker unconditionally (both `autonomy_ready` values —
+Arm the build handoff unconditionally (both `autonomy_ready` values —
 the gate never blocks spec creation or handoff):
 ```bash
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
-node -e "require('$PLUGIN_ROOT/hooks/lib/state.cjs').savePendingBuild(process.cwd(), 'specs/{slug}.md')"
+node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-arm --kind build --spec "specs/{slug}.md"
 ```
 Then display the build command, exactly as the interactive flow's Output &
-Handoff does. Do NOT invoke `/build` yourself — the spec file plus marker is
+Handoff does. Do NOT invoke `/build` yourself — the spec file plus build handoff is
 the handoff artifact; `/build`'s find-or-create pre-flight creates the
 worktree, branch, commit, and draft PR the first time `/build {spec}` runs
 (see `references/autonomous-worktree-lifecycle.md`, repo root, "Creation —

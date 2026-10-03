@@ -131,9 +131,14 @@ Contributing factors that make it feel like "nothing happens" even when it fires
   `clear(projectDir, kind)`. All writers and readers go through it.
 - **REQ-005**: Handoff record schema (§5). One record per project; arming
   overwrites (latest wins, matching current `/ferry` semantics).
-- **REQ-006**: Key = md5 of the **git toplevel realpath** (fallback: realpath of
-  cwd). Writers resolve the key from `git rev-parse --show-toplevel`, not the
-  shell's cwd. Fixes §3.2 factor 3.
+- **REQ-006**: Key = md5 of the **repository root** — the realpath of the parent
+  of `git rev-parse --path-format=absolute --git-common-dir` (shared by the main
+  checkout and all linked worktrees); fallback: realpath of cwd outside git.
+  Writers resolve the key from git, not the shell's cwd. Fixes §3.2 factor 3 and
+  lets `/build` (in its worktree) clear a build handoff armed by `/speccy` in the
+  main checkout. Each slot also stores the arming **toplevel**; the `waybill` slot
+  is only injected into a session whose toplevel matches, so a `/ferry` in one
+  worktree never surfaces in another. The `build` slot is repo-wide.
 - **REQ-007**: A single synchronous SessionStart subcommand
   (`session-guard.cjs handoff`, matcher `startup|clear|compact|resume`) reads the
   record and emits `additionalContext` immediately. It replaces both

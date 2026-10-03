@@ -114,7 +114,9 @@ node "$_R/hooks/session-guard.cjs" logbook-list          # 📌 follow-ups
 
 - `lifecycle-next` prints a `LIFECYCLE_NEXT_BEGIN` … `LIFECYCLE_NEXT_END` block;
   each line is `{command} — {why}` (with `[previously dismissed]` where relevant),
-  or `none` when nothing applies.
+  or `none` when nothing applies. A pending build handoff (left by `/speccy` or
+  `/build --handoff`) is always the **first** line, printed as
+  `/build <spec> — spec ready since <date>`, so it shows as the first "on deck" item.
 - `logbook-list` prints a `LOGBOOK_LIST_BEGIN` … `LOGBOOK_LIST_END` block of category
   headings + numbered items `N. {title} — {source} ({date}) [{link}]`, or
   `LOGBOOK_LIST_EMPTY`.
