@@ -57,7 +57,7 @@ their standalone descriptions below.
 | Releasing a non-container package/app | `/hoist` | `/hoist` or `/hoist --skip-interview` |
 | Generating web design variations | `/distil` | `/distil 3 --port 5173` |
 | Resetting context without losing the thread | `/ferry` | `/ferry` or `/ferry commit` |
-| Seeing what's on deck: lifecycle steps + follow-ups backlog | `/logbook` | `/logbook` or `/logbook review` |
+| Seeing what's on deck: lifecycle steps + follow-ups backlog | `/logbook` | `/logbook`, `/logbook review`, or `/logbook loop` |
 | Updating installed Claude Code plugins | `/wright` | `/wright` or `/wright superpowers --dry-run` |
 
 ### Lifecycle Ordering
@@ -95,12 +95,16 @@ Suggest or invoke these skills when you observe:
 - User wants to explore design directions for a web UI → `/distil`
 - User says "wrap up", "checkpoint", "clear context", or "start fresh" → `/ferry`
 - User asks "what's next"/"next steps", wants the lifecycle overview, or wants to see/clean up captured follow-ups → `/logbook`
+- User wants the backlog worked through without supervision ("fix what you can in the logbook") → `/logbook loop`
 - User wants to update plugins, refresh a plugin, or update mad-skills/superpowers without the interactive picker → `/wright`
 
 ### Cross-Skill Integration
 
 Skills call each other where it makes sense:
 - `/ship` invokes `/sync` after merging to sync the local repo
+- `/ship` always ends with a ranked **Next Up** report (≤10 items from the run,
+  conversation, AGENTS.md, memory, tasks, `/logbook`, open PRs) as its last output;
+  `/build` and `/logbook loop` pass `--next-up-by-caller` and render it last themselves
 - `/build` and `/speccy` invoke `/prime` to load project context first
 - `/dock`, `/keel`, and `/rig` invoke `/sync` before scanning to avoid stale state
 - `/keel` outputs feed into `/dock` pipelines (registry URLs, compute endpoints)

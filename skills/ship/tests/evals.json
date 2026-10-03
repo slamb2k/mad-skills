@@ -87,5 +87,21 @@
       { "type": "regex", "value": "not_code_fixable|external_policy", "flags": "i" },
       { "type": "semantic", "value": "Classifies the GitGuardian failure as an external policy / secret-scanning failure that a code-change retry should not handle, does not spend the CI fix attempts trying to patch it or re-trigger CI, and stops with a failure report telling the user to handle the leaked secret (rotate it and remove it from history) rather than merging" }
     ]
+  },
+  {
+    "name": "ship-next-up-last",
+    "prompt": "Run /ship. The PR merges cleanly. The logbook has 14 open follow-ups, TaskList has 2 pending tasks, and earlier in this conversation the user said they want to add rate limiting next. How does /ship end?",
+    "assertions": [
+      { "type": "regex", "value": "Next Up|N E X T", "flags": "i" },
+      { "type": "regex", "value": "🔴|🟠|🟡|🟢" },
+      { "type": "semantic", "value": "Ends with a ranked Next Up report of at most 10 items, most important first, drawn from multiple sources (the conversation's stated plan, TaskList, the logbook, AGENTS.md/CLAUDE.md, memory) with each item tagged by source, and states that this report is the very last output with nothing printed after it" }
+    ]
+  },
+  {
+    "name": "ship-next-up-after-failure",
+    "prompt": "Run /ship. CI still fails after both fix attempts. What is the last thing /ship outputs?",
+    "assertions": [
+      { "type": "semantic", "value": "Shows the failure banner and then, as the final output, the Next Up report whose first item is a red/top-priority item to resolve this CI failure; it does not claim the PR will merge on its own and does not invoke /sync" }
+    ]
   }
 ]

@@ -1,9 +1,9 @@
 ---
 name: logbook
 description: >-
-  The project's single "what's on deck" surface — one command, two sections. Shows the best-practice lifecycle stages this project should adopt next (computed from repo state, via the recommendation engine) AND the durable backlog of follow-ups (ideas, deferred fixes, open questions, risks, tech debt) captured at /build and /ship so they survive /clear. Lists both, and resolves, dismisses, adds, or reviews follow-ups. Use when you want to see or act on everything outstanding. Triggers: "what's next", "next steps", "/logbook", "what's on deck", "follow-ups", "the backlog", "what did we defer", "lifecycle steps", "what should I do next".
-argument-hint: "[review | archive | resolve <n|a<n>> | dismiss <n|a<n>> | restore a<n> | add <text>]"
-allowed-tools: Bash, AskUserQuestion
+  The project's single "what's on deck" surface — one command, two sections. Shows the best-practice lifecycle stages this project should adopt next (computed from repo state, via the recommendation engine) AND the durable backlog of follow-ups (ideas, deferred fixes, open questions, risks, tech debt) captured at /build and /ship so they survive /clear. Lists both, and resolves, dismisses, adds, or reviews follow-ups; `loop` autonomously fixes every follow-up that needs no human input, ships the fixes, and ranks the top 5 that need you. Use when you want to see or act on everything outstanding. Triggers: "what's next", "next steps", "/logbook", "what's on deck", "follow-ups", "the backlog", "what did we defer", "lifecycle steps", "what should I do next".
+argument-hint: "[loop | review | archive | resolve <n|a<n>> | dismiss <n|a<n>> | restore a<n> | add <text>]"
+allowed-tools: Bash, AskUserQuestion, Read, Edit, Write, Glob, Grep, Agent, Skill
 ---
 
 # Logbook - What's On Deck
@@ -72,7 +72,8 @@ clearly separated because they're genuinely different:
   survive `/clear`. Personal and durable.
 
 It is **read-only by default** — it never runs a skill or resolves an item
-unless you choose to. All operations go through `session-guard.cjs` subcommands
+unless you choose to. The one exception is `/logbook loop`, an explicit opt-in
+that fixes, verifies, and ships the items that need no human input. All operations go through `session-guard.cjs` subcommands
 (single source of truth) and degrade to a no-op on a malformed file.
 
 ## Pre-flight
@@ -81,12 +82,15 @@ unless you choose to. All operations go through `session-guard.cjs` subcommands
 | ------------- | ----- | ------------------------------------------------------------------------------------------------ | -------- | ---------- | ------------------------------------------------------------------------------------ |
 | session-guard | skill | `ls "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}/hooks/session-guard.cjs"` | yes      | stop       | Ships with the mad-skills plugin; reinstall if missing                               |
 | git           | cli   | `git --version`                                                                                  | no       | fallback   | Lifecycle signature + linked-item auto-resolve degrade without git (CON-002/CON-003) |
+| ship          | skill | `ls .claude/skills/ship/SKILL.md ~/.claude/skills/ship/SKILL.md ~/.claude/plugins/marketplaces/slamb2k/skills/ship/SKILL.md 2>/dev/null` | no | fallback | `loop` only: without it, commit + push the branch and report the manual PR command instead of shipping |
 
 ## Parse the argument
 
 The argument selects the action (default is **show** when empty):
 
 - _(empty)_ → **show** both sections
+- `loop` → **loop**: fix every follow-up that needs no human input, ship, then
+  rank the top 5 that need you
 - `review` → **review** follow-ups (assisted cleanup)
 - `archive` → **archive** view (lists relocated-open items with `a`-prefixed
   selectors, plus historical archive entries for context)
@@ -155,6 +159,18 @@ Only when the user picks one (or asks). Running a lifecycle step just invokes
 that skill (e.g. _set up A_ → invoke `/keel`). **Never** run one without the user
 choosing it — every lifecycle transition is user-consented. If you want to
 prompt, use `AskUserQuestion` with each listed command plus _Not now_.
+
+### loop (autonomous sweep)
+
+Follow `references/loop.md` exactly. In short: require a clean tree, `/sync`,
+branch; triage each open item as **🔧 Auto** (concrete, locally verifiable,
+repo-only) or **🙋 Needs you** (decision, credentials/external system, machine
+config, "wait until…", or needs a spec — when in doubt, Needs you); fix and
+test each Auto item, resolving only verified ones and reverting any that fail;
+repeat passes until nothing new resolves (max 3 passes / 10 items); ship via
+`/ship --next-up-by-caller`; then end with the ranked **🙋 Needs you** report
+(max 5) as the very last output. Never auto-run a lifecycle step, never
+dismiss an item, never resolve one that wasn't verified.
 
 ### review (assisted follow-up cleanup)
 

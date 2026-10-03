@@ -26,5 +26,15 @@
       { "type": "semantic", "value": "States that follow-ups linked to a task, spec, or PR may be resolved automatically without asking" },
       { "type": "semantic", "value": "States that a lifecycle step is never run unless the user chooses it" }
     ]
+  },
+  {
+    "name": "loop-autonomous-sweep",
+    "prompt": "/logbook loop",
+    "assertions": [
+      { "type": "contains", "value": "/$$/" },
+      { "type": "semantic", "value": "Describes requiring a clean tree, syncing and working on a branch, triaging each open follow-up as auto-fixable (concrete, locally verifiable, repo-only) versus needing the user (decisions, credentials or external systems, machine config, waiting conditions, needs a spec), fixing and testing only the auto-fixable ones and resolving only verified fixes, then shipping the fixes via /ship" },
+      { "type": "semantic", "value": "Ends with a ranked report of at most 5 items that need the user, most important first, each saying what the user must decide or provide, as the very last output" },
+      { "type": "semantic", "value": "Never auto-runs a lifecycle step and never dismisses follow-ups on the user's behalf" }
+    ]
   }
 ]

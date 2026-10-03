@@ -1,7 +1,7 @@
 ---
 name: ship
 description: "Ship changes through the full PR lifecycle. Use after completing feature work to commit, push, create PR, wait for checks, and merge. Handles the entire workflow: syncs with main, creates feature branch if needed, groups commits logically with semantic messages, creates detailed PR, monitors CI, fixes issues, squash merges, and cleans up. Invoke when work is ready to ship."
-argument-hint: --pr-only, --no-squash, --keep-branch (optional flags)
+argument-hint: --pr-only, --no-squash, --keep-branch, --next-up-by-caller (optional flags)
 allowed-tools: Bash, Read, Glob, Grep, Agent, Skill
 ---
 
@@ -73,6 +73,9 @@ Parse optional flags from the request:
 - `--no-squash`: Use regular merge instead of squash
 - `--keep-branch`: Don't delete the source branch after merge
 - `--no-superpowers`: Force standalone merge even when Superpowers is installed
+- `--next-up-by-caller`: Skip rendering the **Next Up** report — set only by a
+  skill that invokes `/ship` and prints its own output afterwards (`/build`,
+  `/logbook loop`); that caller renders Next Up as *its* final output instead
 - `--auto`: Full autopilot (pr-first-autonomous-build.md REQ-013, superseding autonomous-execution-mode.md REQ-029) — CI-watch and fix-loop run exactly as interactive `/ship` (2-attempt cap unchanged), and on green checks it **proceeds to merge (Stage 5) and post-merge sync/teardown (Stage 5b)** just like interactive `/ship`, rather than stopping at the PR. The PR description body remains the durable report; see `references/autonomous-report.md`.
 
 ---
@@ -231,11 +234,11 @@ Parse `would_relocate` from the `LOGBOOK_CAPTURE_PREVIEW_BEGIN…END` block.
   - **"Leave it"** → no action; it relocates to `LOGBOOK-ARCHIVE.md` when the
     real capture runs
 
-**Where the items come from.** The same sources the "What's Next?" section reads
-after the merge — `TaskList`, the session so far, and Claude Code's auto-memory
-— plus anything this session deferred, skipped, or flagged as a known gap. All
-of that is knowable now; only the PR number is not. Anything "What's Next?"
-would have listed but that isn't being acted on belongs here.
+**Where the items come from.** The same sources the closing **Next Up** report
+reads — `TaskList`, the session so far, and Claude Code's auto-memory — plus
+anything this session deferred, skipped, or flagged as a known gap. All of that
+is knowable now; only the PR number is not. Anything Next Up would list that
+isn't being acted on and isn't already tracked belongs here.
 
 **Check for entries already in the tree first.** `/build` Stage 10 captures to
 the same ledger at the end of a build, so `LOGBOOK.md` is often already dirty
@@ -295,7 +298,7 @@ field and suggest the manual PR creation command. Do NOT revert the push.
 - Azure DevOps (cli): `az repos pr create --source-branch {branch} --target-branch {DEFAULT_BRANCH} --org {AZDO_ORG_URL} --project {AZDO_PROJECT}`
 - Azure DevOps (rest): Create PR via `{AZDO_ORG_URL}/{AZDO_PROJECT}/_apis/git/repositories/{repo}/pullrequests?api-version=7.0`
 
-**If `--pr-only` flag: Stop here and report PR URL to user.**
+**If `--pr-only` flag: Stop here, report the PR URL, then render **Next Up** (see below) as the final output.**
 
 ---
 
@@ -398,11 +401,11 @@ verification fails), display the failure banner and STOP:
 ```
 
 **Critical rules on failure:**
-- Do NOT proceed to "What's Next?"
-- Do NOT suggest next tasks or follow-up work
 - Do NOT invoke `/sync` or any other skill
 - Do NOT use language like "will be auto-merged" or "PR is pending"
-- The failure banner is the LAST output — nothing follows it
+- The only thing that may follow the failure banner is the **Next Up** report
+  (see below), whose item 1 is always 🔴 resolving this failure — no other
+  suggestions, summaries, or sign-off text
 
 ---
 
@@ -423,7 +426,7 @@ defaults (override via `--no-squash` and `--keep-branch` flags only).
 
 ### 5a. Merge the PR
 
-**Superpowers deferral:** When Superpowers is detected and `--no-superpowers` is not set, after CI is green and auto-fix, announce `⚡ Superpowers detected — deferring final integration to superpowers:finishing-a-development-branch` and invoke that skill to present merge/PR/cleanup options instead of calling merge.sh directly (CI-poll + auto-fix and the no-manual-CI-trigger rule still apply); otherwise run merge.sh below.
+**Superpowers deferral:** When Superpowers is detected and `--no-superpowers` is not set, after CI is green and auto-fix, announce `⚡ Superpowers detected — deferring final integration to superpowers:finishing-a-development-branch` and invoke that skill to present merge/PR/cleanup options instead of calling merge.sh directly (CI-poll + auto-fix and the no-manual-CI-trigger rule still apply); otherwise run merge.sh below. Whichever option the user picks there, `/ship` still ends with **Next Up**.
 
 Run the merge script directly (no LLM needed):
 
@@ -505,28 +508,6 @@ fi
 
 ---
 
-## What's Next?
-
-**Only run this section if /ship succeeded (PR is merged).** If any failure
-occurred, the failure banner was already displayed and nothing should follow it.
-
-After a successful merge, determine what work comes next by checking these
-sources (in priority order):
-
-1. **Active tasks** — check `TaskList` for any in-progress or pending tasks
-   in the current session
-2. **Session context** — review the conversation so far for any stated plans,
-   follow-up items, or deferred work the user mentioned
-3. **Memory** — check Claude Code's built-in auto-memory
-   (`~/.claude/projects/<project>/memory/MEMORY.md`) for recent checkpoints or
-   plans related to this project
-
-Summarize the result as 1–3 short bullet points for the `⚡ Next` section of
-the report. If nothing is found, omit the section entirely — do not fabricate
-next steps.
-
----
-
 ## Final Report to User
 
 Compile all stage reports into a summary:
@@ -547,14 +528,11 @@ Compile all stage reports into a summary:
 │
 │  📊 {count} files changed ({diff_summary})
 │
-│  ⚡ Next
-│     • {next item 1}
-│     • {next item 2}
-│
 └─────────────────────────────────────────────────
 ```
 
-If nothing was found for "What's Next?", omit the `⚡ Next` section.
+What comes next is not part of this box — it is the separate **Next Up**
+report that closes the run.
 
 If any stage failed, add:
 ```
@@ -580,15 +558,12 @@ those entries are in the merge commit. This is only the net for follow-ups that
 could not have been known then — ones the shipping itself produced: a CI failure
 and its fix, a merge surprise, something learned from the deploy.
 
-Show the ledger either way, so the report ends with what is outstanding:
+Don't print the full ledger here — the closing **Next Up** report reads it
+(`logbook-list`) and surfaces what matters, ranked against everything else.
 
-```bash
-_R="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/marketplaces/slamb2k}"
-node "$_R/hooks/session-guard.cjs" logbook-list
-```
-
-If nothing new arose after Stage 1b — the common case — stop here. If the ledger
-is empty and nothing was surfaced, show nothing at all (AC-008).
+If nothing new arose after Stage 1b — the common case — skip straight to Next
+Up. If the ledger is empty and nothing was surfaced, print nothing for this
+section (AC-008).
 
 **If shipping genuinely produced new follow-ups**, capture them with
 `source: "/ship #<pr>"` (the PR number *is* known now), using the same
@@ -605,3 +580,16 @@ the next ship's Stage 1b to fold into that branch. Both are reasonable; a
 docs-only PR for one ledger line usually is not. **Never leave the default
 branch dirty without saying so** — a silently modified ledger looks like a
 clean tree to the next session, and `/sync` will stash it.
+
+## Next Up — always the last output
+
+Every `/ship` run ends with the **Next Up** report — after the final report,
+the lifecycle offer, and the ledger net above, and after the failure banner
+on a failed run. It ranks up to 10 items, most important first, gathered from
+this run, the conversation, AGENTS.md/CLAUDE.md, auto-memory (`MEMORY.md`),
+`TaskList`, the `/logbook` ledger and lifecycle steps, and your other open
+PRs/issues. Follow `references/next-up.md` exactly for sources, ranking, and the
+colour-banded format. Nothing may be printed after it.
+
+Skip it only when `--next-up-by-caller` is set; the calling skill then renders
+it as its own final output.
