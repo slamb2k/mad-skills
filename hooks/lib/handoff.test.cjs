@@ -388,3 +388,60 @@ test('build slot stays usable when its waybill vanished', (t) => {
   assert.match(handoff.consume(root), /left a spec ready to build/);
   handoff.clear({ kind: 'all', dir: root });
 });
+
+function writeRecord(root, rec) {
+  fs.writeFileSync(path.join(handoff.storeDir(), `${handoff.resolveRepo(root).key}.json`), JSON.stringify(rec));
+}
+
+test('waybill is swept when the session it was injected into ends, not by a parallel session', (t) => {
+  const root = mkRepo(t);
+  const file = mkWaybill(root);
+  handoff.arm({ kind: 'waybill', waybill: file, dir: root });
+  handoff.end(root, 'S1');
+  assert.ok(fs.existsSync(file), 'ending the arming session does not sweep');
+  assert.match(handoff.consume(root, 'clear', 'S2'), /left a waybill document/);
+  assert.equal(record(root).slots.waybill.injectedSession, 'S2');
+  assert.equal(handoff.consume(root, 'startup', 'S3'), '');
+  handoff.end(root, 'S3');
+  assert.ok(fs.existsSync(file), 'a parallel session neither re-injects nor sweeps');
+  handoff.end(root, 'S2');
+  assert.ok(!fs.existsSync(file));
+  assert.ok(!fs.existsSync(path.join(handoff.storeDir(), `${handoff.resolveRepo(root).key}.json`)), 'empty record removed');
+});
+
+test('stale fallback: a later session sweeps when SessionEnd never fired within a day', (t) => {
+  const root = mkRepo(t);
+  const file = mkWaybill(root);
+  handoff.arm({ kind: 'waybill', waybill: file, dir: root });
+  handoff.consume(root, 'clear', 'S2');
+  const rec = record(root);
+  rec.slots.waybill.injectedAt -= 25 * 3600 * 1000;
+  writeRecord(root, rec);
+  handoff.consume(root, 'startup', 'S3');
+  assert.ok(!fs.existsSync(file));
+});
+
+test('build slot: its owned waybill goes with the injected session, the reminder stays', (t) => {
+  const root = mkRepo(t);
+  const file = mkWaybill(root);
+  handoff.arm({ kind: 'build', spec: 'specs/x.md', waybill: file, dir: root });
+  assert.match(handoff.consume(root, 'clear', 'S2'), /Plan and clarifications/);
+  handoff.consume(root, 'startup', 'S3');
+  assert.ok(fs.existsSync(file));
+  handoff.end(root, 'S2');
+  assert.ok(!fs.existsSync(file));
+  assert.match(handoff.consume(root, 'clear', 'S4'), /Pending: \/build specs\/x\.md/);
+  handoff.clear({ kind: 'all', dir: root });
+});
+
+test('legacy signal is ignored unless this user wrote it and nobody else can write it', { skip: typeof process.getuid !== 'function' }, (t) => {
+  const root = mkRepo(t);
+  const wb = mkWaybill(root, 'planted body\n');
+  fs.mkdirSync('/tmp/claude-ferry', { recursive: true });
+  const signal = `/tmp/claude-ferry/${handoff.cksum(root)}.signal`;
+  t.after(() => fs.rmSync(signal, { force: true }));
+  fs.writeFileSync(signal, `${wb}\n`);
+  fs.chmodSync(signal, 0o666);
+  assert.doesNotMatch(handoff.consume(root, 'clear', 'S1'), /planted body/);
+  assert.ok(fs.existsSync(signal), 'an untrusted signal is left untouched');
+});

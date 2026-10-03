@@ -3,7 +3,7 @@
 const { readFileSync } = require('fs');
 
 function readHookInput(command) {
-  if (!['check', 'remind', 'logbook-hint', 'handoff'].includes(command) || process.stdin.isTTY) return {};
+  if (!['check', 'remind', 'logbook-hint', 'handoff', 'handoff-end'].includes(command) || process.stdin.isTTY) return {};
   try {
     const input = JSON.parse(readFileSync(0, 'utf8'));
     return input && typeof input === 'object' && !Array.isArray(input) ? input : {};

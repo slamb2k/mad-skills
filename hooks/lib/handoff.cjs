@@ -255,6 +255,23 @@ function cksum(str) {
   return (~crc) >>> 0;
 }
 
+// A legacy signal lives in shared /tmp; only trust one this user wrote, in a
+// directory nobody else can write to — otherwise another local user could
+// point the injection at any file we can read.
+function trustedSignal(dir, file) {
+  if (typeof process.getuid !== 'function') return true;
+  const uid = process.getuid();
+  try {
+    for (const p of [dir, file]) {
+      const st = fs.lstatSync(p);
+      if (st.isSymbolicLink() || st.uid !== uid || (st.mode & 0o022)) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function newSlot(source, toplevel, resume, artifacts, createdAt) {
   return {
     source, toplevel, resume: resume || null, artifacts,
@@ -285,6 +302,7 @@ function migrateLegacy(cwd, repo, rec) {
   const signalDir = process.platform === 'win32' ? path.join(os.tmpdir(), 'claude-ferry') : '/tmp/claude-ferry';
   for (const d of dirs) {
     const file = path.join(signalDir, `${cksum(d)}.signal`);
+    if (!fs.existsSync(file) || !trustedSignal(signalDir, file)) continue;
     let target;
     try { target = fs.readFileSync(file, 'utf-8').split('\n')[0].trim(); } catch { continue; }
     try { fs.unlinkSync(file); } catch { /* noop */ }
@@ -366,20 +384,28 @@ function renderWaybill(slot) {
   return `${head}\n\n---\n\n${stripStamp(fs.readFileSync(way.path, 'utf-8'))}`;
 }
 
+// A slot's owned waybill is swept when the session it was injected into ends
+// (SessionEnd → end()). A later SessionStart only sweeps it as a fallback —
+// no session id was recorded, or SessionEnd never fired within a day — so a
+// parallel terminal opening in the same tree does not delete it mid-use.
+function sweepable(slot) {
+  return !slot.injectedSession || Date.now() - slot.injectedAt > DAY_MS;
+}
+
 // source is the SessionStart trigger. compact/resume continue an existing
 // session, so they never inject, advance counters or sweep.
-function consume(cwd, source) {
+function consume(cwd, source, sessionId) {
   if (source === 'compact' || source === 'resume') return '';
   const repo = resolveRepo(cwd);
   try {
-    return withLock(repo.key, () => consumeLocked(cwd, repo));
+    return withLock(repo.key, () => consumeLocked(cwd, repo, sessionId));
   } catch (e) {
     if (e.code === 'ELOCKED') return '';
     throw e;
   }
 }
 
-function consumeLocked(cwd, repo) {
+function consumeLocked(cwd, repo, sessionId) {
   const rec = loadRecord(repo);
   let dirty = migrateLegacy(cwd, repo, rec);
   const notices = [];
@@ -404,10 +430,12 @@ function consumeLocked(cwd, repo) {
     if (!way.injectedAt) {
       blocks.waybill = renderWaybill(way);
       way.injectedAt = Date.now();
-    } else {
+      way.injectedSession = sessionId || null;
+      dirty = true;
+    } else if (sweepable(way)) {
       notices.push(...dropSlot(rec, 'waybill', repo));
+      dirty = true;
     }
-    dirty = true;
   }
 
   const build = rec.slots.build;
@@ -415,12 +443,9 @@ function consumeLocked(cwd, repo) {
     if (!build.injectedAt) {
       blocks.build = renderBuild(build, repo, true);
       build.injectedAt = Date.now();
+      build.injectedSession = sessionId || null;
     } else {
-      build.artifacts = (build.artifacts || []).filter((a) => {
-        if (a.role !== 'waybill' || !a.owned) return true;
-        deleteOwned(rec, a, build.toplevel || repo.toplevel, notices);
-        return false;
-      });
+      if (sweepable(build)) sweepBuildWaybill(rec, build, repo, notices);
       blocks.build = renderBuild(build, repo, false);
     }
     dirty = true;
@@ -428,6 +453,43 @@ function consumeLocked(cwd, repo) {
 
   if (dirty) saveRecord(repo, rec);
   return [blocks.waybill, blocks.build, ...notices].filter(Boolean).join('\n\n');
+}
+
+function sweepBuildWaybill(rec, build, repo, notices) {
+  build.artifacts = (build.artifacts || []).filter((a) => {
+    if (a.role !== 'waybill' || !a.owned) return true;
+    deleteOwned(rec, a, build.toplevel || repo.toplevel, notices);
+    return false;
+  });
+}
+
+// ─── end (SessionEnd) ──────────────────────────────────────────────────
+
+// The session a waybill was injected into has ended: its owned waybills are
+// no longer needed. Build slots keep their resume reminder.
+function end(cwd, sessionId) {
+  if (!sessionId) return;
+  const repo = resolveRepo(cwd);
+  try {
+    withLock(repo.key, () => {
+      const rec = loadRecord(repo);
+      const notices = [];
+      let dirty = false;
+      const way = rec.slots.waybill;
+      if (way && way.injectedSession === sessionId) {
+        notices.push(...dropSlot(rec, 'waybill', repo));
+        dirty = true;
+      }
+      const build = rec.slots.build;
+      if (build && build.injectedSession === sessionId) {
+        sweepBuildWaybill(rec, build, repo, notices);
+        dirty = true;
+      }
+      if (dirty) saveRecord(repo, rec);
+    });
+  } catch (e) {
+    if (e.code !== 'ELOCKED') throw e;
+  }
 }
 
 // ─── arm / clear / clean ───────────────────────────────────────────────
@@ -602,5 +664,5 @@ function parseFlags(argv) {
 
 module.exports = {
   resolveRepo, storeDir, defaultWaybillPath, stampWaybill, guardedDelete, cksum,
-  peek, consume, arm, clear, clean, parseFlags, specArtifact, resolveSpecPath,
+  peek, consume, end, arm, clear, clean, parseFlags, specArtifact, resolveSpecPath,
 };

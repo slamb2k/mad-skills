@@ -11,6 +11,7 @@
  *   check   — SessionStart: validate git, AGENTS.md/CLAUDE.md, tasks, staleness
  *   remind  — UserPromptSubmit: re-emit pending context on first prompt
  *   handoff — SessionStart: inject the armed build/waybill handoff slots
+ *   handoff-end — SessionEnd: sweep waybills injected into the ending session
  *   handoff-arm | handoff-clear | handoff-clean | handoff-path — manage handoff slots
  *
  * Usage:
@@ -524,7 +525,7 @@ switch (command) {
   case 'handoff': {
     // SessionStart: inject armed build/waybill slots (one-shot, then swept).
     let text = '';
-    try { text = handoff.consume(PROJECT_DIR, nonemptyString(hookInput.source)); } catch { /* never block session start */ }
+    try { text = handoff.consume(PROJECT_DIR, nonemptyString(hookInput.source), SESSION_ID); } catch { /* never block session start */ }
     if (text) {
       const output = new OutputBuilder();
       output.add(text);
@@ -532,6 +533,12 @@ switch (command) {
     } else {
       console.log(JSON.stringify({}));
     }
+    break;
+  }
+  case 'handoff-end': {
+    // SessionEnd: sweep owned waybills injected into the session that ended.
+    try { handoff.end(PROJECT_DIR, SESSION_ID); } catch { /* never block session end */ }
+    console.log(JSON.stringify({}));
     break;
   }
   case 'handoff-arm':
@@ -699,6 +706,6 @@ switch (command) {
   }
   default:
     console.error(`Session Guard v${config.version}`);
-    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint|lifecycle-next|handoff|handoff-arm|handoff-clear|handoff-clean|handoff-path|logbook-hint|logbook-list|logbook-capture|logbook-capture-preview|logbook-resolve|logbook-dismiss|logbook-add|logbook-review|logbook-archive|logbook-restore>');
+    console.error('Usage: node session-guard.js <check|remind|dismiss-brace|dismiss-rig|lifecycle-dismiss|lifecycle-mute|lifecycle-mute-all|lifecycle-unmute|lifecycle-complete|lifecycle-checkpoint|lifecycle-next|handoff|handoff-end|handoff-arm|handoff-clear|handoff-clean|handoff-path|logbook-hint|logbook-list|logbook-capture|logbook-capture-preview|logbook-resolve|logbook-dismiss|logbook-add|logbook-review|logbook-archive|logbook-restore>');
     process.exit(1);
 }
