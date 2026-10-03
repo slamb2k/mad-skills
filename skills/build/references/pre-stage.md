@@ -110,7 +110,7 @@ the run-now decision.
 **If handing off:** capture the resolved PLAN and any Stage-2 clarifications
 gathered so far, then:
 
-1. Get the waybill path: `node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-path`
+1. Get the waybill path: `node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-path --kind build`
    and write the waybill there. Its "next steps" MUST be a single resume action:
    re-run this exact build in the fresh session, e.g. `/build {original PLAN
    argument}` (plus any active flags, minus `--handoff`). Include the resolved

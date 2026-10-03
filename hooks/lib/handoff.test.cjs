@@ -83,7 +83,8 @@ test('guarded delete removes the file and only tagged exclude lines', (t) => {
   const exclude = path.join(root, '.git', 'info', 'exclude');
   fs.mkdirSync(path.dirname(exclude), { recursive: true });
   fs.writeFileSync(exclude, 'keep-me\nwaybill.md # mad-skills:ferry\n');
-  const file = mkWaybill(root);
+  const file = path.join(root, 'waybill.md');
+  fs.writeFileSync(file, '# Waybill — test\n');
   const art = { owned: true, path: file, ...handoff.stampWaybill(file) };
   assert.equal(handoff.guardedDelete(art, root), 'deleted');
   assert.equal(handoff.guardedDelete(art, root), 'missing');
@@ -189,6 +190,7 @@ test('clean lists owned and legacy waybills; --yes --legacy deletes legacy', (t)
   handoff.arm({ kind: 'waybill', waybill: file, dir: root });
   const legacy = path.join(root, 'waybill.md');
   fs.writeFileSync(legacy, '# Waybill — old\n');
+  fs.appendFileSync(path.join(root, '.git', 'info', 'exclude'), 'waybill.md # mad-skills:ferry\n');
   let out = handoff.clean({ dir: root });
   assert.deepEqual(out, [`owned ${file}`, `legacy ${legacy}`]);
   out = handoff.clean({ yes: true, dir: root });
@@ -206,7 +208,7 @@ test('legacy pending-build marker and ferry signal migrate into slots', (t) => {
   const marker = path.join(stateDir, `${crypto.createHash('md5').update(root).digest('hex')}-pending-build.json`);
   fs.writeFileSync(marker, JSON.stringify({ specPath: 'specs/x.md', projectDir: root, timestamp: Date.now() }));
   const wb = mkWaybill(root, 'legacy body\n');
-  const sigDir = path.join(os.tmpdir(), 'claude-ferry');
+  const sigDir = process.platform === 'win32' ? path.join(os.tmpdir(), 'claude-ferry') : '/tmp/claude-ferry';
   fs.mkdirSync(sigDir, { recursive: true });
   const signal = path.join(sigDir, `${handoff.cksum(root)}.signal`);
   fs.writeFileSync(signal, `${wb}\n`);
@@ -218,4 +220,171 @@ test('legacy pending-build marker and ferry signal migrate into slots', (t) => {
   assert.ok(fs.existsSync(wb), 'unowned migrated waybill is never deleted');
   handoff.consume(root);
   assert.ok(fs.existsSync(wb));
+});
+
+function record(root) {
+  return JSON.parse(fs.readFileSync(path.join(handoff.storeDir(), `${handoff.resolveRepo(root).key}.json`), 'utf8'));
+}
+
+test('default waybill paths: build and waybill kinds never collide, toplevel hash always present', (t) => {
+  const root = mkRepo(t);
+  const repo = handoff.resolveRepo(root);
+  const w = handoff.defaultWaybillPath(repo);
+  const b = handoff.defaultWaybillPath(repo, 'build');
+  const c = handoff.defaultWaybillPath(repo, 'checkpoint');
+  assert.equal(new Set([w, b, c]).size, 3);
+  assert.match(path.basename(w), /^[0-9a-f]{8}-waybill\.md$/);
+  assert.equal(path.basename(b), 'build-waybill.md');
+  assert.match(path.basename(c), /^[0-9a-f]{8}-checkpoint\.md$/);
+});
+
+test('compact/resume never inject, sweep or change state', (t) => {
+  const root = mkRepo(t);
+  const file = mkWaybill(root);
+  handoff.arm({ kind: 'waybill', waybill: file, dir: root });
+  assert.equal(handoff.consume(root, 'compact'), '');
+  assert.equal(handoff.consume(root, 'resume'), '');
+  assert.ok(fs.existsSync(file));
+  assert.equal(record(root).slots.waybill.injectedAt, null);
+  assert.match(handoff.consume(root, 'clear'), /left a waybill document/);
+  assert.equal(handoff.consume(root, 'compact'), '');
+  assert.ok(fs.existsSync(file));
+  assert.equal(handoff.consume(root, 'clear'), '');
+  assert.ok(!fs.existsSync(file));
+});
+
+test('exclude line survives while another worktree still has a waybill.md', (t) => {
+  const root = mkRepo(t);
+  const wt = path.join(root, '.claude', 'wtx');
+  sh('git', ['worktree', 'add', '-q', '-b', 'wtx', wt], root);
+  const exclude = path.join(root, '.git', 'info', 'exclude');
+  fs.mkdirSync(path.dirname(exclude), { recursive: true });
+  fs.writeFileSync(exclude, 'waybill.md # mad-skills:ferry\n');
+  fs.writeFileSync(path.join(wt, 'waybill.md'), '# Waybill — other\n');
+  const mine = path.join(root, 'waybill.md');
+  fs.writeFileSync(mine, '# Waybill — mine\n');
+  const art = { owned: true, path: mine, ...handoff.stampWaybill(mine) };
+  assert.equal(handoff.guardedDelete(art, root), 'deleted');
+  assert.match(fs.readFileSync(exclude, 'utf8'), /mad-skills:ferry/);
+  fs.unlinkSync(path.join(wt, 'waybill.md'));
+  fs.writeFileSync(mine, '# Waybill — mine\n');
+  const art2 = { owned: true, path: mine, ...handoff.stampWaybill(mine) };
+  assert.equal(handoff.guardedDelete(art2, root), 'deleted');
+  assert.doesNotMatch(fs.readFileSync(exclude, 'utf8'), /mad-skills:ferry/);
+});
+
+test('exclude is untouched when the deleted waybill is not <toplevel>/waybill.md', (t) => {
+  const root = mkRepo(t);
+  const exclude = path.join(root, '.git', 'info', 'exclude');
+  fs.mkdirSync(path.dirname(exclude), { recursive: true });
+  fs.writeFileSync(exclude, 'waybill.md # mad-skills:ferry\n');
+  const file = mkWaybill(root);
+  const art = { owned: true, path: file, ...handoff.stampWaybill(file) };
+  assert.equal(handoff.guardedDelete(art, root), 'deleted');
+  assert.match(fs.readFileSync(exclude, 'utf8'), /mad-skills:ferry/);
+});
+
+test('auto-checkpoint does not displace an uninjected ferry waybill; --source clear is selective', (t) => {
+  const root = mkRepo(t);
+  const ferry = mkWaybill(root, 'ferry body\n');
+  handoff.arm({ kind: 'waybill', waybill: ferry, dir: root });
+  const cp = path.join(root, 'cp.md');
+  fs.writeFileSync(cp, '# Waybill — cp\n');
+  const r = handoff.arm({ kind: 'waybill', waybill: cp, source: 'auto-checkpoint', dir: root });
+  assert.equal(r.skipped, 'ferry');
+  assert.equal(record(root).slots.waybill.source, 'ferry');
+  handoff.clear({ kind: 'waybill', source: 'auto-checkpoint', dir: root });
+  assert.equal(record(root).slots.waybill.source, 'ferry');
+  handoff.clear({ kind: 'waybill', dir: root });
+  handoff.arm({ kind: 'waybill', waybill: cp, source: 'auto-checkpoint', dir: root });
+  assert.equal(record(root).slots.waybill.source, 'auto-checkpoint');
+  handoff.clear({ kind: 'waybill', source: 'auto-checkpoint', dir: root });
+  assert.equal(handoff.peek(root).waybill, null);
+  assert.ok(!fs.existsSync(cp));
+});
+
+test('legacy signal is found via a symlinked cwd; migrated toplevel is the repo toplevel', (t) => {
+  if (process.platform === 'win32') return;
+  const root = mkRepo(t);
+  const link = path.join(os.tmpdir(), `handoff-link-${process.pid}-${Date.now()}`);
+  fs.symlinkSync(root, link);
+  t.after(() => fs.rmSync(link, { force: true }));
+  const wb = mkWaybill(root, 'via symlink\n');
+  fs.mkdirSync('/tmp/claude-ferry', { recursive: true });
+  const signal = `/tmp/claude-ferry/${handoff.cksum(link)}.signal`;
+  fs.writeFileSync(signal, `${wb}\n`);
+  assert.match(handoff.consume(link), /via symlink/);
+  assert.ok(!fs.existsSync(signal));
+  assert.equal(record(root).slots.waybill.toplevel, root);
+});
+
+test('edited waybills are tracked in kept and cleaned by id on --yes', (t) => {
+  const root = mkRepo(t);
+  const file = mkWaybill(root);
+  handoff.arm({ kind: 'waybill', waybill: file, dir: root });
+  handoff.consume(root);
+  fs.appendFileSync(file, 'my notes');
+  handoff.consume(root);
+  assert.equal(record(root).kept.length, 1);
+  assert.deepEqual(handoff.clean({ dir: root }), [`kept ${file} (edited)`]);
+  assert.deepEqual(handoff.clean({ yes: true, dir: root }), [`deleted ${file}`]);
+  assert.ok(!fs.existsSync(file));
+  assert.ok(!fs.existsSync(path.join(handoff.storeDir(), `${handoff.resolveRepo(root).key}.json`)));
+});
+
+test('kept entry survives arm-replace and is dropped once the file is gone', (t) => {
+  const root = mkRepo(t);
+  const a = mkWaybill(root);
+  handoff.arm({ kind: 'waybill', waybill: a, dir: root });
+  fs.appendFileSync(a, 'edit');
+  const b = path.join(root, 'b.md');
+  fs.writeFileSync(b, '# Waybill — b\n');
+  const r = handoff.arm({ kind: 'waybill', waybill: b, dir: root });
+  assert.match(r.notices[0], /was edited — kept/);
+  assert.equal(record(root).kept[0].path, a);
+  fs.unlinkSync(a);
+  assert.deepEqual(handoff.clean({ dir: root }), [`owned ${b}`]);
+  assert.equal(record(root).kept.length, 0);
+  handoff.clear({ kind: 'all', dir: root });
+});
+
+test('lock: stale locks are broken; a held lock makes consume a silent no-op', (t) => {
+  const root = mkRepo(t);
+  handoff.arm({ kind: 'build', spec: 'specs/x.md', dir: root });
+  const lock = path.join(handoff.storeDir(), `${handoff.resolveRepo(root).key}.lock`);
+  fs.writeFileSync(lock, '');
+  const old = new Date(Date.now() - 60000);
+  fs.utimesSync(lock, old, old);
+  assert.match(handoff.consume(root), /left a spec ready/);
+  assert.ok(!fs.existsSync(lock));
+  fs.writeFileSync(lock, '');
+  const t0 = Date.now();
+  assert.equal(handoff.consume(root), '');
+  assert.ok(Date.now() - t0 < 4000);
+  assert.throws(() => handoff.clear({ kind: 'all', dir: root }), /locked/);
+  fs.unlinkSync(lock);
+  handoff.clear({ kind: 'all', dir: root });
+});
+
+test('legacy waybill requires untracked + excluded', (t) => {
+  const root = mkRepo(t);
+  const legacy = path.join(root, 'waybill.md');
+  fs.writeFileSync(legacy, '# Waybill — mine\n');
+  assert.deepEqual(handoff.clean({ dir: root }), []);
+  fs.appendFileSync(path.join(root, '.git', 'info', 'exclude'), '/waybill.md\n');
+  assert.deepEqual(handoff.clean({ dir: root }), [`legacy ${legacy}`]);
+  sh('git', ['add', '-f', 'waybill.md'], root);
+  assert.deepEqual(handoff.clean({ dir: root }), []);
+});
+
+test('build slot stays usable when its waybill vanished', (t) => {
+  const root = mkRepo(t);
+  const file = mkWaybill(root);
+  handoff.arm({ kind: 'build', spec: 'specs/x.md', waybill: file, dir: root });
+  fs.unlinkSync(file);
+  const { build } = handoff.peek(root);
+  assert.ok(build);
+  assert.equal(build.artifacts.length, 1);
+  assert.match(handoff.consume(root), /left a spec ready to build/);
+  handoff.clear({ kind: 'all', dir: root });
 });

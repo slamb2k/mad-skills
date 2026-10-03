@@ -2,7 +2,7 @@
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } = require('fs');
+const { mkdtempSync, mkdirSync, writeFileSync, appendFileSync, readFileSync, existsSync, rmSync } = require('fs');
 const { tmpdir } = require('os');
 const { join, resolve } = require('path');
 const { execFileSync } = require('child_process');
@@ -258,6 +258,7 @@ test('legacy root waybill survives sweep and is listed by handoff-clean (AC-011)
   const { project, run, cli } = gitRepo(t);
   const legacy = join(project, 'waybill.md');
   writeFileSync(legacy, '# Waybill — old\nstuff\n');
+  appendFileSync(join(project, '.git', 'info', 'exclude'), 'waybill.md # mad-skills:ferry\n');
   run('handoff', { cwd: project });
   run('handoff', { cwd: project });
   assert.ok(existsSync(legacy));
@@ -301,4 +302,39 @@ test('handoff-path prints a stable default waybill path', (t) => {
   assert.equal(a, cli('handoff-path', '--dir', project).trim());
   assert.match(a, /waybill\.md$/);
   assert.ok(existsSync(join(a, '..')));
+});
+
+test('handoff-path --kind selects distinct build and waybill paths', (t) => {
+  const { project, cli } = gitRepo(t);
+  const w = cli('handoff-path', '--dir', project).trim();
+  const b = cli('handoff-path', '--kind', 'build', '--dir', project).trim();
+  assert.notEqual(w, b);
+  assert.match(b, /build-waybill\.md$/);
+});
+
+test('compact/resume SessionStart sources do not advance the handoff', (t) => {
+  const { project, run, cli, context } = gitRepo(t);
+  const way = join(project, 'w.md');
+  writeFileSync(way, '# Waybill — t\nbody\n');
+  cli('handoff-arm', '--kind', 'waybill', '--waybill', way, '--dir', project);
+  assert.deepEqual(JSON.parse(run('handoff', { cwd: project, source: 'compact' })), {});
+  assert.deepEqual(JSON.parse(run('handoff', { cwd: project, source: 'resume' })), {});
+  assert.match(context(run('handoff', { cwd: project, source: 'clear' })), /body/);
+  assert.deepEqual(JSON.parse(run('handoff', { cwd: project, source: 'compact' })), {});
+  assert.ok(existsSync(way));
+});
+
+test('handoff-arm auto-checkpoint keeps a pending ferry waybill; handoff-clear --source is selective', (t) => {
+  const { project, cli } = gitRepo(t);
+  const way = join(project, 'w.md');
+  const cp = join(project, 'cp.md');
+  writeFileSync(way, '# Waybill — t\nbody\n');
+  writeFileSync(cp, '# Waybill — cp\n');
+  cli('handoff-arm', '--kind', 'waybill', '--waybill', way, '--dir', project);
+  assert.match(cli('handoff-arm', '--kind', 'waybill', '--source', 'auto-checkpoint', '--waybill', cp, '--dir', project),
+    /handoff: kept existing ferry waybill; auto-checkpoint skipped/);
+  cli('handoff-clear', '--kind', 'waybill', '--source', 'auto-checkpoint', '--dir', project);
+  assert.ok(existsSync(way));
+  cli('handoff-clear', '--kind', 'waybill', '--source', 'ferry', '--dir', project);
+  assert.ok(!existsSync(way));
 });

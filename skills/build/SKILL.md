@@ -400,9 +400,17 @@ Reached once Stage 7 confirms every `## Definition of Done` item verified.
 Silently checkpoint before proceeding (GUD-004,
 `references/autonomous-pipeline.md`): write a brief checkpoint waybill (status,
 what remains, next action) to the path printed by
-`node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-path`, then arm it with
+`node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-path --kind checkpoint`
+(distinct from `/ferry`'s path, so a waiting ferry waybill is never overwritten), then arm it with
 `node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-arm --kind waybill --source auto-checkpoint --waybill "<that path>"`.
-Never instruct the user to `/clear` here.
+Never instruct the user to `/clear` here. If a `/ferry` waybill is already
+waiting, arm prints `kept existing ferry waybill; auto-checkpoint skipped` and
+leaves it alone (exit 0).
+
+Once this stage finishes — `/ship` returned, or the user chose "Finish here" —
+retire the checkpoint so it is not replayed into an unrelated session:
+`node "$PLUGIN_ROOT/hooks/session-guard.cjs" handoff-clear --kind waybill --source auto-checkpoint`
+(`--source` makes this a no-op for a `/ferry` waybill).
 
 Undraft the PR (mark ready for review) and push final state. Then branch on
 the spec's `completion_mode` frontmatter field (REQ-009, REQ-011):
@@ -593,3 +601,6 @@ If implementation succeeds but later stages fail:
 - Review critical: user decides fix or proceed
 - Ship fails: code is still committed locally; user can manually push
 - Never silently revert completed implementation work
+- Any path above that ends the run (failure, user abort) also runs
+  `handoff-clear --kind waybill --source auto-checkpoint` so a stale
+  auto-checkpoint is not replayed

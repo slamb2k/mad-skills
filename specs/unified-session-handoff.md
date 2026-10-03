@@ -238,13 +238,16 @@ one slot per kind so a `/ferry` never overwrites a pending build:
           "id": "<uuid>", "sha256": "<hex>" }
       ],
       "createdAt": 1759450000000,
-      "injectedAt": null,
-      "sessionsSinceInjected": 0
+      "injectedAt": null
     },
     "waybill": { "source": "ferry | auto-checkpoint", "resume": "…", "artifacts": [ … ] }
-  }
+  },
+  "kept": [ { "path": "/abs/.../waybill.md", "id": "<uuid>", "keptAt": 1759450000000 } ]
 }
 ```
+
+`kept` lists edited owned waybills that a sweep/clear/replace refused to delete;
+`handoff-clean` reports them and `--yes` removes those whose stamp id still matches.
 
 SessionStart output (kind `build`, first session):
 

@@ -61,9 +61,47 @@ function recordPath(key) {
   return path.join(storeDir(), `${key}.json`);
 }
 
-function defaultWaybillPath(repo) {
-  const name = repo.toplevel === repo.repoRoot ? 'waybill.md' : `${md5(repo.toplevel).slice(0, 8)}-waybill.md`;
+function defaultWaybillPath(repo, kind = 'waybill') {
+  const top = md5(repo.toplevel).slice(0, 8);
+  const name = kind === 'build' ? 'build-waybill.md'
+    : kind === 'checkpoint' ? `${top}-checkpoint.md`
+    : `${top}-waybill.md`;
   return path.join(storeDir(), repo.key, name);
+}
+
+// ─── lock ──────────────────────────────────────────────────────────────
+
+function sleep(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+// Serialises load→modify→save per repo key. Throws code ELOCKED on timeout.
+function withLock(key, fn) {
+  const file = path.join(storeDir(), `${key}.lock`);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const deadline = Date.now() + 2000;
+  for (;;) {
+    try {
+      fs.closeSync(fs.openSync(file, 'wx'));
+      break;
+    } catch (e) {
+      if (e.code !== 'EEXIST') throw e;
+      try {
+        if (Date.now() - fs.statSync(file).mtimeMs > 10000) { fs.unlinkSync(file); continue; }
+      } catch { continue; }
+      if (Date.now() >= deadline) {
+        const err = new Error('handoff store is locked by another process');
+        err.code = 'ELOCKED';
+        throw err;
+      }
+      sleep(25);
+    }
+  }
+  try {
+    return fn();
+  } finally {
+    try { fs.unlinkSync(file); } catch { /* noop */ }
+  }
 }
 
 function writeAtomic(file, data) {
@@ -76,13 +114,16 @@ function writeAtomic(file, data) {
 function loadRecord(repo) {
   try {
     const rec = JSON.parse(fs.readFileSync(recordPath(repo.key), 'utf-8'));
-    if (rec && typeof rec === 'object' && rec.slots) return rec;
+    if (rec && typeof rec === 'object' && rec.slots) {
+      if (!Array.isArray(rec.kept)) rec.kept = [];
+      return rec;
+    }
   } catch { /* missing or corrupt */ }
-  return { version: 1, repoRoot: repo.repoRoot, slots: {} };
+  return { version: 1, repoRoot: repo.repoRoot, slots: {}, kept: [] };
 }
 
 function saveRecord(repo, rec) {
-  if (!Object.keys(rec.slots).length) {
+  if (!Object.keys(rec.slots).length && !(rec.kept || []).length) {
     try { fs.unlinkSync(recordPath(repo.key)); } catch { /* noop */ }
     return;
   }
@@ -113,9 +154,16 @@ function stripStamp(content) {
   return content.replace(STAMP_RE, '');
 }
 
+function worktreeTops(toplevel) {
+  const out = gitOut(['worktree', 'list', '--porcelain'], toplevel);
+  const tops = (out || '').split('\n').filter((l) => l.startsWith('worktree ')).map((l) => real(l.slice(9)));
+  return tops.length ? tops : [real(toplevel)];
+}
+
 function pruneExclude(toplevel, { untagged = false } = {}) {
   try {
-    if (fs.existsSync(path.join(toplevel, 'waybill.md'))) return;
+    // info/exclude is shared by every worktree: keep the line while any still has a waybill.md.
+    if (worktreeTops(toplevel).some((t) => fs.existsSync(path.join(t, 'waybill.md')))) return;
     const rel = gitOut(['rev-parse', '--git-path', 'info/exclude'], toplevel);
     if (!rel) return;
     const file = path.resolve(toplevel, rel);
@@ -136,8 +184,25 @@ function guardedDelete(artifact, toplevel, opts) {
   const m = STAMP_RE.exec(content);
   if (!m || m[1] !== artifact.id || sha256(content) !== artifact.sha256) return 'kept-edited';
   try { fs.unlinkSync(artifact.path); } catch { return 'missing'; }
-  if (toplevel) pruneExclude(toplevel, opts);
+  maybePrune(artifact.path, toplevel, opts);
   return 'deleted';
+}
+
+// Only a `/ferry here` waybill (<worktree>/waybill.md) ever added an exclude line.
+function maybePrune(file, toplevel, opts) {
+  if (!toplevel) return;
+  const target = path.resolve(file);
+  if (worktreeTops(toplevel).some((t) => target === path.join(t, 'waybill.md'))) pruneExclude(toplevel, opts);
+}
+
+// guardedDelete + record any edited file so it is not orphaned.
+function deleteOwned(rec, a, toplevel, notices) {
+  const r = guardedDelete(a, toplevel);
+  if (r === 'kept-edited') {
+    if (!rec.kept.some((k) => k.path === a.path)) rec.kept.push({ path: a.path, id: a.id, keptAt: Date.now() });
+    notices.push(`[HANDOFF] waybill ${a.path} was edited — kept`);
+  }
+  return r;
 }
 
 // ─── specs ─────────────────────────────────────────────────────────────
@@ -193,13 +258,14 @@ function cksum(str) {
 function newSlot(source, toplevel, resume, artifacts, createdAt) {
   return {
     source, toplevel, resume: resume || null, artifacts,
-    createdAt: createdAt || Date.now(), injectedAt: null, sessionsSinceInjected: 0,
+    createdAt: createdAt || Date.now(), injectedAt: null,
   };
 }
 
 function migrateLegacy(cwd, repo, rec) {
+  const raw = path.resolve(cwd || process.cwd());
   const stateDir = path.join(os.homedir(), '.claude', 'session-guard');
-  const dirs = [...new Set([cwd, repo.toplevel, repo.repoRoot].filter(Boolean))];
+  const dirs = [...new Set([raw, real(raw), repo.toplevel, repo.repoRoot])];
   let changed = false;
 
   for (const d of dirs) {
@@ -216,14 +282,14 @@ function migrateLegacy(cwd, repo, rec) {
     changed = true;
   }
 
-  const signalDir = path.join(os.tmpdir(), 'claude-ferry');
+  const signalDir = process.platform === 'win32' ? path.join(os.tmpdir(), 'claude-ferry') : '/tmp/claude-ferry';
   for (const d of dirs) {
     const file = path.join(signalDir, `${cksum(d)}.signal`);
     let target;
     try { target = fs.readFileSync(file, 'utf-8').split('\n')[0].trim(); } catch { continue; }
     try { fs.unlinkSync(file); } catch { /* noop */ }
     if (rec.slots.waybill || !target || !fs.existsSync(target)) continue;
-    rec.slots.waybill = newSlot('ferry', real(d), null, [
+    rec.slots.waybill = newSlot('ferry', repo.toplevel, null, [
       { role: 'waybill', path: target, owned: false },
     ]);
     changed = true;
@@ -242,26 +308,18 @@ function resolveSpecPath(slot, repo) {
   return a ? findSpec(a.path, [repo.repoRoot, repo.toplevel]) : null;
 }
 
-function slotUsable(slot, repo) {
-  for (const a of slot.artifacts || []) {
-    if (a.role === 'spec') {
-      if (!findSpec(a.path, [repo.repoRoot, repo.toplevel])) return false;
-    } else if (!fs.existsSync(a.path)) {
-      return false;
-    }
-  }
-  return true;
+// Build slots live and die by their spec; a vanished waybill is just dropped.
+function slotUsable(slot, name, repo) {
+  slot.artifacts = (slot.artifacts || []).filter((a) => a.role === 'spec' || fs.existsSync(a.path));
+  if (name === 'build') return !!resolveSpecPath(slot, repo);
+  return slot.artifacts.some((a) => a.role === 'waybill');
 }
 
 function dropSlot(rec, name, repo) {
   const slot = rec.slots[name];
   if (!slot) return [];
   const notices = [];
-  for (const a of slot.artifacts || []) {
-    if (guardedDelete(a, slot.toplevel || repo.toplevel) === 'kept-edited') {
-      notices.push(`[HANDOFF] waybill ${a.path} was edited — kept`);
-    }
-  }
+  for (const a of slot.artifacts || []) deleteOwned(rec, a, slot.toplevel || repo.toplevel, notices);
   delete rec.slots[name];
   return notices;
 }
@@ -272,7 +330,7 @@ function peek(dir) {
   const out = { repo, build: null, waybill: null };
   for (const name of SLOTS) {
     const slot = rec.slots[name];
-    if (slot && slotUsable(slot, repo)) out[name] = slot;
+    if (slot && slotUsable(slot, name, repo)) out[name] = slot;
   }
   return out;
 }
@@ -308,18 +366,33 @@ function renderWaybill(slot) {
   return `${head}\n\n---\n\n${stripStamp(fs.readFileSync(way.path, 'utf-8'))}`;
 }
 
-function consume(cwd) {
+// source is the SessionStart trigger. compact/resume continue an existing
+// session, so they never inject, advance counters or sweep.
+function consume(cwd, source) {
+  if (source === 'compact' || source === 'resume') return '';
   const repo = resolveRepo(cwd);
+  try {
+    return withLock(repo.key, () => consumeLocked(cwd, repo));
+  } catch (e) {
+    if (e.code === 'ELOCKED') return '';
+    throw e;
+  }
+}
+
+function consumeLocked(cwd, repo) {
   const rec = loadRecord(repo);
-  let dirty = migrateLegacy(real(cwd), repo, rec);
+  let dirty = migrateLegacy(cwd, repo, rec);
   const notices = [];
   const expiry = ((config.handoff || {}).expiryDays || 14) * DAY_MS;
 
   for (const name of SLOTS) {
     const slot = rec.slots[name];
     if (!slot) continue;
-    if (Date.now() - slot.createdAt > expiry || !slotUsable(slot, repo)) {
-      dropSlot(rec, name, repo);
+    const before = (slot.artifacts || []).length;
+    if (Date.now() - slot.createdAt > expiry || !slotUsable(slot, name, repo)) {
+      notices.push(...dropSlot(rec, name, repo));
+      dirty = true;
+    } else if (slot.artifacts.length !== before) {
       dirty = true;
     }
   }
@@ -343,11 +416,9 @@ function consume(cwd) {
       blocks.build = renderBuild(build, repo, true);
       build.injectedAt = Date.now();
     } else {
-      build.sessionsSinceInjected = (build.sessionsSinceInjected || 0) + 1;
       build.artifacts = (build.artifacts || []).filter((a) => {
         if (a.role !== 'waybill' || !a.owned) return true;
-        const r = guardedDelete(a, build.toplevel || repo.toplevel);
-        if (r === 'kept-edited') notices.push(`[HANDOFF] waybill ${a.path} was edited — kept`);
+        deleteOwned(rec, a, build.toplevel || repo.toplevel, notices);
         return false;
       });
       blocks.build = renderBuild(build, repo, false);
@@ -362,9 +433,13 @@ function consume(cwd) {
 // ─── arm / clear / clean ───────────────────────────────────────────────
 
 function arm(opts) {
+  const repo = resolveRepo(opts.dir);
+  return withLock(repo.key, () => armLocked(opts, repo));
+}
+
+function armLocked(opts, repo) {
   const kind = opts.kind;
   if (!SLOTS.includes(kind)) throw new Error('--kind must be build or waybill');
-  const repo = resolveRepo(opts.dir);
   const bases = [real(opts.dir || process.cwd()), repo.toplevel, repo.repoRoot];
   const artifacts = [];
   let resume = opts.resume || null;
@@ -387,6 +462,14 @@ function arm(opts) {
     if (!source) source = 'ferry';
   }
 
+  // A silent checkpoint must not displace a waybill that is still waiting to be read.
+  if (source === 'auto-checkpoint') {
+    const existing = loadRecord(repo).slots[kind];
+    if (existing && existing.source !== source && !existing.injectedAt) {
+      return { repo, waybill: null, notices: [], skipped: existing.source };
+    }
+  }
+
   if (opts.waybill) {
     const file = path.resolve(bases[0], opts.waybill);
     if (owned && !fs.existsSync(file)) throw new Error(`waybill not found: ${file}`);
@@ -397,66 +480,108 @@ function arm(opts) {
 
   const rec = loadRecord(repo);
   const old = rec.slots[kind];
+  const notices = [];
   if (old) {
     for (const a of old.artifacts || []) {
       if (a.role === 'waybill' && a.owned && (!waybillArt || waybillArt.path !== a.path)) {
-        guardedDelete(a, old.toplevel || repo.toplevel);
+        deleteOwned(rec, a, old.toplevel || repo.toplevel, notices);
       }
     }
   }
   rec.slots[kind] = newSlot(source, repo.toplevel, resume, artifacts);
   saveRecord(repo, rec);
-  return { repo, waybill: waybillArt };
+  return { repo, waybill: waybillArt, notices };
 }
 
 function clear(opts) {
   const kind = opts.kind;
   if (![...SLOTS, 'all'].includes(kind)) throw new Error('--kind must be build, waybill or all');
   const repo = resolveRepo(opts.dir);
-  const rec = loadRecord(repo);
-  for (const name of kind === 'all' ? SLOTS : [kind]) dropSlot(rec, name, repo);
-  saveRecord(repo, rec);
+  return withLock(repo.key, () => {
+    const rec = loadRecord(repo);
+    const notices = [];
+    for (const name of kind === 'all' ? SLOTS : [kind]) {
+      if (opts.source && (rec.slots[name] || {}).source !== opts.source) continue;
+      notices.push(...dropSlot(rec, name, repo));
+    }
+    saveRecord(repo, rec);
+    return notices;
+  });
 }
 
-function isLegacyWaybill(file) {
+// Untracked and listed in this repo's info/exclude, so only a ferry-era file qualifies.
+function isLegacyWaybill(file, toplevel) {
   try {
     const first = fs.readFileSync(file, 'utf-8').split('\n')[0];
-    return first.startsWith('# Waybill — ') && !STAMP_RE.test(first);
+    if (!first.startsWith('# Waybill — ') || STAMP_RE.test(first)) return false;
+    if (gitOut(['ls-files', '--error-unmatch', 'waybill.md'], toplevel) !== null) return false;
+    const rel = gitOut(['rev-parse', '--git-path', 'info/exclude'], toplevel);
+    if (!rel) return false;
+    return fs.readFileSync(path.resolve(toplevel, rel), 'utf-8').split('\n')
+      .some((l) => /^\/?waybill\.md(\s+#.*)?$/.test(l.trim()));
   } catch {
     return false;
   }
 }
 
+function firstLineId(file) {
+  try {
+    const m = STAMP_RE.exec(fs.readFileSync(file, 'utf-8'));
+    return m ? m[1] : null;
+  } catch {
+    return null;
+  }
+}
+
 function clean(opts) {
   const repo = resolveRepo(opts.dir);
-  const rec = loadRecord(repo);
-  const lines = [];
-  for (const name of SLOTS) {
-    const slot = rec.slots[name];
-    if (!slot) continue;
-    slot.artifacts = (slot.artifacts || []).filter((a) => {
-      if (a.role !== 'waybill' || !a.owned) return true;
-      if (!opts.yes) { lines.push(`owned ${a.path}`); return true; }
-      const r = guardedDelete(a, slot.toplevel || repo.toplevel);
-      if (r === 'kept-edited') { lines.push(`kept ${a.path} (edited)`); return true; }
-      lines.push(`deleted ${a.path}`);
-      return false;
-    });
-    if (name === 'waybill' && !slot.artifacts.some((a) => a.role === 'waybill')) delete rec.slots.waybill;
-  }
-  if (opts.yes) saveRecord(repo, rec);
-
-  const legacy = path.join(repo.toplevel, 'waybill.md');
-  if (isLegacyWaybill(legacy)) {
-    if (opts.yes && opts.legacy) {
-      fs.unlinkSync(legacy);
-      pruneExclude(repo.toplevel, { untagged: true });
-      lines.push(`deleted ${legacy}`);
-    } else {
-      lines.push(`legacy ${legacy}`);
+  return withLock(repo.key, () => {
+    const rec = loadRecord(repo);
+    const lines = [];
+    let changed = false;
+    for (const name of SLOTS) {
+      const slot = rec.slots[name];
+      if (!slot) continue;
+      slot.artifacts = (slot.artifacts || []).filter((a) => {
+        if (a.role !== 'waybill' || !a.owned) return true;
+        if (!opts.yes) { lines.push(`owned ${a.path}`); return true; }
+        const r = guardedDelete(a, slot.toplevel || repo.toplevel);
+        if (r === 'kept-edited') { lines.push(`kept ${a.path} (edited)`); return true; }
+        lines.push(`deleted ${a.path}`);
+        return false;
+      });
+      if (opts.yes && name === 'waybill' && !slot.artifacts.some((a) => a.role === 'waybill')) delete rec.slots.waybill;
     }
-  }
-  return lines;
+
+    // Edited files set aside by earlier sweeps; --yes is explicit consent to remove them.
+    const keptNow = [];
+    for (const k of rec.kept) {
+      if (!fs.existsSync(k.path)) { changed = true; continue; }
+      if (opts.yes && k.id && firstLineId(k.path) === k.id) {
+        try { fs.unlinkSync(k.path); } catch { keptNow.push(k); continue; }
+        maybePrune(k.path, repo.toplevel);
+        lines.push(`deleted ${k.path}`);
+        changed = true;
+        continue;
+      }
+      lines.push(`kept ${k.path} (edited)`);
+      keptNow.push(k);
+    }
+    rec.kept = keptNow;
+    if (opts.yes || changed) saveRecord(repo, rec);
+
+    const legacy = path.join(repo.toplevel, 'waybill.md');
+    if (isLegacyWaybill(legacy, repo.toplevel)) {
+      if (opts.yes && opts.legacy) {
+        fs.unlinkSync(legacy);
+        pruneExclude(repo.toplevel, { untagged: true });
+        lines.push(`deleted ${legacy}`);
+      } else {
+        lines.push(`legacy ${legacy}`);
+      }
+    }
+    return lines;
+  });
 }
 
 // ─── CLI helpers ───────────────────────────────────────────────────────

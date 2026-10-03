@@ -524,7 +524,7 @@ switch (command) {
   case 'handoff': {
     // SessionStart: inject armed build/waybill slots (one-shot, then swept).
     let text = '';
-    try { text = handoff.consume(PROJECT_DIR); } catch { /* never block session start */ }
+    try { text = handoff.consume(PROJECT_DIR, nonemptyString(hookInput.source)); } catch { /* never block session start */ }
     if (text) {
       const output = new OutputBuilder();
       output.add(text);
@@ -543,24 +543,29 @@ switch (command) {
     try {
       if (command === 'handoff-arm') {
         const r = handoff.arm({ ...flags, dir });
-        const id = r.waybill && r.waybill.id ? ` (waybill id=${r.waybill.id.slice(0, 8)})` : '';
-        console.log(`handoff: armed ${flags.kind} for ${r.repo.repoRoot}${id}`);
+        if (r.skipped) {
+          console.log(`handoff: kept existing ${r.skipped} waybill; auto-checkpoint skipped`);
+        } else {
+          for (const n of r.notices) console.log(n);
+          const id = r.waybill && r.waybill.id ? ` (waybill id=${r.waybill.id.slice(0, 8)})` : '';
+          console.log(`handoff: armed ${flags.kind} for ${r.repo.repoRoot}${id}`);
+        }
       } else if (command === 'handoff-clear') {
-        handoff.clear({ kind: flags.kind, dir });
+        for (const n of handoff.clear({ kind: flags.kind, source: typeof flags.source === 'string' ? flags.source : undefined, dir })) console.log(n);
         console.log(`handoff: cleared ${flags.kind}`);
       } else if (command === 'handoff-clean') {
         for (const line of handoff.clean({ yes: flags.yes === true, legacy: flags.legacy === true, dir })) console.log(line);
       } else {
-        const file = handoff.defaultWaybillPath(handoff.resolveRepo(dir));
+        const file = handoff.defaultWaybillPath(handoff.resolveRepo(dir), ['build', 'checkpoint'].includes(flags.kind) ? flags.kind : 'waybill');
         mkdirSync(dirname(file), { recursive: true });
         console.log(file);
       }
     } catch (e) {
       console.error(`${command} failed: ${e.message}`);
       console.error('Usage: handoff-arm --kind build|waybill [--spec P] [--waybill P] [--resume CMD] [--source S] [--owned true|false] [--dir D]');
-      console.error('       handoff-clear --kind build|waybill|all [--dir D]');
+      console.error('       handoff-clear --kind build|waybill|all [--source S] [--dir D]');
       console.error('       handoff-clean [--yes] [--legacy] [--dir D]');
-      console.error('       handoff-path [--dir D]');
+      console.error('       handoff-path [--kind build|waybill|checkpoint] [--dir D]');
       process.exit(1);
     }
     break;
