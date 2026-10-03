@@ -918,3 +918,28 @@ test('review ignores judged matches below the threshold', () => {
     assert.equal(cands.length, 0);
   } finally { rm(dir); }
 });
+
+test('relocation is deferred where no commit will carry it (default branch / detached HEAD)', () => {
+  const dir = mkRepo();
+  try {
+    execSync('git checkout -q -b main', { cwd: dir });
+    commit(dir, 'init');
+    const seed = [];
+    for (let i = 0; i < 20; i++) seed.push(item({ title: `Xdeferitem${i}`, date: `2026-02-${String(i + 1).padStart(2, '0')}` }));
+    fl.write(dir, seed);
+
+    assert.equal(fl.relocationAllowed(dir), false);
+    const preview = fl.previewCapture(dir, [{ title: 'Xdefernew', category: 'ideas' }], { cap: 20, relocate: false });
+    assert.equal(preview.relocationCandidates.length, 0);
+    assert.equal(preview.relocationDeferred, 1);
+    const res = fl.capture(dir, [{ title: 'Xdefernew', category: 'ideas' }], { cap: 20, relocate: false });
+    assert.equal(res.relocationDeferred, 1);
+    assert.equal(fl.count(dir), 21); // appended over the cap, nothing moved
+    assert.ok(!fs.existsSync(path.join(dir, 'LOGBOOK-ARCHIVE.md')));
+
+    execSync('git checkout -q -b feat/x', { cwd: dir });
+    assert.equal(fl.relocationAllowed(dir), true);
+    execSync('git checkout -q --detach', { cwd: dir });
+    assert.equal(fl.relocationAllowed(dir), false);
+  } finally { rm(dir); }
+});

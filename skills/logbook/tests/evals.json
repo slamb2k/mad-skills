@@ -22,7 +22,9 @@
     "prompt": "/logbook review",
     "assertions": [
       { "type": "contains", "value": "/$$/" },
-      { "type": "semantic", "value": "Makes clear that free-text follow-ups are only resolved after explicit user confirmation, while linked items may auto-resolve silently, and that running a lifecycle step never happens without the user choosing it" }
+      { "type": "semantic", "value": "States that free-text (unlinked) follow-ups are only resolved after the user explicitly confirms" },
+      { "type": "semantic", "value": "States that follow-ups linked to a task, spec, or PR may be resolved automatically without asking" },
+      { "type": "semantic", "value": "States that a lifecycle step is never run unless the user chooses it" }
     ]
   }
 ]

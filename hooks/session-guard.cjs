@@ -609,9 +609,10 @@ switch (command) {
     // Auto-capture from /build & /ship debrief; arg is a JSON array of items.
     try {
       const items = JSON.parse(process.argv[3] || '[]');
-      const r = ledger.capture(PROJECT_DIR, items);
+      const r = ledger.capture(PROJECT_DIR, items, { relocate: ledger.relocationAllowed(PROJECT_DIR) });
       const relocated = r.relocationCandidates.map((c) => c.title);
-      console.log(`LOGBOOK_CAPTURED added:${r.added} deduped:${r.deduped.length} relocated:${JSON.stringify(relocated)}`);
+      const deferred = r.relocationDeferred ? ` relocation_deferred:${r.relocationDeferred}` : '';
+      console.log(`LOGBOOK_CAPTURED added:${r.added} deduped:${r.deduped.length} relocated:${JSON.stringify(relocated)}${deferred}`);
     } catch (e) { console.error(`logbook-capture failed: ${e.message}`); }
     break;
   }
@@ -660,9 +661,12 @@ switch (command) {
     // shows this before the real capture writes anything (REQ-006/008).
     try {
       const items = JSON.parse(process.argv[3] || '[]');
-      const r = ledger.previewCapture(PROJECT_DIR, items);
+      const r = ledger.previewCapture(PROJECT_DIR, items, { relocate: ledger.relocationAllowed(PROJECT_DIR) });
       console.log('LOGBOOK_CAPTURE_PREVIEW_BEGIN');
       console.log(`would_add:${r.added} would_dedupe:${r.deduped.length}`);
+      if (r.relocationDeferred) {
+        console.log(`relocation_deferred:${r.relocationDeferred} (default branch or detached HEAD — no commit to carry it)`);
+      }
       if (!r.relocationCandidates.length) {
         console.log('would_relocate: none');
       } else {
