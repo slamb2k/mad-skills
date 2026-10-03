@@ -419,7 +419,7 @@ the spec's `completion_mode` frontmatter field (REQ-009, REQ-011):
   question asked (AC-004). `--auto` now runs full autopilot: CI-watch,
   fix-loop, merge, and post-merge teardown (REQ-013).
   ```
-  /ship --auto {approach_summary from ARCH_REPORT}. Files: {files from IMPL_REPORT}
+  /ship --auto --next-up-by-caller {approach_summary from ARCH_REPORT}. Files: {files from IMPL_REPORT}
   ```
 - **`completion_mode: pr`** — report the PR URL and summary, then stop. No
   question asked (AC-005).
@@ -591,6 +591,16 @@ Use ✅ for completed stages, ⏭️ for skipped, ❌ for failed.
 **Always emit this summary** — even when `/build` was invoked directly (not
 from `/speccy`). It serves as a compact status line for any multi-stage build,
 regardless of how it was triggered.
+
+### Next Up — final output
+
+`/build` always passes `--next-up-by-caller` when it invokes `/ship`, so the
+ranked **Next Up** report is rendered here instead — after the Pipeline
+Summary, as the very last output of the run (including a stopped or failed
+build, where item 1 is resolving that). Follow
+`skills/ship/references/next-up.md` (plugin root) for its sources, ranking,
+and colour-banded format; the debrief items captured in Stage 10 are among its
+inputs. Nothing may be printed after it.
 
 ---
 

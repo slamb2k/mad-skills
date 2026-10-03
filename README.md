@@ -20,7 +20,7 @@ A skill framework for Claude Code. Ships 14 skills covering the full development
 | `/hoist` | Generate low-infrastructure release pipelines that publish directly: npm, PyPI, crates, RubyGems, NuGet, Go, GitHub Releases, static sites, serverless. OIDC/trusted publishing. The non-container sibling of `/dock`. | `--skip-interview` `--dry-run` `--registry <name>` |
 | `/distil` | Generate N unique web design variations in a Vite + React + TypeScript + Tailwind project, served at `/1`, `/2`, `/3`. | `<count>` `--port <port>` `--spec <path>` `--favorites <1,2,3>` |
 | `/ferry` | Hand a session's live state across a context reset. Writes a waybill (outside the repo by default) and arms a one-shot handoff so the next fresh session resumes from it; `clean` removes leftover waybills. | `here` \| `commit` \| `clean` (default: out-of-tree waybill) |
-| `/logbook` | "What's on deck": computed best-practice lifecycle steps plus your committed follow-ups backlog in `LOGBOOK.md`. | `review` \| `archive` \| `resolve <n>` \| `dismiss <n>` \| `restore a<n>` \| `add <text>` |
+| `/logbook` | "What's on deck": computed best-practice lifecycle steps plus your committed follow-ups backlog in `LOGBOOK.md`. | `loop` \| `review` \| `archive` \| `resolve <n>` \| `dismiss <n>` \| `restore a<n>` \| `add <text>` |
 | `/wright` | Update installed Claude Code marketplace plugins from inside a session, all of them or one by fuzzy name. | `<plugin-name>` `--dry-run` |
 
 ## Lifecycle Overview
