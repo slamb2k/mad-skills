@@ -148,13 +148,18 @@ function _compute(projectDir) {
   sig.size = files.filter(f => CODE_EXT.has(extOf(f))).length;
 
   // components
+  const fileSet = new Set(files);
   for (const f of files) {
     const base = f.split('/').pop();
+    const dir = f.includes('/') ? f.slice(0, f.lastIndexOf('/')) : '.';
     let lang = MANIFESTS[base];
     if (!lang && base.endsWith('.gemspec')) lang = 'ruby';
     if (!lang && base.endsWith('.csproj')) lang = 'dotnet';
+    // A Gemfile alone is often just a docs site (Jekyll/Pages); beside a
+    // config.ru it is a Rack app (Rails, Sinatra, ...).
+    if (!lang && base === 'Gemfile' && fileSet.has(dir === '.' ? 'config.ru' : `${dir}/config.ru`)) lang = 'ruby';
     if (!lang) continue;
-    const dir = f.includes('/') ? f.slice(0, f.lastIndexOf('/')) : '.';
+    if (sig.components.some(c => c.dir === dir && c.language === lang)) continue;
     sig.components.push({ dir, language: lang, manifest: base });
   }
 
@@ -276,6 +281,10 @@ function componentIsServer(projectDir, c, files = []) {
   if (c.language === 'python') {
     const reqs = readText(join(projectDir, c.dir, 'requirements.txt')) || '';
     return re.test(reqs.toLowerCase());
+  }
+  if (c.language === 'ruby') {
+    const gemfile = readText(join(projectDir, c.dir, 'Gemfile')) || '';
+    return re.test(gemfile.toLowerCase());
   }
   if (c.language === 'go') {
     const prefix = c.dir && c.dir !== '.' ? `${c.dir}/` : '';

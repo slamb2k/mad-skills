@@ -671,10 +671,28 @@ function capture(projectDir, incoming, opts = {}) {
     const when = opts.today || today();
     const { items } = read(projectDir);
     const { added, deduped } = applyIncoming(items, incoming, when, opts.judgeAll);
+    if (opts.relocate === false) {
+      const deferred = selectRelocationCandidates(items, opts.cap || CAP).length;
+      write(projectDir, items);
+      return { added, deduped, relocationCandidates: [], relocationDeferred: deferred };
+    }
     const relocated = relocateOverflow(items, opts.cap || CAP, when);
     write(projectDir, items);
-    return { added, deduped, relocationCandidates: toRelocationSummary(relocated) };
-  }, { added: 0, deduped: [], relocationCandidates: [] });
+    return { added, deduped, relocationCandidates: toRelocationSummary(relocated), relocationDeferred: 0 };
+  }, { added: 0, deduped: [], relocationCandidates: [], relocationDeferred: 0 });
+}
+
+/**
+ * Relocation restructures two committed files, so it is only legal where a
+ * commit will carry it: a named, non-default branch. On the default branch
+ * (e.g. post-merge) or a detached HEAD the capture appends and defers it.
+ */
+function relocationAllowed(projectDir) {
+  const branch = gitArgs(['branch', '--show-current'], projectDir);
+  if (!branch) return false;
+  const head = gitArgs(['symbolic-ref', '--short', 'refs/remotes/origin/HEAD'], projectDir);
+  const defaults = head ? [head.replace(/^[^/]+\//, '')] : ['main', 'master'];
+  return !defaults.includes(branch);
 }
 
 /**
@@ -689,8 +707,11 @@ function previewCapture(projectDir, incoming, opts = {}) {
     const { items } = read(projectDir); // fresh local array — never written
     const { added, deduped } = applyIncoming(items, incoming, when, opts.judgeAll);
     const candidates = selectRelocationCandidates(items, opts.cap || CAP);
-    return { added, deduped, relocationCandidates: toRelocationSummary(candidates) };
-  }, { added: 0, deduped: [], relocationCandidates: [] });
+    if (opts.relocate === false) {
+      return { added, deduped, relocationCandidates: [], relocationDeferred: candidates.length };
+    }
+    return { added, deduped, relocationCandidates: toRelocationSummary(candidates), relocationDeferred: 0 };
+  }, { added: 0, deduped: [], relocationCandidates: [], relocationDeferred: 0 });
 }
 
 /** Resolve `selector` (1-based open index, `a`-prefixed archive index, or title substring). */
@@ -978,7 +999,7 @@ function daysBetween(fromDate, toDate) {
 module.exports = {
   // IO surface
   read, write, openItems, count, capture, previewCapture, resolve, dismiss, add,
-  restore, archiveView, autoResolveLinked, reviewCandidates, defaultBranch,
+  restore, archiveView, autoResolveLinked, reviewCandidates, defaultBranch, relocationAllowed,
   // pure core (round-trip test) + the heading map used by session-guard
   parse, serialize, HEADINGS,
 };

@@ -592,7 +592,10 @@ is empty and nothing was surfaced, show nothing at all (AC-008).
 
 **If shipping genuinely produced new follow-ups**, capture them with
 `source: "/ship #<pr>"` (the PR number *is* known now), using the same
-preview-then-capture flow as Stage 1b. Then tell the user plainly:
+preview-then-capture flow as Stage 1b. On the default branch session-guard
+never relocates (cap overflow is reported as `relocation_deferred:N` and
+happens at the next feature-branch capture), so this is always a plain append.
+Then tell the user plainly:
 
 > The ledger now has uncommitted changes on `{DEFAULT_BRANCH}` — captured after
 > the merge, so no commit was left to carry them.

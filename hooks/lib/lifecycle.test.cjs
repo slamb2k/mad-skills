@@ -339,6 +339,35 @@ test('server: a Rust crate name only matches whole', () => {
   assert.equal(sigFor({ 'Cargo.toml': '[package]\nname = "x"\n[dependencies]\naxum = "0.7"\n', 'src/main.rs': 'fn main() {}\n' }).hasServer, true);
 });
 
+test('server: a Rack app (Gemfile beside config.ru) is a ruby service', () => {
+  const s = sigFor({
+    'Gemfile': "source 'https://rubygems.org'\ngem 'rails', '~> 7.1'\n",
+    'config.ru': "require_relative 'config/environment'\nrun Rails.application\n",
+    'app/models/user.rb': 'class User; end\n',
+  });
+  assert.deepEqual(s.components.map(c => c.language), ['ruby']);
+  assert.equal(s.hasServer, true);
+});
+
+test('components: a docs-site Gemfile without config.ru is not a ruby component', () => {
+  const s = sigFor({
+    'package.json': '{"name":"x"}',
+    'index.js': 'module.exports = 1;\n',
+    'docs/Gemfile': "source 'https://rubygems.org'\ngem 'github-pages'\n",
+  });
+  assert.deepEqual(s.components.map(c => c.language), ['node']);
+});
+
+test('components: a gem with both gemspec and Gemfile is one ruby component', () => {
+  const s = sigFor({
+    'x.gemspec': "Gem::Specification.new { |s| s.name = 'x' }\n",
+    'Gemfile': "source 'https://rubygems.org'\ngemspec\n",
+    'config.ru': 'run ->(_) { [200, {}, []] }\n',
+    'lib/x.rb': 'module X; end\n',
+  });
+  assert.equal(s.components.filter(c => c.language === 'ruby').length, 1);
+});
+
 test('writeMarker/readMarker round-trip', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lc-'));
   try {
